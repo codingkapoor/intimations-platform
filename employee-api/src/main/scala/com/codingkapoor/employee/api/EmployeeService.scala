@@ -5,7 +5,7 @@ import com.lightbend.lagom.scaladsl.api.transport.Method
 import com.lightbend.lagom.scaladsl.api.{Descriptor, Service, ServiceCall}
 import play.api.libs.json.{Json, Writes}
 
-trait EmployeeServiceApi extends Service {
+trait EmployeeService extends Service {
 
   def addEmployee(): ServiceCall[Employee, Done]
 

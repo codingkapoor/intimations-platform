@@ -1,6 +1,6 @@
 package com.codingkapoor.employee.core
 
-import com.codingkapoor.employee.api.EmployeeServiceApi
+import com.codingkapoor.employee.api.EmployeeService
 import com.lightbend.lagom.scaladsl.api.ServiceLocator
 import com.lightbend.lagom.scaladsl.api.ServiceLocator.NoServiceLocator
 import com.lightbend.lagom.scaladsl.devmode.LagomDevModeComponents
@@ -16,5 +16,5 @@ class EmployeeLoader extends LagomApplicationLoader {
   override def loadDevMode(context: LagomApplicationContext): LagomApplication =
     new EmployeeApplication(context) with LagomDevModeComponents
 
-  override def describeService = Some(readDescriptor[EmployeeServiceApi])
+  override def describeService = Some(readDescriptor[EmployeeService])
 }

@@ -8,7 +8,7 @@ val macwire = "com.softwaremill.macwire" %% "macros" % "2.3.0" % "provided"
 val scalaTest = "org.scalatest" %% "scalatest" % "3.0.4" % Test
 
 lazy val `simple-lms` = (project in file("."))
-  .aggregate(`employee-api`, `employee`)
+  .aggregate(`employee-api`, `employee-impl`)
 
 lazy val `employee-api` = (project in file("employee-api"))
   .settings(
@@ -17,7 +17,7 @@ lazy val `employee-api` = (project in file("employee-api"))
     )
   )
 
-lazy val `employee` = (project in file("employee"))
+lazy val `employee-impl` = (project in file("employee-impl"))
   .enablePlugins(LagomScala)
   .settings(
     libraryDependencies ++= Seq(

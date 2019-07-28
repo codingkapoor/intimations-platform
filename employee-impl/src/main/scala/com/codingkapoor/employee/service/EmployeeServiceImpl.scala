@@ -1,13 +1,13 @@
 package com.codingkapoor.employee.service
 
 import akka.{Done, NotUsed}
-import com.codingkapoor.employee.api.{Employee, EmployeeServiceApi}
+import com.codingkapoor.employee.api.{Employee, EmployeeService}
 import com.codingkapoor.employee.persistence.read.EmployeeRepository
 import com.codingkapoor.employee.persistence.write.{AddEmployee, EmployeePersistenceEntity, UpdateEmployee}
 import com.lightbend.lagom.scaladsl.api.ServiceCall
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntityRegistry
 
-class EmployeeService(persistentEntityRegistry: PersistentEntityRegistry, employeeRepository: EmployeeRepository) extends EmployeeServiceApi {
+class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, employeeRepository: EmployeeRepository) extends EmployeeService {
   private def entityRef(id: String) = persistentEntityRegistry.refFor[EmployeePersistenceEntity](id)
 
   override def addEmployee(): ServiceCall[Employee, Done] = ServiceCall { employee =>
