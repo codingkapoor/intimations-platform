@@ -1,4 +1,4 @@
-package com.codingkapoor.employees.api
+package com.codingkapoor.employee.api
 
 import java.time.LocalDate
 

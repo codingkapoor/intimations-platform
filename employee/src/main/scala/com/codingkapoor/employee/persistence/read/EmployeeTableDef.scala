@@ -1,11 +1,11 @@
-package com.codingkapoor.employees.persistence.read
+package com.codingkapoor.employee.persistence.read
 
 import java.time.LocalDate
 import slick.jdbc.MySQLProfile.api._
 
-case class EmployeeReadEntity(id: String, name: String, gender: String, doj: LocalDate, pfn: String)
+case class EmployeeEntity(id: String, name: String, gender: String, doj: LocalDate, pfn: String)
 
-class EmployeeTableDef(tag: Tag) extends Table[EmployeeReadEntity](tag, "EMPLOYEE") {
+class EmployeeTableDef(tag: Tag) extends Table[EmployeeEntity](tag, "employee") {
 
   def id = column[String]("ID", O.PrimaryKey)
 
@@ -18,7 +18,7 @@ class EmployeeTableDef(tag: Tag) extends Table[EmployeeReadEntity](tag, "EMPLOYE
   def pfn = column[String]("PFN")
 
   override def * =
-    (id, name, gender, doj, pfn) <> (EmployeeReadEntity.tupled, EmployeeReadEntity.unapply)
+    (id, name, gender, doj, pfn) <> (EmployeeEntity.tupled, EmployeeEntity.unapply)
 }
 
 object EmployeeTableDef {

@@ -1,4 +1,4 @@
-package com.codingkapoor.employees.persistence.write
+package com.codingkapoor.employee.persistence.write
 
 import com.lightbend.lagom.scaladsl.playjson.{JsonSerializer, JsonSerializerRegistry}
 

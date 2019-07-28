@@ -1,6 +1,6 @@
-package com.codingkapoor.employees.core
+package com.codingkapoor.employee.core
 
-import com.codingkapoor.employees.api.EmployeeServiceApi
+import com.codingkapoor.employee.api.EmployeeServiceApi
 import com.lightbend.lagom.scaladsl.api.ServiceLocator
 import com.lightbend.lagom.scaladsl.api.ServiceLocator.NoServiceLocator
 import com.lightbend.lagom.scaladsl.devmode.LagomDevModeComponents

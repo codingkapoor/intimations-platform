@@ -1,4 +1,4 @@
-package com.codingkapoor.employees.api
+package com.codingkapoor.employee.api
 
 import akka.{Done, NotUsed}
 import com.lightbend.lagom.scaladsl.api.transport.Method

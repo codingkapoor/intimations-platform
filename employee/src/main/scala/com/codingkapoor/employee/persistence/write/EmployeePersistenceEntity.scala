@@ -1,4 +1,4 @@
-package com.codingkapoor.employees.persistence.write
+package com.codingkapoor.employee.persistence.write
 
 import akka.Done
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity

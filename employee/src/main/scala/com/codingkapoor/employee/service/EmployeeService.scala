@@ -1,9 +1,9 @@
-package com.codingkapoor.employees.service
+package com.codingkapoor.employee.service
 
 import akka.{Done, NotUsed}
-import com.codingkapoor.employees.api.{Employee, EmployeeServiceApi}
-import com.codingkapoor.employees.persistence.read.EmployeeRepository
-import com.codingkapoor.employees.persistence.write.{AddEmployee, EmployeePersistenceEntity, UpdateEmployee}
+import com.codingkapoor.employee.api.{Employee, EmployeeServiceApi}
+import com.codingkapoor.employee.persistence.read.EmployeeRepository
+import com.codingkapoor.employee.persistence.write.{AddEmployee, EmployeePersistenceEntity, UpdateEmployee}
 import com.lightbend.lagom.scaladsl.api.ServiceCall
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntityRegistry
 
