@@ -1,4 +1,4 @@
-package com.codingkapoor.employees.persistence
+package com.codingkapoor.employees.persistence.write
 
 import java.time.LocalDate
 

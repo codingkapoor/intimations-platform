@@ -1,7 +1,7 @@
 package com.codingkapoor.employees.persistence.read
 
 import akka.Done
-import com.codingkapoor.employees.persistence.{EmployeeAdded, EmployeeEvent, EmployeeUpdated}
+import com.codingkapoor.employees.persistence.write.{EmployeeAdded, EmployeeEvent, EmployeeUpdated}
 import com.lightbend.lagom.scaladsl.persistence.{AggregateEventTag, EventStreamElement, ReadSideProcessor}
 import com.lightbend.lagom.scaladsl.persistence.slick.SlickReadSide
 import slick.jdbc.MySQLProfile.api._

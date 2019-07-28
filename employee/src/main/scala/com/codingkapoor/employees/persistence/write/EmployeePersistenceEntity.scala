@@ -1,7 +1,6 @@
 package com.codingkapoor.employees.persistence.write
 
 import akka.Done
-import com.codingkapoor.employees.persistence.{EmployeeAdded, EmployeeEvent, EmployeeUpdated}
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
 
 class EmployeePersistenceEntity extends PersistentEntity {

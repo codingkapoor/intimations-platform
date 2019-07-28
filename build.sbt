@@ -32,3 +32,5 @@ lazy val `employee` = (project in file("employee"))
   )
   .settings(lagomForkedTestSettings)
   .dependsOn(`employee-api`)
+
+lagomCassandraCleanOnStart in ThisBuild := true
