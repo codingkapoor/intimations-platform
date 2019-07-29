@@ -1,11 +1,14 @@
 package com.codingkapoor.employee.service
 
 import akka.{Done, NotUsed}
+import com.codingkapoor.employee.api
 import com.codingkapoor.employee.api.{Employee, EmployeeService}
 import com.codingkapoor.employee.persistence.read.EmployeeRepository
-import com.codingkapoor.employee.persistence.write.{AddEmployee, EmployeePersistenceEntity, UpdateEmployee}
+import com.codingkapoor.employee.persistence.write._
 import com.lightbend.lagom.scaladsl.api.ServiceCall
-import com.lightbend.lagom.scaladsl.persistence.PersistentEntityRegistry
+import com.lightbend.lagom.scaladsl.api.broker.Topic
+import com.lightbend.lagom.scaladsl.broker.TopicProducer
+import com.lightbend.lagom.scaladsl.persistence.{EventStreamElement, PersistentEntityRegistry}
 
 class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, employeeRepository: EmployeeRepository) extends EmployeeService {
   private def entityRef(id: String) = persistentEntityRegistry.refFor[EmployeePersistenceEntity](id)
@@ -24,5 +27,19 @@ class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, em
 
   override def updateEmployee(id: String): ServiceCall[Employee, Done] = { employee =>
     entityRef(employee.id).ask(UpdateEmployee(employee))
+  }
+
+  override def employeeTopic: Topic[api.EmployeeEvent] = {
+    TopicProducer.singleStreamWithOffset { fromOffset =>
+      persistentEntityRegistry.eventStream(EmployeeEvent.Tag, fromOffset)
+        .map(event => (convertEvent(event), event.offset))
+    }
+  }
+
+  private def convertEvent(eventStreamElement: EventStreamElement[EmployeeEvent]): api.EmployeeEvent = {
+    eventStreamElement.event match {
+      case EmployeeAdded(id, name, gender, doj, pfn) => api.EmployeeAdded(id, name, gender, doj, pfn)
+      case EmployeeUpdated(id, name, gender, doj, pfn) => api.EmployeeUpdated(id, name, gender, doj, pfn)
+    }
   }
 }
