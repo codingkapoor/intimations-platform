@@ -2,7 +2,6 @@ package com.codingkapoor.employee.api
 
 import akka.{Done, NotUsed}
 import com.lightbend.lagom.scaladsl.api.broker.Topic
-import com.lightbend.lagom.scaladsl.api.broker.kafka.{KafkaProperties, PartitionKeyStrategy}
 import com.lightbend.lagom.scaladsl.api.transport.Method
 import com.lightbend.lagom.scaladsl.api.{Descriptor, Service, ServiceCall}
 
@@ -32,13 +31,7 @@ trait EmployeeService extends Service {
         restCall(Method.GET, "/api/employees/:id", getEmployee _),
         restCall(Method.GET, "/api/employees", getEmployees _)
       )
-      .withTopics(
-        topic(EmployeeService.TOPIC_NAME, employeeTopic _)
-          .addProperty(
-            KafkaProperties.partitionKeyStrategy,
-            PartitionKeyStrategy[EmployeeEvent](_.id)
-          )
-      )
+      .withTopics(topic(EmployeeService.TOPIC_NAME, employeeTopic))
       .withAutoAcl(true)
   }
 }

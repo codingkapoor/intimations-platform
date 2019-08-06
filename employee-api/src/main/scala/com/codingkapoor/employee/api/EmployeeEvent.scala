@@ -3,9 +3,7 @@ package com.codingkapoor.employee.api
 import java.time.LocalDate
 import play.api.libs.json.{Format, Json}
 
-sealed trait EmployeeEvent {
-  val id: String
-}
+sealed trait EmployeeEvent
 
 object EmployeeEvent {
   implicit val format: Format[EmployeeEvent] = Json.format[EmployeeEvent]
