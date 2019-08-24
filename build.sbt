@@ -5,6 +5,7 @@ scalaVersion in ThisBuild := "2.12.8"
 
 val mysql = "mysql" % "mysql-connector-java" % "8.0.17"
 val macwire = "com.softwaremill.macwire" %% "macros" % "2.3.0" % "provided"
+val playJsonDerivedCodecs = "org.julienrf" %% "play-json-derived-codecs" % "4.0.0"
 val scalaTest = "org.scalatest" %% "scalatest" % "3.0.4" % Test
 
 lazy val `simple-lms` = (project in file("."))
@@ -13,7 +14,8 @@ lazy val `simple-lms` = (project in file("."))
 lazy val `employee-api` = (project in file("employee-api"))
   .settings(
     libraryDependencies ++= Seq(
-      lagomScaladslApi
+      lagomScaladslApi,
+      playJsonDerivedCodecs
     )
   )
 

@@ -18,9 +18,3 @@ case class EmployeeAdded(id: String, name: String, gender: String, doj: LocalDat
 object EmployeeAdded {
   implicit val format: Format[EmployeeAdded] = Json.format[EmployeeAdded]
 }
-
-case class EmployeeUpdated(id: String, name: String, gender: String, doj: LocalDate, pfn: String) extends EmployeeEvent
-
-object EmployeeUpdated {
-  implicit val format: Format[EmployeeUpdated] = Json.format[EmployeeUpdated]
-}

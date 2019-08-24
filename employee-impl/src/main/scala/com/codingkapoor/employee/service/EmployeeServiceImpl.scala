@@ -1,6 +1,6 @@
 package com.codingkapoor.employee.service
 
-import akka.{Done, NotUsed}
+import akka.Done
 import com.codingkapoor.employee.api
 import com.codingkapoor.employee.api.{Employee, EmployeeService}
 import com.codingkapoor.employee.persistence.read.EmployeeRepository
@@ -17,29 +17,16 @@ class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, em
     entityRef(employee.id).ask(AddEmployee(employee))
   }
 
-  override def getEmployee(id: String): ServiceCall[NotUsed, Employee] = ServiceCall { _ =>
-    employeeRepository.getEmployee(id)
-  }
-
-  override def getEmployees: ServiceCall[NotUsed, Seq[Employee]] = ServiceCall { _ =>
-    employeeRepository.getEmployees
-  }
-
-  override def updateEmployee(id: String): ServiceCall[Employee, Done] = { employee =>
-    entityRef(employee.id).ask(UpdateEmployee(employee))
-  }
-
-  override def employeeTopic: Topic[api.EmployeeEvent] = {
+  override def employeeTopic: Topic[api.EmployeeAddedEvent] = {
     TopicProducer.singleStreamWithOffset { fromOffset =>
       persistentEntityRegistry.eventStream(EmployeeEvent.Tag, fromOffset)
         .map(event => (convertEvent(event), event.offset))
     }
   }
 
-  private def convertEvent(eventStreamElement: EventStreamElement[EmployeeEvent]): api.EmployeeEvent = {
+  private def convertEvent(eventStreamElement: EventStreamElement[EmployeeEvent]): api.EmployeeAddedEvent = {
     eventStreamElement.event match {
-      case EmployeeAdded(id, name, gender, doj, pfn) => api.EmployeeAdded(id, name, gender, doj, pfn)
-      case EmployeeUpdated(id, name, gender, doj, pfn) => api.EmployeeUpdated(id, name, gender, doj, pfn)
+      case EmployeeAdded(id, name, gender, doj, pfn) => api.EmployeeAddedEvent(id, name, gender, doj, pfn)
     }
   }
 }

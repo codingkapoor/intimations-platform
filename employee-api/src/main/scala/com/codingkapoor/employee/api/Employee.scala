@@ -11,7 +11,7 @@ case class Employee(id: String, name: String, gender: String, doj: LocalDate, pf
       && gender != null && gender.trim.nonEmpty
       && doj != null
       && pfn != null && pfn.trim.nonEmpty,
-    "Id, Name, Genderm Date of joining & PF No. are mandatory information."
+    "Id, Name, Gender, Date of joining & PF No. are mandatory information."
   )
 }
 
