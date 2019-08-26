@@ -14,7 +14,7 @@ trait EmployeeService extends Service {
 
   def addEmployee(): ServiceCall[Employee, Done]
 
-  def employeeTopic: Topic[EmployeeAddedEvent]
+  def employeeTopic(): Topic[EmployeeAddedEvent]
 
   override final def descriptor: Descriptor = {
     import Service._
