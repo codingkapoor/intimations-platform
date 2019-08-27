@@ -16,6 +16,10 @@ class EmployeeRepository(db: Database) {
     (employees += employee).map(_ => Done)
   }
 
+  def getEmployee(id: String): Future[Employee] = {
+    db.run(employees.filter(_.id === id).result.head).map(convertEmployeeReadEntityToEmployee)
+  }
+
   def getEmployees: Future[Seq[Employee]] = {
     db.run(employees.result).map(_.map(convertEmployeeReadEntityToEmployee))
   }

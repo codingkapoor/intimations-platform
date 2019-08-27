@@ -17,6 +17,10 @@ class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, em
     entityRef(employee.id).ask(AddEmployee(employee))
   }
 
+  override def getEmployee(id: String): ServiceCall[NotUsed, Employee] = ServiceCall { _ =>
+    employeeRepository.getEmployee(id)
+  }
+
   override def getEmployees: ServiceCall[NotUsed, Seq[Employee]] = ServiceCall { _ =>
     employeeRepository.getEmployees
   }
