@@ -16,5 +16,13 @@ class EmployeeRepository(db: Database) {
     (employees += employee).map(_ => Done)
   }
 
+  def getEmployees: Future[Seq[Employee]] = {
+    db.run(employees.result).map(_.map(convertEmployeeReadEntityToEmployee))
+  }
+
+  private def convertEmployeeReadEntityToEmployee(e: EmployeeEntity): Employee = {
+    Employee(e.id, e.name, e.gender, e.doj, e.pfn)
+  }
+
   def createTable: DBIO[Unit] = employees.schema.createIfNotExists
 }

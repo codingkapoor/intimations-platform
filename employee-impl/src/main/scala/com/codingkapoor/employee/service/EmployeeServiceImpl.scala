@@ -1,6 +1,6 @@
 package com.codingkapoor.employee.service
 
-import akka.Done
+import akka.{Done, NotUsed}
 import com.codingkapoor.employee.api
 import com.codingkapoor.employee.api.{Employee, EmployeeService}
 import com.codingkapoor.employee.persistence.read.EmployeeRepository
@@ -15,6 +15,10 @@ class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, em
 
   override def addEmployee(): ServiceCall[Employee, Done] = ServiceCall { employee =>
     entityRef(employee.id).ask(AddEmployee(employee))
+  }
+
+  override def getEmployees: ServiceCall[NotUsed, Seq[Employee]] = ServiceCall { _ =>
+    employeeRepository.getEmployees
   }
 
   override def employeeTopic: Topic[api.EmployeeAddedEvent] = {
