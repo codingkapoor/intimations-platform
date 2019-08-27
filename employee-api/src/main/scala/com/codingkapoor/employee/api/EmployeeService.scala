@@ -18,6 +18,8 @@ trait EmployeeService extends Service {
 
   def getEmployee(id: String): ServiceCall[NotUsed, Employee]
 
+  def updateEmployee(id: String): ServiceCall[Employee, Done]
+
   def employeeTopic: Topic[EmployeeEvent]
 
   override final def descriptor: Descriptor = {
@@ -27,7 +29,8 @@ trait EmployeeService extends Service {
       .withCalls(
         restCall(Method.POST, "/api/employees", addEmployee _),
         restCall(Method.GET, "/api/employees", getEmployees _),
-        restCall(Method.GET, "/api/employees/:id", getEmployee _)
+        restCall(Method.GET, "/api/employees/:id", getEmployee _),
+        restCall(Method.PUT, "/api/employees/:id", updateEmployee _)
       )
       .withTopics(
         topic(EmployeeService.TOPIC_NAME, employeeTopic _)

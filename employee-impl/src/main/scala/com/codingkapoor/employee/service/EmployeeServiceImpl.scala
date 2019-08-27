@@ -25,6 +25,10 @@ class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, em
     employeeRepository.getEmployees
   }
 
+  override def updateEmployee(id: String): ServiceCall[Employee, Done] = { employee =>
+    entityRef(employee.id).ask(UpdateEmployee(employee))
+  }
+
   override def employeeTopic: Topic[api.EmployeeEvent] = {
     TopicProducer.singleStreamWithOffset { fromOffset =>
       persistentEntityRegistry.eventStream(EmployeeEvent.Tag, fromOffset)
@@ -35,6 +39,7 @@ class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, em
   private def convertEvent(eventStreamElement: EventStreamElement[EmployeeEvent]): api.EmployeeEvent = {
     eventStreamElement.event match {
       case EmployeeAdded(id, name, gender, doj, pfn) => api.EmployeeAdded(id, name, gender, doj, pfn)
+      case EmployeeUpdated(id, name, gender, doj, pfn) => api.EmployeeUpdated(id, name, gender, doj, pfn)
     }
   }
 }

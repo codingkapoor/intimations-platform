@@ -8,6 +8,8 @@ object EmployeeSerializerRegistry extends JsonSerializerRegistry {
   override def serializers: Seq[JsonSerializer[_]] = Seq(
     JsonSerializer[EmployeeState],
     JsonSerializer[AddEmployee],
-    JsonSerializer[EmployeeAdded]
+    JsonSerializer[EmployeeAdded],
+    JsonSerializer[UpdateEmployee],
+    JsonSerializer[EmployeeUpdated]
   )
 }

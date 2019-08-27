@@ -16,8 +16,16 @@ class EmployeePersistenceEntity extends PersistentEntity {
         ctx.thenPersist(EmployeeAdded(e.id, e.name, e.gender, e.doj, e.pfn)) { _ =>
           ctx.reply(Done)
         }
+    }.onCommand[UpdateEmployee, Done] {
+      case (UpdateEmployee(e), ctx, _) =>
+        ctx.thenPersist(EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.pfn)) { _ =>
+          ctx.reply(Done)
+        }
     }.onEvent {
       case (EmployeeAdded(id, name, gender, doj, pfn), _) =>
+        Some(EmployeeState(id, name, gender, doj, pfn))
+    }.onEvent {
+      case (EmployeeUpdated(id, name, gender, doj, pfn), _) =>
         Some(EmployeeState(id, name, gender, doj, pfn))
     }
 }

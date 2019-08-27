@@ -24,6 +24,10 @@ class EmployeeRepository(db: Database) {
     db.run(employees.result).map(_.map(convertEmployeeReadEntityToEmployee))
   }
 
+  def updateEmployee(employee: EmployeeEntity): DBIO[Done] = {
+    employees.insertOrUpdate(employee).map(_ => Done)
+  }
+
   private def convertEmployeeReadEntityToEmployee(e: EmployeeEntity): Employee = {
     Employee(e.id, e.name, e.gender, e.doj, e.pfn)
   }
