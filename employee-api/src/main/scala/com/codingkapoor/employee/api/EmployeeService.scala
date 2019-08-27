@@ -14,11 +14,11 @@ trait EmployeeService extends Service {
 
   def addEmployee(): ServiceCall[Employee, Done]
 
+  def updateEmployee(id: String): ServiceCall[Employee, Done]
+
   def getEmployees: ServiceCall[NotUsed, Seq[Employee]]
 
   def getEmployee(id: String): ServiceCall[NotUsed, Employee]
-
-  def updateEmployee(id: String): ServiceCall[Employee, Done]
 
   def employeeTopic: Topic[EmployeeEvent]
 
@@ -28,9 +28,9 @@ trait EmployeeService extends Service {
     named("employee")
       .withCalls(
         restCall(Method.POST, "/api/employees", addEmployee _),
+        restCall(Method.PUT, "/api/employees/:id", updateEmployee _),
         restCall(Method.GET, "/api/employees", getEmployees _),
-        restCall(Method.GET, "/api/employees/:id", getEmployee _),
-        restCall(Method.PUT, "/api/employees/:id", updateEmployee _)
+        restCall(Method.GET, "/api/employees/:id", getEmployee _)
       )
       .withTopics(
         topic(EmployeeService.TOPIC_NAME, employeeTopic _)

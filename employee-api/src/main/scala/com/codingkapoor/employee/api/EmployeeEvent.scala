@@ -9,6 +9,10 @@ sealed trait EmployeeEvent {
   val id: String
 }
 
+object EmployeeEvent {
+  implicit val format: Format[EmployeeEvent] = derived.flat.oformat((__ \ "type").format[String])
+}
+
 case class EmployeeAdded(id: String, name: String, gender: String, doj: LocalDate, pfn: String) extends EmployeeEvent
 
 object EmployeeAdded {
@@ -19,8 +23,4 @@ case class EmployeeUpdated(id: String, name: String, gender: String, doj: LocalD
 
 object EmployeeUpdated {
   implicit val format: Format[EmployeeUpdated] = Json.format[EmployeeUpdated]
-}
-
-object EmployeeEvent {
-  implicit val format: Format[EmployeeEvent] = derived.flat.oformat((__ \ "type").format[String])
 }

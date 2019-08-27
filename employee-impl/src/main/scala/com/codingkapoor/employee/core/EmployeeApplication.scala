@@ -21,6 +21,7 @@ abstract class EmployeeApplication(context: LagomApplicationContext)
     with WriteSideCassandraPersistenceComponents
     with HikariCPComponents
     with AhcWSComponents {
+
   override lazy val lagomServer = serverFor[EmployeeService](wire[EmployeeServiceImpl])
   override lazy val jsonSerializerRegistry = EmployeeSerializerRegistry
 
