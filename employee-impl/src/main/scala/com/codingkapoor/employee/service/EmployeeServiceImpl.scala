@@ -25,16 +25,16 @@ class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, em
     employeeRepository.getEmployees
   }
 
-  override def employeeTopic: Topic[api.EmployeeAddedEvent] = {
+  override def employeeTopic: Topic[api.EmployeeEvent] = {
     TopicProducer.singleStreamWithOffset { fromOffset =>
       persistentEntityRegistry.eventStream(EmployeeEvent.Tag, fromOffset)
         .map(event => (convertEvent(event), event.offset))
     }
   }
 
-  private def convertEvent(eventStreamElement: EventStreamElement[EmployeeEvent]): api.EmployeeAddedEvent = {
+  private def convertEvent(eventStreamElement: EventStreamElement[EmployeeEvent]): api.EmployeeEvent = {
     eventStreamElement.event match {
-      case EmployeeAdded(id, name, gender, doj, pfn) => api.EmployeeAddedEvent(id, name, gender, doj, pfn)
+      case EmployeeAdded(id, name, gender, doj, pfn) => api.EmployeeAdded(id, name, gender, doj, pfn)
     }
   }
 }
