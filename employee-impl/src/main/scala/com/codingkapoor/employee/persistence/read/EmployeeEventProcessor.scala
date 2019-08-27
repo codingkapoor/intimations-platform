@@ -32,4 +32,5 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
 
     employeeRepository.updateEmployee(employee)
   }
+
 }

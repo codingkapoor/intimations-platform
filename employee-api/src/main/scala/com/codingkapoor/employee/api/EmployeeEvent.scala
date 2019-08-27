@@ -1,12 +1,12 @@
 package com.codingkapoor.employee.api
 
 import java.time.LocalDate
-import play.api.libs.json.{Format, Json}
 
-sealed trait EmployeeEvent
+import julienrf.json.derived
+import play.api.libs.json._
 
-object EmployeeEvent {
-  implicit val format: Format[EmployeeEvent] = Json.format[EmployeeEvent]
+sealed trait EmployeeEvent {
+  val id: String
 }
 
 case class EmployeeAdded(id: String, name: String, gender: String, doj: LocalDate, pfn: String) extends EmployeeEvent
@@ -19,4 +19,8 @@ case class EmployeeUpdated(id: String, name: String, gender: String, doj: LocalD
 
 object EmployeeUpdated {
   implicit val format: Format[EmployeeUpdated] = Json.format[EmployeeUpdated]
+}
+
+object EmployeeEvent {
+  implicit val format: Format[EmployeeEvent] = derived.flat.oformat((__ \ "type").format[String])
 }
