@@ -30,6 +30,30 @@ $ git clone git@github.com:codingkapoor/simple-lms-platform.git
 $ cd simple-lms-platform
 $ sbt
 sbt> runAll
+
+$ curl http://localhost:9008/services
+[
+  {
+    "name": "cas_native",
+    "url": "tcp://127.0.0.1:4000/cas_native",
+    "portName": null
+  },
+  {
+    "name": "kafka_native",
+    "url": "tcp://localhost:9092/kafka_native",
+    "portName": null
+  },
+  {
+    "name": "employee",
+    "url": "http://127.0.0.1:53823",
+    "portName": null
+  },
+  {
+    "name": "employee",
+    "url": "http://127.0.0.1:53823",
+    "portName": "http"
+  }
+]
 ```
 
 ### Create Employee
