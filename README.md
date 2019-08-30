@@ -32,3 +32,26 @@ $ sbt
 sbt> runAll
 ```
 
+### Verify Kafka
+```
+$ /opt/kafka_2.12-1.0.0/bin/kafka-topics.sh --zookeeper localhost:2181 --list
+__consumer_offsets
+employee
+
+$ /opt/kafka_2.12-1.0.0/bin/kafka-console-consumer.sh --topic employee --bootstrap-server localhost:9092 --from-beginning
+
+```
+
+### Verify Cassandra
+```
+$ /opt/apache-cassandra-3.11.4/bin/cqlsh localhost 4000
+cqlsh> USE simplelms;
+cqlsh:simplelms> 
+```
+
+### Verify Mysql
+```
+$ mysql -u codingkapoor -p
+mysql> USE simplelms;
+mysql> SELECT * FROM employee;
+```
