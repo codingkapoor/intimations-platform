@@ -18,3 +18,17 @@ mysql> GRANT ALL PRIVILEGES ON * . * TO 'codingkapoor'@'localhost';
 $mysql -u codingkapoor -u
 mysql > CREATE DATABASE simplelms;
 ```
+
+## Dev
+### Clone Repo
+```
+$ git clone git@github.com:codingkapoor/simple-lms-platform.git
+```
+
+### Start All Services
+```
+$ cd simple-lms-platform
+$ sbt
+sbt> runAll
+```
+
