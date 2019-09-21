@@ -13,14 +13,20 @@ sealed trait EmployeeEvent extends AggregateEvent[EmployeeEvent] {
   def aggregateTag: AggregateEventTag[EmployeeEvent] = EmployeeEvent.Tag
 }
 
-case class EmployeeAdded(id: String, name: String, gender: String, doj: LocalDate, pfn: String) extends EmployeeEvent
+case class EmployeeAdded(id: String, name: String, gender: String, doj: LocalDate, pfn: String, isActive: Boolean) extends EmployeeEvent
 
 object EmployeeAdded {
   implicit val format: Format[EmployeeAdded] = Json.format[EmployeeAdded]
 }
 
-case class EmployeeUpdated(id: String, name: String, gender: String, doj: LocalDate, pfn: String) extends EmployeeEvent
+case class EmployeeTerminated(id: String, name: String, gender: String, doj: LocalDate, pfn: String, isActive: Boolean) extends EmployeeEvent
 
-object EmployeeUpdated {
-  implicit val format: Format[EmployeeUpdated] = Json.format[EmployeeUpdated]
+object EmployeeTerminated {
+  implicit val format: Format[EmployeeTerminated] = Json.format[EmployeeTerminated]
+}
+
+case class EmployeeDeleted(id: String) extends EmployeeEvent
+
+object EmployeeDeleted {
+  implicit val format: Format[EmployeeDeleted] = Json.format[EmployeeDeleted]
 }

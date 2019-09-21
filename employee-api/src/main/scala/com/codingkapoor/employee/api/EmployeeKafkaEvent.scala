@@ -13,14 +13,20 @@ object EmployeeKafkaEvent {
   implicit val format: Format[EmployeeKafkaEvent] = derived.flat.oformat((__ \ "type").format[String])
 }
 
-case class EmployeeAddedKafkaEvent(id: String, name: String, gender: String, doj: LocalDate, pfn: String) extends EmployeeKafkaEvent
+case class EmployeeAddedKafkaEvent(id: String, name: String, gender: String, doj: LocalDate, pfn: String, isActive: Boolean) extends EmployeeKafkaEvent
 
 object EmployeeAddedKafkaEvent {
   implicit val format: Format[EmployeeAddedKafkaEvent] = Json.format[EmployeeAddedKafkaEvent]
 }
 
-case class EmployeeUpdatedKafkaEvent(id: String, name: String, gender: String, doj: LocalDate, pfn: String) extends EmployeeKafkaEvent
+case class EmployeeTerminatedKafkaEvent(id: String) extends EmployeeKafkaEvent
 
-object EmployeeUpdatedKafkaEvent {
-  implicit val format: Format[EmployeeUpdatedKafkaEvent] = Json.format[EmployeeUpdatedKafkaEvent]
+object EmployeeTerminatedKafkaEvent {
+  implicit val format: Format[EmployeeTerminatedKafkaEvent] = Json.format[EmployeeTerminatedKafkaEvent]
+}
+
+case class EmployeeDeletedKafkaEvent(id: String) extends EmployeeKafkaEvent
+
+object EmployeeDeletedKafkaEvent {
+  implicit val format: Format[EmployeeDeletedKafkaEvent] = Json.format[EmployeeDeletedKafkaEvent]
 }

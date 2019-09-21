@@ -29,8 +29,8 @@ class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, em
     }
   }
 
-  override def updateEmployee(id: String): ServiceCall[Employee, Done] = { employee =>
-    entityRef(employee.id).ask(UpdateEmployee(employee)).recover {
+  override def terminateEmployee(id: String): ServiceCall[NotUsed, Done] = { _ =>
+    entityRef(id).ask(TerminateEmployee(id)).recover {
       case e: InvalidCommandException => throw BadRequest(e.getMessage)
     }
   }
@@ -51,24 +51,30 @@ class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, em
     }
   }
 
+  override def deleteEmployee(id: String): ServiceCall[NotUsed, Done] = ServiceCall { _ =>
+    entityRef(id).ask(DeleteEmployee(id)).recover {
+      case e: InvalidCommandException => throw BadRequest(e.message)
+    }
+  }
+
   override def employeeTopic: Topic[api.EmployeeKafkaEvent] = {
     TopicProducer.singleStreamWithOffset { fromOffset =>
       persistentEntityRegistry.eventStream(EmployeeEvent.Tag, fromOffset)
         .map(event => (convertPersistentEntityEventToKafkaEvent(event), event.offset))
     }
   }
-
 }
 
 object EmployeeServiceImpl {
 
   private def convertPersistentEntityEventToKafkaEvent(eventStreamElement: EventStreamElement[EmployeeEvent]): api.EmployeeKafkaEvent = {
   eventStreamElement.event match {
-    case EmployeeAdded(id, name, gender, doj, pfn) => api.EmployeeAddedKafkaEvent(id, name, gender, doj, pfn)
-    case EmployeeUpdated(id, name, gender, doj, pfn) => api.EmployeeUpdatedKafkaEvent(id, name, gender, doj, pfn)
+    case EmployeeAdded(id, name, gender, doj, pfn, isActive) => api.EmployeeAddedKafkaEvent(id, name, gender, doj, pfn, isActive)
+    case EmployeeTerminated(id, _, _, _, _, _) => api.EmployeeTerminatedKafkaEvent(id)
+    case EmployeeDeleted(id) => api.EmployeeDeletedKafkaEvent(id)
   }
 }
   private def convertEmployeeReadEntityToEmployee(e: EmployeeEntity): api.Employee = {
-    api.Employee(e.id, e.name, e.gender, e.doj, e.pfn)
+    api.Employee(e.id, e.name, e.gender, e.doj, e.pfn, e.isActive)
   }
 }
