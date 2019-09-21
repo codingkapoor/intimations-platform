@@ -15,8 +15,8 @@ class EmployeeRepository(db: Database) {
     (employees += employee).map(_ => Done)
   }
 
-  def updateEmployee(employee: EmployeeEntity): DBIO[Done] = {
-    employees.insertOrUpdate(employee).map(_ => Done)
+  def terminateEmployee(employee: EmployeeEntity): DBIO[Done] = {
+    employees.update(employee).map(_ => Done)
   }
 
   def getEmployees: Future[Seq[EmployeeEntity]] = {
@@ -25,6 +25,10 @@ class EmployeeRepository(db: Database) {
 
   def getEmployee(id: String): Future[Option[EmployeeEntity]] = {
     db.run(employees.filter(_.id === id).result.headOption)
+  }
+
+  def deleteEmployee(id: String): DBIO[Done] = {
+    (employees.filter(_.id === id).delete).map(_ => Done)
   }
 
   def createTable: DBIO[Unit] = employees.schema.createIfNotExists

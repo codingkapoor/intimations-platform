@@ -3,7 +3,7 @@ package com.codingkapoor.employee.persistence.read
 import java.time.LocalDate
 import slick.jdbc.MySQLProfile.api._
 
-case class EmployeeEntity(id: String, name: String, gender: String, doj: LocalDate, pfn: String)
+case class EmployeeEntity(id: String, name: String, gender: String, doj: LocalDate, pfn: String, isActive: Boolean)
 
 class EmployeeTableDef(tag: Tag) extends Table[EmployeeEntity](tag, "employee") {
 
@@ -17,8 +17,10 @@ class EmployeeTableDef(tag: Tag) extends Table[EmployeeEntity](tag, "employee") 
 
   def pfn = column[String]("PFN")
 
+  def isActive = column[Boolean]("IS_ACTIVE")
+
   override def * =
-    (id, name, gender, doj, pfn) <> (EmployeeEntity.tupled, EmployeeEntity.unapply)
+    (id, name, gender, doj, pfn, isActive) <> (EmployeeEntity.tupled, EmployeeEntity.unapply)
 }
 
 object EmployeeTableDef {
