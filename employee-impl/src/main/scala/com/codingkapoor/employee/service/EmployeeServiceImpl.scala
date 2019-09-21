@@ -2,7 +2,7 @@ package com.codingkapoor.employee.service
 
 import akka.{Done, NotUsed}
 import com.codingkapoor.employee.api
-import com.codingkapoor.employee.api.{Employee, EmployeeService}
+import com.codingkapoor.employee.api.{Employee, EmployeeService, Leaves}
 import com.codingkapoor.employee.persistence.read.{EmployeeEntity, EmployeeRepository}
 import com.codingkapoor.employee.persistence.write._
 import com.lightbend.lagom.scaladsl.api.ServiceCall
@@ -69,12 +69,13 @@ object EmployeeServiceImpl {
 
   private def convertPersistentEntityEventToKafkaEvent(eventStreamElement: EventStreamElement[EmployeeEvent]): api.EmployeeKafkaEvent = {
   eventStreamElement.event match {
-    case EmployeeAdded(id, name, gender, doj, pfn, isActive) => api.EmployeeAddedKafkaEvent(id, name, gender, doj, pfn, isActive)
-    case EmployeeTerminated(id, _, _, _, _, _) => api.EmployeeTerminatedKafkaEvent(id)
+    case EmployeeAdded(id, name, gender, doj, pfn, isActive, leaves) => api.EmployeeAddedKafkaEvent(id, name, gender, doj, pfn, isActive, leaves)
+    case EmployeeTerminated(id, _, _, _, _, _, _) => api.EmployeeTerminatedKafkaEvent(id)
     case EmployeeDeleted(id) => api.EmployeeDeletedKafkaEvent(id)
   }
 }
+
   private def convertEmployeeReadEntityToEmployee(e: EmployeeEntity): api.Employee = {
-    api.Employee(e.id, e.name, e.gender, e.doj, e.pfn, e.isActive)
+    api.Employee(e.id, e.name, e.gender, e.doj, e.pfn, e.isActive, Leaves(e.earnedLeaves, e.sickLeaves))
   }
 }

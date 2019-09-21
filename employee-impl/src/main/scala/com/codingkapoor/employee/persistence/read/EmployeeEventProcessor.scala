@@ -25,8 +25,10 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
   private def processEmployeeAdded(eventStreamElement: EventStreamElement[EmployeeAdded]): DBIO[Done] = {
     log.info(s"EmployeeEventProcessor received EmployeeAdded event.")
 
-    val employeeAdded = eventStreamElement.event
-    val employee = EmployeeEntity(employeeAdded.id, employeeAdded.name, employeeAdded.gender, employeeAdded.doj, employeeAdded.pfn, employeeAdded.isActive)
+    val added = eventStreamElement.event
+
+    val employee =
+      EmployeeEntity(added.id, added.name, added.gender, added.doj, added.pfn, added.isActive, added.leaves.earned, added.leaves.sick)
 
     employeeRepository.addEmployee(employee)
   }
@@ -34,8 +36,11 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
   private def processEmployeeTerminated(eventStreamElement: EventStreamElement[EmployeeTerminated]): DBIO[Done] = {
     log.info(s"EmployeeEventProcessor received EmployeeTerminated event.")
 
-    val employeeTerminated = eventStreamElement.event
-    val employee = EmployeeEntity(employeeTerminated.id, employeeTerminated.name, employeeTerminated.gender, employeeTerminated.doj, employeeTerminated.pfn, employeeTerminated.isActive)
+    val terminated = eventStreamElement.event
+
+    val employee =
+      EmployeeEntity(terminated.id, terminated.name, terminated.gender, terminated.doj, terminated.pfn,
+        terminated.isActive, terminated.leaves.earned, terminated.leaves.sick)
 
     employeeRepository.terminateEmployee(employee)
   }
@@ -43,8 +48,8 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
   private def processEmployeeDeleted(eventStreamElement: EventStreamElement[EmployeeDeleted]): DBIO[Done] = {
     log.info(s"EmployeeEventProcessor received EmployeeDeleted event.")
 
-    val employeeDeleted = eventStreamElement.event
-    employeeRepository.deleteEmployee(employeeDeleted.id)
+    val deleted = eventStreamElement.event
+    employeeRepository.deleteEmployee(deleted.id)
   }
 
 }

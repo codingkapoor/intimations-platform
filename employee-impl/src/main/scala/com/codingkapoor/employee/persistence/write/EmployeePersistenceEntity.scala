@@ -24,11 +24,11 @@ class EmployeePersistenceEntity extends PersistentEntity {
       case (AddEmployee(e), ctx, state) =>
         log.info(s"EmployeePersistenceEntity at state = $state received AddEmployee command.")
 
-        ctx.thenPersist(EmployeeAdded(e.id, e.name, e.gender, e.doj, e.pfn, e.isActive)) { _ =>
+        ctx.thenPersist(EmployeeAdded(e.id, e.name, e.gender, e.doj, e.pfn, e.isActive, e.leaves)) { _ =>
           ctx.reply(Done)
         }
-    }.onCommand[TerminateEmployee, Done]{
-      case(TerminateEmployee(id), ctx, state) =>
+    }.onCommand[TerminateEmployee, Done] {
+      case (TerminateEmployee(id), ctx, state) =>
         log.info(s"EmployeePersistenceEntity at state = $state received TerminateEmployee command.")
 
         val msg = s"No employee found with id = ${id}."
@@ -38,7 +38,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         ctx.done
     }.onCommand[DeleteEmployee, Done] {
-      case(DeleteEmployee(id), ctx, state) =>
+      case (DeleteEmployee(id), ctx, state) =>
         log.info(s"EmployeePersistenceEntity at state = $state received DeleteEmployee command.")
 
         val msg = s"No employee found with id = ${id}."
@@ -48,12 +48,12 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         ctx.done
     }.onEvent {
-      case (EmployeeAdded(id, name, gender, doj, pfn, isActive), _) =>
-        Some(EmployeeState(id, name, gender, doj, pfn, isActive))
+      case (EmployeeAdded(id, name, gender, doj, pfn, isActive, leaves), _) =>
+        Some(EmployeeState(id, name, gender, doj, pfn, isActive, leaves))
     }
 
   private val employeeAdded: Actions =
-    Actions().onCommand[AddEmployee, Done]{
+    Actions().onCommand[AddEmployee, Done] {
       case (AddEmployee(e), ctx, state) =>
         log.info(s"EmployeePersistenceEntity at state = $state received AddEmployee command.")
 
@@ -64,10 +64,10 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         ctx.done
     }.onCommand[TerminateEmployee, Done] {
-      case (TerminateEmployee(_), ctx, state @ Some(employee)) =>
+      case (TerminateEmployee(_), ctx, state@Some(e)) =>
         log.info(s"EmployeePersistenceEntity at state = $state received TerminateEmployee command.")
 
-        ctx.thenPersist(EmployeeTerminated(employee.id, employee.name, employee.gender, employee.doj, employee.pfn, isActive = false)) { _ =>
+        ctx.thenPersist(EmployeeTerminated(e.id, e.name, e.gender, e.doj, e.pfn, isActive = false, e.leaves)) { _ =>
           ctx.reply(Done)
         }
     }.onCommand[DeleteEmployee, Done] {
@@ -78,8 +78,8 @@ class EmployeePersistenceEntity extends PersistentEntity {
           ctx.reply(Done)
         }
     }.onEvent {
-      case (EmployeeTerminated(id, name, gender, doj, pfn, isActive), _) =>
-        Some(EmployeeState(id, name, gender, doj, pfn, isActive))
+      case (EmployeeTerminated(id, name, gender, doj, pfn, isActive, leaves), _) =>
+        Some(EmployeeState(id, name, gender, doj, pfn, isActive, leaves))
       case (EmployeeDeleted(_), _) =>
         None
     }
