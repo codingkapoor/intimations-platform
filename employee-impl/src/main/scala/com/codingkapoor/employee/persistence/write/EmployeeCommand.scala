@@ -1,7 +1,7 @@
 package com.codingkapoor.employee.persistence.write
 
 import akka.Done
-import com.codingkapoor.employee.api.Employee
+import com.codingkapoor.employee.api.model.Employee
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.ReplyType
 import play.api.libs.json.{Format, Json}
 

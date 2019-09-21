@@ -2,7 +2,7 @@ package com.codingkapoor.employee.persistence.write
 
 import java.time.LocalDate
 
-import com.codingkapoor.employee.api.Leaves
+import com.codingkapoor.employee.api.model.Leaves
 import com.lightbend.lagom.scaladsl.persistence.{AggregateEvent, AggregateEventTag}
 import play.api.libs.json.{Format, Json}
 

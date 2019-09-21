@@ -2,7 +2,8 @@ package com.codingkapoor.employee.service
 
 import akka.{Done, NotUsed}
 import com.codingkapoor.employee.api
-import com.codingkapoor.employee.api.{Employee, EmployeeService, Leaves}
+import com.codingkapoor.employee.api.model.{Employee, EmployeeAddedKafkaEvent, EmployeeDeletedKafkaEvent, EmployeeKafkaEvent, EmployeeTerminatedKafkaEvent, Leaves}
+import com.codingkapoor.employee.api.EmployeeService
 import com.codingkapoor.employee.persistence.read.{EmployeeEntity, EmployeeRepository}
 import com.codingkapoor.employee.persistence.write._
 import com.lightbend.lagom.scaladsl.api.ServiceCall
@@ -57,7 +58,7 @@ class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, em
     }
   }
 
-  override def employeeTopic: Topic[api.EmployeeKafkaEvent] = {
+  override def employeeTopic: Topic[EmployeeKafkaEvent] = {
     TopicProducer.singleStreamWithOffset { fromOffset =>
       persistentEntityRegistry.eventStream(EmployeeEvent.Tag, fromOffset)
         .map(event => (convertPersistentEntityEventToKafkaEvent(event), event.offset))
@@ -67,15 +68,20 @@ class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, em
 
 object EmployeeServiceImpl {
 
-  private def convertPersistentEntityEventToKafkaEvent(eventStreamElement: EventStreamElement[EmployeeEvent]): api.EmployeeKafkaEvent = {
+  private def convertPersistentEntityEventToKafkaEvent(eventStreamElement: EventStreamElement[EmployeeEvent]): EmployeeKafkaEvent = {
   eventStreamElement.event match {
-    case EmployeeAdded(id, name, gender, doj, pfn, isActive, leaves) => api.EmployeeAddedKafkaEvent(id, name, gender, doj, pfn, isActive, leaves)
-    case EmployeeTerminated(id, _, _, _, _, _, _) => api.EmployeeTerminatedKafkaEvent(id)
-    case EmployeeDeleted(id) => api.EmployeeDeletedKafkaEvent(id)
+    case EmployeeAdded(id, name, gender, doj, pfn, isActive, leaves) =>
+      EmployeeAddedKafkaEvent(id, name, gender, doj, pfn, isActive, leaves)
+
+    case EmployeeTerminated(id, _, _, _, _, _, _) =>
+      EmployeeTerminatedKafkaEvent(id)
+
+    case EmployeeDeleted(id) =>
+      EmployeeDeletedKafkaEvent(id)
   }
 }
 
-  private def convertEmployeeReadEntityToEmployee(e: EmployeeEntity): api.Employee = {
-    api.Employee(e.id, e.name, e.gender, e.doj, e.pfn, e.isActive, Leaves(e.earnedLeaves, e.sickLeaves))
+  private def convertEmployeeReadEntityToEmployee(e: EmployeeEntity): Employee = {
+    api.model.Employee(e.id, e.name, e.gender, e.doj, e.pfn, e.isActive, Leaves(e.earnedLeaves, e.sickLeaves))
   }
 }
