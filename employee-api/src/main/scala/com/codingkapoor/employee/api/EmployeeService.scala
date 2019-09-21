@@ -1,7 +1,7 @@
 package com.codingkapoor.employee.api
 
 import akka.{Done, NotUsed}
-import com.codingkapoor.employee.api.model.{Employee, EmployeeKafkaEvent}
+import com.codingkapoor.employee.api.model.{Employee, EmployeeKafkaEvent, Leaves}
 import com.lightbend.lagom.scaladsl.api.broker.Topic
 import com.lightbend.lagom.scaladsl.api.broker.kafka.{KafkaProperties, PartitionKeyStrategy}
 import com.lightbend.lagom.scaladsl.api.transport.Method
@@ -23,6 +23,8 @@ trait EmployeeService extends Service {
 
   def deleteEmployee(id: String): ServiceCall[NotUsed, Done]
 
+  def getLeaves(empId: String): ServiceCall[NotUsed, Leaves]
+
   def employeeTopic: Topic[EmployeeKafkaEvent]
 
   override final def descriptor: Descriptor = {
@@ -34,7 +36,8 @@ trait EmployeeService extends Service {
         restCall(Method.PUT, "/api/employees/:id/terminate", terminateEmployee _),
         restCall(Method.GET, "/api/employees", getEmployees _),
         restCall(Method.GET, "/api/employees/:id", getEmployee _),
-        restCall(Method.DELETE, "/api/employees/:id", deleteEmployee _)
+        restCall(Method.DELETE, "/api/employees/:id", deleteEmployee _),
+        restCall(Method.GET, "/api/employees/:id/leaves", getLeaves _)
       )
       .withTopics(
         topic(EmployeeService.TOPIC_NAME, employeeTopic _)

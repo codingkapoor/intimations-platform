@@ -1,4 +1,4 @@
-package com.codingkapoor.employee.persistence.read
+package com.codingkapoor.employee.persistence.read.dao.employee
 
 import akka.Done
 import slick.jdbc.JdbcBackend.Database
