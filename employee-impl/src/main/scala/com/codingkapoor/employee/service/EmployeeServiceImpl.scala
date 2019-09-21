@@ -4,7 +4,7 @@ import akka.{Done, NotUsed}
 import com.codingkapoor.employee.api
 import com.codingkapoor.employee.api.model.{Employee, EmployeeAddedKafkaEvent, EmployeeDeletedKafkaEvent, EmployeeKafkaEvent, EmployeeTerminatedKafkaEvent, Leaves}
 import com.codingkapoor.employee.api.EmployeeService
-import com.codingkapoor.employee.persistence.read.{EmployeeEntity, EmployeeRepository}
+import com.codingkapoor.employee.persistence.read.dao.employee.{EmployeeEntity, EmployeeRepository}
 import com.codingkapoor.employee.persistence.write._
 import com.lightbend.lagom.scaladsl.api.ServiceCall
 import com.lightbend.lagom.scaladsl.api.broker.Topic
@@ -55,6 +55,18 @@ class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, em
   override def deleteEmployee(id: String): ServiceCall[NotUsed, Done] = ServiceCall { _ =>
     entityRef(id).ask(DeleteEmployee(id)).recover {
       case e: InvalidCommandException => throw BadRequest(e.message)
+    }
+  }
+
+  override def getLeaves(empId: String): ServiceCall[NotUsed, Leaves] = ServiceCall { _ =>
+    employeeRepository.getEmployee(empId).map { e =>
+      if (e.isDefined) Leaves(e.get.earnedLeaves, e.get.sickLeaves)
+      else {
+        val msg = s"No employee found with id = $empId."
+        log.error(msg)
+
+        throw NotFound(msg)
+      }
     }
   }
 

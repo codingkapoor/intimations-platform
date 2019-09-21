@@ -1,6 +1,7 @@
 package com.codingkapoor.employee.persistence.read
 
 import akka.Done
+import com.codingkapoor.employee.persistence.read.dao.employee.{EmployeeEntity, EmployeeRepository}
 import com.codingkapoor.employee.persistence.write.{EmployeeAdded, EmployeeDeleted, EmployeeEvent, EmployeeTerminated}
 import com.lightbend.lagom.scaladsl.persistence.{AggregateEventTag, EventStreamElement, ReadSideProcessor}
 import com.lightbend.lagom.scaladsl.persistence.slick.SlickReadSide

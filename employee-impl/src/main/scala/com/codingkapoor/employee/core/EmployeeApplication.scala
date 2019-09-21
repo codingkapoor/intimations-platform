@@ -1,7 +1,8 @@
 package com.codingkapoor.employee.core
 
 import com.codingkapoor.employee.api.EmployeeService
-import com.codingkapoor.employee.persistence.read.{EmployeeEventProcessor, EmployeeRepository}
+import com.codingkapoor.employee.persistence.read.EmployeeEventProcessor
+import com.codingkapoor.employee.persistence.read.dao.employee.EmployeeRepository
 import com.codingkapoor.employee.persistence.write.{EmployeePersistenceEntity, EmployeeSerializerRegistry}
 import com.codingkapoor.employee.service.EmployeeServiceImpl
 import com.lightbend.lagom.scaladsl.broker.kafka.LagomKafkaComponents
