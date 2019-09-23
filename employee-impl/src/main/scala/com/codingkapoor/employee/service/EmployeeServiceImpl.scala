@@ -1,11 +1,6 @@
 package com.codingkapoor.employee.service
 
 import akka.{Done, NotUsed}
-import com.codingkapoor.employee.api
-import com.codingkapoor.employee.api.model.{Employee, EmployeeAddedKafkaEvent, EmployeeDeletedKafkaEvent, EmployeeKafkaEvent, EmployeeTerminatedKafkaEvent, Leaves}
-import com.codingkapoor.employee.api.EmployeeService
-import com.codingkapoor.employee.persistence.read.dao.employee.{EmployeeEntity, EmployeeRepository}
-import com.codingkapoor.employee.persistence.write._
 import com.lightbend.lagom.scaladsl.api.ServiceCall
 import com.lightbend.lagom.scaladsl.api.broker.Topic
 import com.lightbend.lagom.scaladsl.api.transport.{BadRequest, NotFound}
@@ -15,6 +10,11 @@ import com.lightbend.lagom.scaladsl.persistence.{EventStreamElement, PersistentE
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import com.codingkapoor.employee.api
+import com.codingkapoor.employee.api.model.{Employee, EmployeeAddedKafkaEvent, EmployeeDeletedKafkaEvent, EmployeeKafkaEvent, EmployeeTerminatedKafkaEvent, IntimationCreatedKafkaEvent, IntimationReq, IntimationRes, Leaves}
+import com.codingkapoor.employee.api.EmployeeService
+import com.codingkapoor.employee.persistence.read.dao.employee.{EmployeeEntity, EmployeeRepository}
+import com.codingkapoor.employee.persistence.write._
 
 class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, employeeRepository: EmployeeRepository) extends EmployeeService {
 
@@ -70,12 +70,23 @@ class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, em
     }
   }
 
+  override def createIntimation(empId: String): ServiceCall[IntimationReq, Done] = ServiceCall { intimation =>
+    entityRef(empId).ask(CreateIntimation(empId, intimation)).recover {
+      case e: InvalidCommandException => throw BadRequest(e.message)
+    }
+  }
+
+  override def getIntimation(empId: String, month: Option[Int], year: Option[Int]): ServiceCall[NotUsed, IntimationRes] = ???
+
+  override def getActiveIntimationsOfAllEmployees: ServiceCall[NotUsed, List[IntimationRes]] = ???
+
   override def employeeTopic: Topic[EmployeeKafkaEvent] = {
     TopicProducer.singleStreamWithOffset { fromOffset =>
       persistentEntityRegistry.eventStream(EmployeeEvent.Tag, fromOffset)
         .map(event => (convertPersistentEntityEventToKafkaEvent(event), event.offset))
     }
   }
+
 }
 
 object EmployeeServiceImpl {
@@ -90,6 +101,9 @@ object EmployeeServiceImpl {
 
     case EmployeeDeleted(id) =>
       EmployeeDeletedKafkaEvent(id)
+
+    case IntimationCreated(empId, reason, requests) =>
+      IntimationCreatedKafkaEvent(empId, reason, requests)
   }
 }
 

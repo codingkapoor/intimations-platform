@@ -1,9 +1,10 @@
 package com.codingkapoor.employee.persistence.write
 
 import akka.Done
-import com.codingkapoor.employee.api.model.{Employee, Leaves}
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.ReplyType
 import play.api.libs.json.{Format, Json}
+
+import com.codingkapoor.employee.api.model.{Employee, IntimationReq}
 
 sealed trait EmployeeCommand[R] extends ReplyType[R]
 
@@ -23,4 +24,10 @@ case class DeleteEmployee(id: String) extends EmployeeCommand[Done]
 
 object DeleteEmployee {
   implicit val format: Format[DeleteEmployee] = Json.format[DeleteEmployee]
+}
+
+case class CreateIntimation(empId: String, intimation: IntimationReq) extends EmployeeCommand[Done]
+
+object CreateIntimation {
+  implicit val format: Format[CreateIntimation] = Json.format[CreateIntimation]
 }

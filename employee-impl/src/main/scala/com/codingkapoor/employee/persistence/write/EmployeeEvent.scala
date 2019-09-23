@@ -2,9 +2,9 @@ package com.codingkapoor.employee.persistence.write
 
 import java.time.LocalDate
 
-import com.codingkapoor.employee.api.model.Leaves
 import com.lightbend.lagom.scaladsl.persistence.{AggregateEvent, AggregateEventTag}
 import play.api.libs.json.{Format, Json}
+import com.codingkapoor.employee.api.model.{IntimationReq, Leaves, Request}
 
 object EmployeeEvent {
   val Tag: AggregateEventTag[EmployeeEvent] = AggregateEventTag[EmployeeEvent]
@@ -30,4 +30,10 @@ case class EmployeeDeleted(id: String) extends EmployeeEvent
 
 object EmployeeDeleted {
   implicit val format: Format[EmployeeDeleted] = Json.format[EmployeeDeleted]
+}
+
+case class IntimationCreated(empId: String, reason: String, requests: List[Request]) extends EmployeeEvent
+
+object IntimationCreated {
+  implicit val format: Format[IntimationCreated] = Json.format[IntimationCreated]
 }
