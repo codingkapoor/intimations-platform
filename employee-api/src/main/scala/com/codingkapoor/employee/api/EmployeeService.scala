@@ -27,6 +27,10 @@ trait EmployeeService extends Service {
 
   def createIntimation(empId: String): ServiceCall[IntimationReq, Done]
 
+  def updateIntimation(empId: String): ServiceCall[IntimationReq, Done]
+
+  def cancelIntimation(empId: String): ServiceCall[NotUsed, Done]
+
   def getIntimation(empId: String, month: Option[Int], year: Option[Int]): ServiceCall[NotUsed, IntimationRes]
 
   def getActiveIntimationsOfAllEmployees: ServiceCall[NotUsed, List[IntimationRes]]
@@ -45,6 +49,8 @@ trait EmployeeService extends Service {
         restCall(Method.DELETE, "/api/employees/:id", deleteEmployee _),
         restCall(Method.GET, "/api/employees/:id/leaves", getLeaves _),
         restCall(Method.POST, "/api/employees/:id/intimations", createIntimation _),
+        restCall(Method.PUT, "/api/employees/:id/intimations", updateIntimation _),
+        restCall(Method.PUT, "/api/employees/:id/intimations/cancel", cancelIntimation _),
         restCall(Method.GET, "/api/employees/:id/intimations?month&year", getIntimation _),
         restCall(Method.GET, "/api/employees/intimations", getActiveIntimationsOfAllEmployees _)
       )

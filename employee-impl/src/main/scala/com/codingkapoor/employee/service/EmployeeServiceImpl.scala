@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.codingkapoor.employee.api
-import com.codingkapoor.employee.api.model.{Employee, EmployeeAddedKafkaEvent, EmployeeDeletedKafkaEvent, EmployeeKafkaEvent, EmployeeTerminatedKafkaEvent, IntimationCreatedKafkaEvent, IntimationReq, IntimationRes, Leaves}
+import com.codingkapoor.employee.api.model.{Employee, EmployeeAddedKafkaEvent, EmployeeDeletedKafkaEvent, EmployeeKafkaEvent, EmployeeTerminatedKafkaEvent, IntimationCancelledKafkaEvent, IntimationCreatedKafkaEvent, IntimationReq, IntimationRes, IntimationUpdatedKafkaEvent, Leaves}
 import com.codingkapoor.employee.api.EmployeeService
 import com.codingkapoor.employee.persistence.read.dao.employee.{EmployeeEntity, EmployeeRepository}
 import com.codingkapoor.employee.persistence.write._
@@ -70,8 +70,20 @@ class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, em
     }
   }
 
-  override def createIntimation(empId: String): ServiceCall[IntimationReq, Done] = ServiceCall { intimation =>
-    entityRef(empId).ask(CreateIntimation(empId, intimation)).recover {
+  override def createIntimation(empId: String): ServiceCall[IntimationReq, Done] = ServiceCall { intimationReq =>
+    entityRef(empId).ask(CreateIntimation(empId, intimationReq)).recover {
+      case e: InvalidCommandException => throw BadRequest(e.message)
+    }
+  }
+
+  override def updateIntimation(empId: String): ServiceCall[IntimationReq, Done] = ServiceCall { intimationReq =>
+    entityRef(empId).ask(UpdateIntimation(empId, intimationReq)).recover {
+      case e: InvalidCommandException => throw BadRequest(e.message)
+    }
+  }
+
+  override def cancelIntimation(empId: String): ServiceCall[NotUsed, Done] = ServiceCall { _ =>
+    entityRef(empId).ask(CancelIntimation(empId)).recover {
       case e: InvalidCommandException => throw BadRequest(e.message)
     }
   }
@@ -104,6 +116,12 @@ object EmployeeServiceImpl {
 
     case IntimationCreated(empId, reason, requests) =>
       IntimationCreatedKafkaEvent(empId, reason, requests)
+
+    case IntimationUpdated(empId, reason, requests) =>
+      IntimationUpdatedKafkaEvent(empId, reason, requests)
+
+    case IntimationCancelled(empId, reason, requests) =>
+      IntimationCancelledKafkaEvent(empId, reason, requests)
   }
 }
 

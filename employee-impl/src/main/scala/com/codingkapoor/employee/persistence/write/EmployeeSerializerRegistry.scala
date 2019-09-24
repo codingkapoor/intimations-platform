@@ -14,6 +14,10 @@ object EmployeeSerializerRegistry extends JsonSerializerRegistry {
     JsonSerializer[DeleteEmployee],
     JsonSerializer[EmployeeDeleted],
     JsonSerializer[CreateIntimation],
-    JsonSerializer[IntimationCreated]
+    JsonSerializer[IntimationCreated],
+    JsonSerializer[UpdateIntimation],
+    JsonSerializer[IntimationUpdated],
+    JsonSerializer[CancelIntimation],
+    JsonSerializer[IntimationCancelled]
   )
 }

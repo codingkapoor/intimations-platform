@@ -1,9 +1,10 @@
 package com.codingkapoor.employee.persistence.write
 
+import java.time.LocalDate
+
 import akka.Done
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
 import org.slf4j.LoggerFactory
-
 import com.codingkapoor.employee.api.model.IntimationReq
 
 class EmployeePersistenceEntity extends PersistentEntity {
@@ -58,23 +59,44 @@ class EmployeePersistenceEntity extends PersistentEntity {
         log.info(s"InvalidCommandException: $msg")
         ctx.done
 
+    }.onCommand[UpdateIntimation, Done] {
+      case (UpdateIntimation(empId, _), ctx, state) =>
+        log.info(s"EmployeePersistenceEntity at state = $state received UpdateIntimation command.")
+
+        val msg = s"No employee found with id = $empId."
+        ctx.invalidCommand(msg)
+
+        log.info(s"InvalidCommandException: $msg")
+        ctx.done
+
+    }.onCommand[CancelIntimation, Done] {
+      case (CancelIntimation(empId), ctx, state) =>
+        log.info(s"EmployeePersistenceEntity at state = $state received CancelIntimation command.")
+
+        val msg = s"No employee found with id = $empId."
+        ctx.invalidCommand(msg)
+
+        log.info(s"InvalidCommandException: $msg")
+        ctx.done
+
     }.onEvent {
       case (EmployeeAdded(id, name, gender, doj, pfn, isActive, leaves), _) =>
         Some(EmployeeState(id, name, gender, doj, pfn, isActive, leaves, Nil))
     }
 
   private val employeeAdded: Actions =
-    Actions().onCommand[AddEmployee, Done] {
-      case (AddEmployee(e), ctx, state) =>
-        log.info(s"EmployeePersistenceEntity at state = $state received AddEmployee command.")
+    Actions()
+      .onCommand[AddEmployee, Done] {
+        case (AddEmployee(e), ctx, state) =>
+          log.info(s"EmployeePersistenceEntity at state = $state received AddEmployee command.")
 
-        val msg = s"Employee with id = ${e.id} already exists."
-        ctx.invalidCommand(msg)
+          val msg = s"Employee with id = ${e.id} already exists."
+          ctx.invalidCommand(msg)
 
-        log.info(s"InvalidCommandException: $msg")
-        ctx.done
+          log.info(s"InvalidCommandException: $msg")
+          ctx.done
 
-    }.onCommand[TerminateEmployee, Done] {
+      }.onCommand[TerminateEmployee, Done] {
       case (TerminateEmployee(_), ctx, state@Some(e)) =>
         log.info(s"EmployeePersistenceEntity at state = $state received TerminateEmployee command.")
         ctx.thenPersist(EmployeeTerminated(e.id, e.name, e.gender, e.doj, e.pfn, isActive = false, e.leaves))(_ => ctx.reply(Done))
@@ -89,6 +111,26 @@ class EmployeePersistenceEntity extends PersistentEntity {
         log.info(s"EmployeePersistenceEntity at state = $state received CreateIntimation command.")
         ctx.thenPersist(IntimationCreated(empId, intimation.reason, intimation.requests))(_ => ctx.reply(Done))
 
+    }.onCommand[UpdateIntimation, Done] {
+      case (UpdateIntimation(empId, intimationReq), ctx, state) =>
+        log.info(s"EmployeePersistenceEntity at state = $state received UpdateIntimation command.")
+        val requests1 = state.get.intimations.head.requests
+        val requests2 = intimationReq.requests
+
+        val requestsAlreadyConsumed = requests1.filter(_.date.isBefore(LocalDate.now()))
+        val newRequests = requestsAlreadyConsumed ++ requests2
+
+        ctx.thenPersist(IntimationUpdated(empId, intimationReq.reason, newRequests))(_ => ctx.reply(Done))
+
+    }.onCommand[CancelIntimation, Done] {
+      case (CancelIntimation(empId), ctx, state) =>
+        log.info(s"EmployeePersistenceEntity at state = $state received CancelIntimation command.")
+        val requests = state.get.intimations.head.requests
+        val reason = state.get.intimations.head.reason
+        val requestsAlreadyConsumed = requests.filter(_.date.isBefore(LocalDate.now()))
+
+        ctx.thenPersist(IntimationCancelled(empId, reason, requestsAlreadyConsumed))(_ => ctx.reply(Done))
+
     }.onEvent {
       case (EmployeeTerminated(id, name, gender, doj, pfn, isActive, leaves), state) =>
         Some(EmployeeState(id, name, gender, doj, pfn, isActive, leaves, state.get.intimations))
@@ -99,5 +141,14 @@ class EmployeePersistenceEntity extends PersistentEntity {
       case (IntimationCreated(_, reason, requests), Some(e)) =>
         val intimations = IntimationReq(reason, requests) :: e.intimations
         Some(EmployeeState(e.id, e.name, e.gender, e.doj, e.pfn, e.isActive, e.leaves, intimations))
+
+      case (IntimationUpdated(_, reason, requests), Some(e)) =>
+        val intimations = IntimationReq(reason, requests) :: e.intimations.tail
+        Some(EmployeeState(e.id, e.name, e.gender, e.doj, e.pfn, e.isActive, e.leaves, intimations))
+
+      case (IntimationCancelled(_, reason, requests), Some(e)) =>
+        val intimations = IntimationReq(reason, requests) :: e.intimations.tail
+        Some(EmployeeState(e.id, e.name, e.gender, e.doj, e.pfn, e.isActive, e.leaves, intimations))
+
     }
 }

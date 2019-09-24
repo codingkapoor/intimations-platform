@@ -31,13 +31,13 @@ object Request {
   implicit val format: Format[Request] = Json.format[Request]
 }
 
-case class IntimationReq(reason: String, requests: List[Request])
+case class IntimationReq(reason: String, requests: Set[Request])
 
 object IntimationReq {
   implicit val format: Format[IntimationReq] = Json.format[IntimationReq]
 }
 
-case class IntimationRes(empId: String, reason: String, requests: List[Request])
+case class IntimationRes(empId: String, reason: String, requests: Set[Request])
 
 object IntimationRes {
   implicit val format: Format[IntimationRes] = Json.format[IntimationRes]
