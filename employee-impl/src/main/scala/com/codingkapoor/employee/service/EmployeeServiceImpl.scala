@@ -141,18 +141,16 @@ object EmployeeServiceImpl {
   }
 
   private def convertToIntimationResponse(s: Seq[(IntimationEntity, RequestEntity)]): List[IntimationRes] = {
-    s.groupBy { case (ie, _) => ie.empId }
+    s.groupBy { case (ie, _) => ie.empId } // group by employees
       .flatMap {
         case (empId, s) =>
-          s.groupBy { case (ie, _) => ie }
+          s.groupBy { case (ie, _) => ie } // group by intimations per employee so as to prepare requests per intimation
             .map {
               case (ie, s) =>
                 val requests = s.map { case (_, r) => Request(LocalDate.of(r.year, r.month, r.date), r.requestType) }.toSet
                 ie.id -> (ie.reason, requests)
             }
-            .map {
-              case (_, t) => IntimationRes(empId, t._1, t._2)
-            }
+            .map { case (_, t) => IntimationRes(empId, t._1, t._2) }
       }
       .toList
   }
