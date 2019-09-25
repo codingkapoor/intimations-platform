@@ -2,20 +2,22 @@ package com.codingkapoor.employee.persistence.read
 
 import akka.Done
 import com.codingkapoor.employee.persistence.read.dao.employee.{EmployeeEntity, EmployeeRepository}
+import com.codingkapoor.employee.persistence.read.dao.intimation.IntimationRepository
+import com.codingkapoor.employee.persistence.read.dao.request.RequestRepository
 import com.codingkapoor.employee.persistence.write.{EmployeeAdded, EmployeeDeleted, EmployeeEvent, EmployeeTerminated}
 import com.lightbend.lagom.scaladsl.persistence.{AggregateEventTag, EventStreamElement, ReadSideProcessor}
 import com.lightbend.lagom.scaladsl.persistence.slick.SlickReadSide
 import org.slf4j.LoggerFactory
 import slick.jdbc.MySQLProfile.api._
 
-class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: EmployeeRepository)
-  extends ReadSideProcessor[EmployeeEvent] {
+class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: EmployeeRepository,
+                             intimationRepository: IntimationRepository, requestRepository: RequestRepository) extends ReadSideProcessor[EmployeeEvent] {
   private val log = LoggerFactory.getLogger(classOf[EmployeeEventProcessor])
 
   override def buildHandler(): ReadSideProcessor.ReadSideHandler[EmployeeEvent] =
     readSide
       .builder[EmployeeEvent]("employeeoffset")
-      .setGlobalPrepare(employeeRepository.createTable)
+      .setGlobalPrepare(employeeRepository.createTable andThen intimationRepository.createTable andThen requestRepository.createTable)
       .setEventHandler[EmployeeAdded](processEmployeeAdded)
       .setEventHandler[EmployeeTerminated](processEmployeeTerminated)
       .setEventHandler[EmployeeDeleted](processEmployeeDeleted)

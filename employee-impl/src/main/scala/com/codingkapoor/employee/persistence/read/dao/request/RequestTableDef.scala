@@ -1,0 +1,36 @@
+package com.codingkapoor.employee.persistence.read.dao.request
+
+import slick.jdbc.MySQLProfile.api._
+import com.codingkapoor.employee.api.model.RequestType
+import com.codingkapoor.employee.api.model.RequestType.RequestType
+import com.codingkapoor.employee.persistence.read.dao.intimation.IntimationTableDef._
+
+case class RequestEntity(id: Int, date: Int, month: Int, year: Int, requestType: RequestType, intimationId: Int)
+
+class RequestTableDef(tag: Tag) extends Table[RequestEntity](tag, "request") {
+
+  def id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
+
+  def date = column[Int]("DATE")
+
+  def month = column[Int]("MONTH")
+
+  def year = column[Int]("YEAR")
+
+  implicit val requestTypeColumnType =
+    MappedColumnType.base[RequestType, String]({ r => r.toString }, { s => RequestType.withName(s) })
+
+  def requestType = column[RequestType]("REQUEST_TYPE")
+
+  def intimationId = column[Int]("INTIMATION_ID")
+
+  def intimationFK =
+    foreignKey("INTIMATION_FK", intimationId, intimations)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+
+  override def * =
+    (id, date, month, year, requestType, intimationId) <> (RequestEntity.tupled, RequestEntity.unapply)
+}
+
+object RequestTableDef {
+  val requests = TableQuery[RequestTableDef]
+}

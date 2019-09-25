@@ -31,9 +31,9 @@ trait EmployeeService extends Service {
 
   def cancelIntimation(empId: String): ServiceCall[NotUsed, Done]
 
-  def getIntimation(empId: String, month: Option[Int], year: Option[Int]): ServiceCall[NotUsed, IntimationRes]
+  def getIntimations(empId: String, month: Option[Int], year: Option[Int]): ServiceCall[NotUsed, List[IntimationRes]]
 
-  def getActiveIntimationsOfAllEmployees: ServiceCall[NotUsed, List[IntimationRes]]
+  def getActiveIntimations: ServiceCall[NotUsed, List[IntimationRes]]
 
   def employeeTopic: Topic[EmployeeKafkaEvent]
 
@@ -43,16 +43,16 @@ trait EmployeeService extends Service {
     named("employee")
       .withCalls(
         restCall(Method.POST, "/api/employees", addEmployee _),
-        restCall(Method.PUT, "/api/employees/:id/terminate", terminateEmployee _),
         restCall(Method.GET, "/api/employees", getEmployees _),
+        restCall(Method.GET, "/api/employees/intimations", getActiveIntimations _),
+        restCall(Method.PUT, "/api/employees/:id/terminate", terminateEmployee _),
         restCall(Method.GET, "/api/employees/:id", getEmployee _),
         restCall(Method.DELETE, "/api/employees/:id", deleteEmployee _),
         restCall(Method.GET, "/api/employees/:id/leaves", getLeaves _),
         restCall(Method.POST, "/api/employees/:id/intimations", createIntimation _),
         restCall(Method.PUT, "/api/employees/:id/intimations", updateIntimation _),
         restCall(Method.PUT, "/api/employees/:id/intimations/cancel", cancelIntimation _),
-        restCall(Method.GET, "/api/employees/:id/intimations?month&year", getIntimation _),
-        restCall(Method.GET, "/api/employees/intimations", getActiveIntimationsOfAllEmployees _)
+        restCall(Method.GET, "/api/employees/:id/intimations?month&year", getIntimations _)
       )
       .withTopics(
         topic(EmployeeService.TOPIC_NAME, employeeTopic _)

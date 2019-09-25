@@ -3,6 +3,8 @@ package com.codingkapoor.employee.core
 import com.codingkapoor.employee.api.EmployeeService
 import com.codingkapoor.employee.persistence.read.EmployeeEventProcessor
 import com.codingkapoor.employee.persistence.read.dao.employee.EmployeeRepository
+import com.codingkapoor.employee.persistence.read.dao.intimation.IntimationRepository
+import com.codingkapoor.employee.persistence.read.dao.request.RequestRepository
 import com.codingkapoor.employee.persistence.write.{EmployeePersistenceEntity, EmployeeSerializerRegistry}
 import com.codingkapoor.employee.service.EmployeeServiceImpl
 import com.lightbend.lagom.scaladsl.broker.kafka.LagomKafkaComponents
@@ -25,6 +27,8 @@ abstract class EmployeeApplication(context: LagomApplicationContext)
   override lazy val jsonSerializerRegistry = EmployeeSerializerRegistry
 
   lazy val employeeRepository = wire[EmployeeRepository]
+  lazy val intimationRepository = wire[IntimationRepository]
+  lazy val requestRepository = wire[RequestRepository]
 
   persistentEntityRegistry.register(wire[EmployeePersistenceEntity])
   readSide.register(wire[EmployeeEventProcessor])
