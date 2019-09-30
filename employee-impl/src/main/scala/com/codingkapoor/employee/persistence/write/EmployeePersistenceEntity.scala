@@ -110,7 +110,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
       case (CreateIntimation(empId, intimation), ctx, state) =>
         log.info(s"EmployeePersistenceEntity at state = $state received CreateIntimation command.")
 
-        val lastestRequestDate = state.get.intimations.flatMap(_.requests).map(_.date).sortWith(_.isBefore(_)).last
+        val lastestRequestDate = state.get.intimations.head.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
         val newLatestRequestDate = intimation.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
 
         if(newLatestRequestDate.isAfter(lastestRequestDate))
