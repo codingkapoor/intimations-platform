@@ -15,8 +15,8 @@ class IntimationRepository(db: Database) {
   val intimations = IntimationTableDef.intimations
   val requests = RequestTableDef.requests
 
-  def addIntimation(intimation: IntimationEntity): DBIO[Done] = {
-    (intimations += intimation).map(_ => Done)
+  def createIntimation(intimation: IntimationEntity): DBIO[Option[Int]] = {
+    (intimations returning intimations.map(_.id)) += intimation
   }
 
   def getActiveIntimations: Future[Seq[(IntimationEntity, RequestEntity)]] = {

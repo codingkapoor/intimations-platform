@@ -5,11 +5,11 @@ import com.codingkapoor.employee.api.model.RequestType
 import com.codingkapoor.employee.api.model.RequestType.RequestType
 import com.codingkapoor.employee.persistence.read.dao.intimation.IntimationTableDef._
 
-case class RequestEntity(id: Int, date: Int, month: Int, year: Int, requestType: RequestType, intimationId: Int)
+case class RequestEntity(id: Option[Int] = None, date: Int, month: Int, year: Int, requestType: RequestType, intimationId: Option[Int])
 
 class RequestTableDef(tag: Tag) extends Table[RequestEntity](tag, "request") {
 
-  def id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
+  def id = column[Option[Int]]("ID", O.PrimaryKey, O.AutoInc)
 
   def date = column[Int]("DATE")
 
@@ -22,7 +22,7 @@ class RequestTableDef(tag: Tag) extends Table[RequestEntity](tag, "request") {
 
   def requestType = column[RequestType]("REQUEST_TYPE")
 
-  def intimationId = column[Int]("INTIMATION_ID")
+  def intimationId = column[Option[Int]]("INTIMATION_ID")
 
   def intimationFK =
     foreignKey("INTIMATION_FK", intimationId, intimations)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)

@@ -5,11 +5,11 @@ import java.time.LocalDate
 import slick.jdbc.MySQLProfile.api._
 import com.codingkapoor.employee.persistence.read.dao.employee.EmployeeTableDef._
 
-case class IntimationEntity(id: Int, empId: String, reason: String, latestRequestDate: LocalDate)
+case class IntimationEntity(id: Option[Int] = None, empId: String, reason: String, latestRequestDate: LocalDate)
 
 class IntimationTableDef(tag: Tag) extends Table[IntimationEntity](tag, "intimation") {
 
-  def id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
+  def id = column[Option[Int]]("ID", O.PrimaryKey, O.AutoInc)
 
   def empId = column[String]("EMP_ID")
 
