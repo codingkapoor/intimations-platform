@@ -109,7 +109,19 @@ class EmployeePersistenceEntity extends PersistentEntity {
     }.onCommand[CreateIntimation, Done] {
       case (CreateIntimation(empId, intimation), ctx, state) =>
         log.info(s"EmployeePersistenceEntity at state = $state received CreateIntimation command.")
-        ctx.thenPersist(IntimationCreated(empId, intimation.reason, intimation.requests))(_ => ctx.reply(Done))
+
+        val lastestRequestDate = state.get.intimations.flatMap(_.requests).map(_.date).sortWith(_.isBefore(_)).last
+        val newLatestRequestDate = intimation.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
+
+        if(newLatestRequestDate.isAfter(lastestRequestDate))
+          ctx.thenPersist(IntimationCreated(empId, intimation.reason, intimation.requests))(_ => ctx.reply(Done))
+        else {
+          val msg = s"System only supports single active intimation at a given time. Cancel an active intimation first so as to create a new intimation."
+          ctx.invalidCommand(msg)
+
+          log.info(s"InvalidCommandException: $msg")
+          ctx.done
+        }
 
     }.onCommand[UpdateIntimation, Done] {
       case (UpdateIntimation(empId, intimationReq), ctx, state) =>
