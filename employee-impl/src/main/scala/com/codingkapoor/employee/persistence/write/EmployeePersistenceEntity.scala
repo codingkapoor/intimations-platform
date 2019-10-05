@@ -1,6 +1,7 @@
 package com.codingkapoor.employee.persistence.write
 
-import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.{LocalDate, LocalDateTime}
 
 import akka.Done
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
@@ -10,6 +11,10 @@ import com.codingkapoor.employee.api.model.IntimationReq
 class EmployeePersistenceEntity extends PersistentEntity {
 
   private val log = LoggerFactory.getLogger(classOf[EmployeePersistenceEntity])
+
+  private val dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+
+  private def already5(date: LocalDate) = LocalDateTime.now().isAfter(LocalDateTime.parse(date.toString + " 05:00", dtf))
 
   override type Command = EmployeeCommand[_]
   override type Event = EmployeeEvent
@@ -111,10 +116,15 @@ class EmployeePersistenceEntity extends PersistentEntity {
         log.info(s"EmployeePersistenceEntity at state = $state received CreateIntimation command.")
 
         val intimations = state.get.intimations
-        lazy val lastestRequestDate = intimations.head.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
-        lazy val newLatestRequestDate = intimation.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
+        lazy val latestRequestDate = intimations.head.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
 
-        if(intimations.isEmpty || newLatestRequestDate.isAfter(lastestRequestDate))
+        if (intimation.requests.exists(_.date.isBefore(LocalDate.now())) || intimation.requests.exists(r => already5(r.date))) {
+          val msg = s"Intimation can't be created for dates in the past."
+          ctx.invalidCommand(msg)
+
+          log.info(s"InvalidCommandException: $msg")
+          ctx.done
+        } else if (intimations.isEmpty || latestRequestDate.isBefore(LocalDate.now()) || already5(latestRequestDate))
           ctx.thenPersist(IntimationCreated(empId, intimation.reason, intimation.requests))(_ => ctx.reply(Done))
         else {
           val msg = s"System only supports single active intimation at a given time. Cancel an active intimation first so as to create a new intimation."
@@ -132,26 +142,32 @@ class EmployeePersistenceEntity extends PersistentEntity {
         val requests2 = intimationReq.requests
 
         lazy val requestsAlreadyConsumed = requests1.filter(_.date.isBefore(LocalDate.now()))
-        val newRequests = if(intimations.nonEmpty) requestsAlreadyConsumed ++ requests2 else requests2
+        val newRequests = if (intimations.nonEmpty) requestsAlreadyConsumed ++ requests2 else requests2
 
         ctx.thenPersist(IntimationUpdated(empId, intimationReq.reason, newRequests))(_ => ctx.reply(Done))
 
     }.onCommand[CancelIntimation, Done] {
       case (CancelIntimation(empId), ctx, state) =>
         log.info(s"EmployeePersistenceEntity at state = $state received CancelIntimation command.")
+
         val intimations = state.get.intimations
         lazy val requests = intimations.head.requests
         lazy val reason = intimations.head.reason
-        lazy val requestsAlreadyConsumed = requests.filter(_.date.isBefore(LocalDate.now()))
 
-        if (intimations.nonEmpty)
-          ctx.thenPersist(IntimationCancelled(empId, reason, requestsAlreadyConsumed))(_ => ctx.reply(Done))
-        else {
+        lazy val latestRequestDate = intimations.head.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
+
+        if (intimations.isEmpty) {
           val msg = s"No intimations found."
           ctx.invalidCommand(msg)
 
           log.info(s"InvalidCommandException: $msg")
           ctx.done
+        } else if (latestRequestDate.isBefore(LocalDate.now()) || already5(latestRequestDate)) {
+          ctx.done
+        }
+        else {
+          val requestsAlreadyConsumed = requests.filter(r => r.date.isBefore(LocalDate.now()) || already5(r.date))
+          ctx.thenPersist(IntimationCancelled(empId, reason, requestsAlreadyConsumed))(_ => ctx.reply(Done))
         }
 
     }.onEvent {
