@@ -127,6 +127,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         } else if (intimations.isEmpty || latestRequestDate.isBefore(LocalDate.now()) || already5(latestRequestDate))
           ctx.thenPersist(IntimationCreated(empId, intimationReq.reason, intimationReq.requests))(_ => ctx.reply(Done))
+
         else {
           val msg = s"System only supports single active intimation at a given time. Cancel an active intimation first so as to create a new intimation."
           ctx.invalidCommand(msg)
@@ -190,9 +191,10 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
           log.info(s"InvalidCommandException: $msg")
           ctx.done
-        } else if (latestRequestDate.isBefore(LocalDate.now()) || already5(latestRequestDate)) {
+
+        } else if (latestRequestDate.isBefore(LocalDate.now()) || already5(latestRequestDate))
           ctx.done
-        }
+
         else {
           val requestsAlreadyConsumed = requests.filter(r => r.date.isBefore(LocalDate.now()) || already5(r.date))
           ctx.thenPersist(IntimationCancelled(empId, reason, requestsAlreadyConsumed))(_ => ctx.reply(Done))
