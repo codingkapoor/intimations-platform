@@ -14,13 +14,6 @@ class RequestRepository(db: Database) {
     (requests += request).map(_ => Done)
   }
 
-//  def deleteRequests(intimationId: Int): DBIO[Done] = {
-//    requests
-//      .filter(i => i.intimationId === intimationId)
-//      .delete
-//      .map(_ => Done)
-//  }
-
   def createTable: DBIO[Unit] = requests.schema.createIfNotExists
 
 }
