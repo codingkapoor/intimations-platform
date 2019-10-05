@@ -19,7 +19,7 @@ class IntimationRepository(db: Database) {
     (intimations returning intimations.map(_.id)) += intimation
   }
 
-  def getActiveIntimation(empId: String): DBIO[Option[IntimationEntity]] = {
+  def getActiveIntimation(empId: Long): DBIO[Option[IntimationEntity]] = {
     intimations.filter(i => i.empId === empId && i.latestRequestDate >= LocalDate.now()).result.headOption
   }
 
@@ -32,7 +32,7 @@ class IntimationRepository(db: Database) {
     )
   }
 
-  def getIntimations(empId: String, month: Int, year: Int): Future[Seq[(IntimationEntity, RequestEntity)]] = {
+  def getIntimations(empId: Long, month: Int, year: Int): Future[Seq[(IntimationEntity, RequestEntity)]] = {
     db.run(
       intimations
         .join(requests).on(_.id === _.intimationId)
@@ -41,14 +41,14 @@ class IntimationRepository(db: Database) {
     )
   }
 
-  def deleteIntimation(empId: String): DBIO[Done] = {
+  def deleteIntimation(empId: Long): DBIO[Done] = {
     intimations
       .filter(i => i.empId === empId && i.latestRequestDate >= LocalDate.now())
       .delete
       .map(_ => Done)
   }
 
-  def deleteAllIntimations(empId: String): DBIO[Done] = {
+  def deleteAllIntimations(empId: Long): DBIO[Done] = {
     intimations
       .filter(i => i.empId === empId)
       .delete

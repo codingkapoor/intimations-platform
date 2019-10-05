@@ -12,7 +12,7 @@ object Leaves {
   implicit val format: Format[Leaves] = Json.using[Json.WithDefaultValues].format[Leaves]
 }
 
-case class Employee(id: String, name: String, gender: String, doj: LocalDate, pfn: String, isActive: Boolean = true, leaves: Leaves = Leaves())
+case class Employee(id: Long, name: String, gender: String, doj: LocalDate, pfn: String, isActive: Boolean = true, leaves: Leaves = Leaves())
 
 object Employee {
   implicit val format: Format[Employee] = Json.using[Json.WithDefaultValues].format[Employee]
@@ -37,7 +37,7 @@ object IntimationReq {
   implicit val format: Format[IntimationReq] = Json.format[IntimationReq]
 }
 
-case class IntimationRes(empId: String, reason: String, requests: Set[Request])
+case class IntimationRes(empId: Long, reason: String, requests: Set[Request])
 
 object IntimationRes {
   implicit val format: Format[IntimationRes] = Json.format[IntimationRes]

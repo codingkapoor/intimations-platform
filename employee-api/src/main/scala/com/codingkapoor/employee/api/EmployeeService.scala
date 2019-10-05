@@ -15,23 +15,23 @@ trait EmployeeService extends Service {
 
   def addEmployee(): ServiceCall[Employee, Done]
 
-  def terminateEmployee(id: String): ServiceCall[NotUsed, Done]
+  def terminateEmployee(id: Long): ServiceCall[NotUsed, Done]
 
   def getEmployees: ServiceCall[NotUsed, Seq[Employee]]
 
-  def getEmployee(id: String): ServiceCall[NotUsed, Employee]
+  def getEmployee(id: Long): ServiceCall[NotUsed, Employee]
 
-  def deleteEmployee(id: String): ServiceCall[NotUsed, Done]
+  def deleteEmployee(id: Long): ServiceCall[NotUsed, Done]
 
-  def getLeaves(empId: String): ServiceCall[NotUsed, Leaves]
+  def getLeaves(empId: Long): ServiceCall[NotUsed, Leaves]
 
-  def createIntimation(empId: String): ServiceCall[IntimationReq, Done]
+  def createIntimation(empId: Long): ServiceCall[IntimationReq, Done]
 
-  def updateIntimation(empId: String): ServiceCall[IntimationReq, Done]
+  def updateIntimation(empId: Long): ServiceCall[IntimationReq, Done]
 
-  def cancelIntimation(empId: String): ServiceCall[NotUsed, Done]
+  def cancelIntimation(empId: Long): ServiceCall[NotUsed, Done]
 
-  def getIntimations(empId: String, month: Option[Int], year: Option[Int]): ServiceCall[NotUsed, List[IntimationRes]]
+  def getIntimations(empId: Long, month: Option[Int], year: Option[Int]): ServiceCall[NotUsed, List[IntimationRes]]
 
   def getActiveIntimations: ServiceCall[NotUsed, List[IntimationRes]]
 
@@ -58,7 +58,7 @@ trait EmployeeService extends Service {
         topic(EmployeeService.TOPIC_NAME, employeeTopic _)
           .addProperty(
             KafkaProperties.partitionKeyStrategy,
-            PartitionKeyStrategy[EmployeeKafkaEvent](_.id)
+            PartitionKeyStrategy[EmployeeKafkaEvent](_.id.toString)
           ))
       .withAutoAcl(true)
   }

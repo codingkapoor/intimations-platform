@@ -23,11 +23,11 @@ class EmployeeRepository(db: Database) {
     db.run(employees.result)
   }
 
-  def getEmployee(id: String): Future[Option[EmployeeEntity]] = {
+  def getEmployee(id: Long): Future[Option[EmployeeEntity]] = {
     db.run(employees.filter(_.id === id).result.headOption)
   }
 
-  def deleteEmployee(id: String): DBIO[Done] = {
+  def deleteEmployee(id: Long): DBIO[Done] = {
     (employees.filter(_.id === id).delete).map(_ => Done)
   }
 

@@ -27,7 +27,7 @@ class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, em
 
   private val log = LoggerFactory.getLogger(classOf[EmployeeServiceImpl])
 
-  private def entityRef(id: String) = persistentEntityRegistry.refFor[EmployeePersistenceEntity](id)
+  private def entityRef(id: Long) = persistentEntityRegistry.refFor[EmployeePersistenceEntity](id.toString)
 
   override def addEmployee(): ServiceCall[Employee, Done] = ServiceCall { employee =>
     entityRef(employee.id).ask(AddEmployee(employee)).recover {
@@ -35,7 +35,7 @@ class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, em
     }
   }
 
-  override def terminateEmployee(id: String): ServiceCall[NotUsed, Done] = { _ =>
+  override def terminateEmployee(id: Long): ServiceCall[NotUsed, Done] = { _ =>
     entityRef(id).ask(TerminateEmployee(id)).recover {
       case e: InvalidCommandException => throw BadRequest(e.getMessage)
     }
@@ -45,7 +45,7 @@ class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, em
     employeeRepository.getEmployees.map(_.map(convertEmployeeReadEntityToEmployee))
   }
 
-  override def getEmployee(id: String): ServiceCall[NotUsed, Employee] = ServiceCall { _ =>
+  override def getEmployee(id: Long): ServiceCall[NotUsed, Employee] = ServiceCall { _ =>
     employeeRepository.getEmployee(id).map { e =>
       if (e.isDefined) convertEmployeeReadEntityToEmployee(e.get)
       else {
@@ -57,13 +57,13 @@ class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, em
     }
   }
 
-  override def deleteEmployee(id: String): ServiceCall[NotUsed, Done] = ServiceCall { _ =>
+  override def deleteEmployee(id: Long): ServiceCall[NotUsed, Done] = ServiceCall { _ =>
     entityRef(id).ask(DeleteEmployee(id)).recover {
       case e: InvalidCommandException => throw BadRequest(e.message)
     }
   }
 
-  override def getLeaves(empId: String): ServiceCall[NotUsed, Leaves] = ServiceCall { _ =>
+  override def getLeaves(empId: Long): ServiceCall[NotUsed, Leaves] = ServiceCall { _ =>
     employeeRepository.getEmployee(empId).map { e =>
       if (e.isDefined) Leaves(e.get.earnedLeaves, e.get.sickLeaves)
       else {
@@ -75,25 +75,25 @@ class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, em
     }
   }
 
-  override def createIntimation(empId: String): ServiceCall[IntimationReq, Done] = ServiceCall { intimationReq =>
+  override def createIntimation(empId: Long): ServiceCall[IntimationReq, Done] = ServiceCall { intimationReq =>
     entityRef(empId).ask(CreateIntimation(empId, intimationReq)).recover {
       case e: InvalidCommandException => throw BadRequest(e.message)
     }
   }
 
-  override def updateIntimation(empId: String): ServiceCall[IntimationReq, Done] = ServiceCall { intimationReq =>
+  override def updateIntimation(empId: Long): ServiceCall[IntimationReq, Done] = ServiceCall { intimationReq =>
     entityRef(empId).ask(UpdateIntimation(empId, intimationReq)).recover {
       case e: InvalidCommandException => throw BadRequest(e.message)
     }
   }
 
-  override def cancelIntimation(empId: String): ServiceCall[NotUsed, Done] = ServiceCall { _ =>
+  override def cancelIntimation(empId: Long): ServiceCall[NotUsed, Done] = ServiceCall { _ =>
     entityRef(empId).ask(CancelIntimation(empId)).recover {
       case e: InvalidCommandException => throw BadRequest(e.message)
     }
   }
 
-  override def getIntimations(empId: String, month: Option[Int], year: Option[Int]): ServiceCall[NotUsed, List[IntimationRes]] = ServiceCall { _ =>
+  override def getIntimations(empId: Long, month: Option[Int], year: Option[Int]): ServiceCall[NotUsed, List[IntimationRes]] = ServiceCall { _ =>
     val m = if (month.isEmpty) LocalDate.now().getMonthValue else month.get
     val y = if (year.isEmpty) LocalDate.now().getYear else year.get
 

@@ -3,11 +3,11 @@ package com.codingkapoor.employee.persistence.read.dao.employee
 import java.time.LocalDate
 import slick.jdbc.MySQLProfile.api._
 
-case class EmployeeEntity(id: String, name: String, gender: String, doj: LocalDate, pfn: String, isActive: Boolean, earnedLeaves: Int, sickLeaves: Int)
+case class EmployeeEntity(id: Long, name: String, gender: String, doj: LocalDate, pfn: String, isActive: Boolean, earnedLeaves: Int, sickLeaves: Int)
 
 class EmployeeTableDef(tag: Tag) extends Table[EmployeeEntity](tag, "employee") {
 
-  def id = column[String]("ID", O.PrimaryKey)
+  def id = column[Long]("ID", O.PrimaryKey)
 
   def name = column[String]("NAME")
 
@@ -24,9 +24,9 @@ class EmployeeTableDef(tag: Tag) extends Table[EmployeeEntity](tag, "employee") 
   def sickLeaves = column[Int]("SICK_LEAVES")
 
   override def * =
-    (id, name, gender, doj, pfn, isActive, earnedLeaves, sickLeaves) <> (EmployeeEntity.tupled, EmployeeEntity.unapply)
+    (id, name, gender, doj, pfn, isActive, earnedLeaves, sickLeaves).mapTo[EmployeeEntity]
 }
 
 object EmployeeTableDef {
-  val employees = TableQuery[EmployeeTableDef]
+  lazy val employees = TableQuery[EmployeeTableDef]
 }

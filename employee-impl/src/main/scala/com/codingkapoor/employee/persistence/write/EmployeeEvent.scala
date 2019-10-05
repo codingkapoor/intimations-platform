@@ -14,37 +14,37 @@ sealed trait EmployeeEvent extends AggregateEvent[EmployeeEvent] {
   def aggregateTag: AggregateEventTag[EmployeeEvent] = EmployeeEvent.Tag
 }
 
-case class EmployeeAdded(id: String, name: String, gender: String, doj: LocalDate, pfn: String, isActive: Boolean, leaves: Leaves) extends EmployeeEvent
+case class EmployeeAdded(id: Long, name: String, gender: String, doj: LocalDate, pfn: String, isActive: Boolean, leaves: Leaves) extends EmployeeEvent
 
 object EmployeeAdded {
   implicit val format: Format[EmployeeAdded] = Json.format[EmployeeAdded]
 }
 
-case class EmployeeTerminated(id: String, name: String, gender: String, doj: LocalDate, pfn: String, isActive: Boolean, leaves: Leaves) extends EmployeeEvent
+case class EmployeeTerminated(id: Long, name: String, gender: String, doj: LocalDate, pfn: String, isActive: Boolean, leaves: Leaves) extends EmployeeEvent
 
 object EmployeeTerminated {
   implicit val format: Format[EmployeeTerminated] = Json.format[EmployeeTerminated]
 }
 
-case class EmployeeDeleted(id: String) extends EmployeeEvent
+case class EmployeeDeleted(id: Long) extends EmployeeEvent
 
 object EmployeeDeleted {
   implicit val format: Format[EmployeeDeleted] = Json.format[EmployeeDeleted]
 }
 
-case class IntimationCreated(empId: String, reason: String, requests: Set[Request]) extends EmployeeEvent
+case class IntimationCreated(empId: Long, reason: String, requests: Set[Request]) extends EmployeeEvent
 
 object IntimationCreated {
   implicit val format: Format[IntimationCreated] = Json.format[IntimationCreated]
 }
 
-case class IntimationUpdated(empId: String, reason: String, requests: Set[Request]) extends EmployeeEvent
+case class IntimationUpdated(empId: Long, reason: String, requests: Set[Request]) extends EmployeeEvent
 
 object IntimationUpdated {
   implicit val format: Format[IntimationUpdated] = Json.format[IntimationUpdated]
 }
 
-case class IntimationCancelled(empId: String, reason: String, requests: Set[Request]) extends EmployeeEvent
+case class IntimationCancelled(empId: Long, reason: String, requests: Set[Request]) extends EmployeeEvent
 
 object IntimationCancelled {
   implicit val format: Format[IntimationCancelled] = Json.format[IntimationCancelled]
