@@ -15,7 +15,7 @@ class EmployeeTableDef(tag: Tag) extends Table[EmployeeEntity](tag, "employee") 
 
   def doj = column[LocalDate]("DOJ")
 
-  def pfn = column[String]("PFN")
+  def pfn = column[String]("PFN", O.Unique, O.Length(64, varying = true))
 
   def isActive = column[Boolean]("IS_ACTIVE")
 
