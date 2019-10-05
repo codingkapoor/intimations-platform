@@ -1,7 +1,6 @@
 package com.codingkapoor.employee.persistence.read.dao.employee
 
 import java.time.LocalDate
-
 import slick.jdbc.MySQLProfile.api._
 
 case class EmployeeEntity(id: String, name: String, gender: String, doj: LocalDate, pfn: String, isActive: Boolean, earnedLeaves: Int, sickLeaves: Int)

@@ -1,7 +1,6 @@
 package com.codingkapoor.employee.api.model
 
 import java.time.LocalDate
-
 import julienrf.json.derived
 import play.api.libs.json._
 
@@ -29,4 +28,22 @@ case class EmployeeDeletedKafkaEvent(id: String) extends EmployeeKafkaEvent
 
 object EmployeeDeletedKafkaEvent {
   implicit val format: Format[EmployeeDeletedKafkaEvent] = Json.format[EmployeeDeletedKafkaEvent]
+}
+
+case class IntimationCreatedKafkaEvent(id: String, reason: String, requests: Set[Request]) extends EmployeeKafkaEvent
+
+object IntimationCreatedKafkaEvent {
+  implicit val format: Format[IntimationCreatedKafkaEvent] = Json.format[IntimationCreatedKafkaEvent]
+}
+
+case class IntimationUpdatedKafkaEvent(id: String, reason: String, requests: Set[Request]) extends EmployeeKafkaEvent
+
+object IntimationUpdatedKafkaEvent {
+  implicit val format: Format[IntimationUpdatedKafkaEvent] = Json.format[IntimationUpdatedKafkaEvent]
+}
+
+case class IntimationCancelledKafkaEvent(id: String, reason: String, requests: Set[Request]) extends EmployeeKafkaEvent
+
+object IntimationCancelledKafkaEvent {
+  implicit val format: Format[IntimationCancelledKafkaEvent] = Json.format[IntimationCancelledKafkaEvent]
 }
