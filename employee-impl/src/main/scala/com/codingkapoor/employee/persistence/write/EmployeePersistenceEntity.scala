@@ -112,20 +112,21 @@ class EmployeePersistenceEntity extends PersistentEntity {
         ctx.thenPersist(EmployeeDeleted(id))(_ => ctx.reply((Done)))
 
     }.onCommand[CreateIntimation, Done] {
-      case (CreateIntimation(empId, intimation), ctx, state) =>
+      case (CreateIntimation(empId, intimationReq), ctx, state) =>
         log.info(s"EmployeePersistenceEntity at state = $state received CreateIntimation command.")
 
         val intimations = state.get.intimations
         lazy val latestRequestDate = intimations.head.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
 
-        if (intimation.requests.exists(_.date.isBefore(LocalDate.now())) || intimation.requests.exists(r => already5(r.date))) {
+        if (intimationReq.requests.exists(_.date.isBefore(LocalDate.now())) || intimationReq.requests.exists(r => already5(r.date))) {
           val msg = s"Intimation can't be created for dates in the past."
           ctx.invalidCommand(msg)
 
           log.info(s"InvalidCommandException: $msg")
           ctx.done
+
         } else if (intimations.isEmpty || latestRequestDate.isBefore(LocalDate.now()) || already5(latestRequestDate))
-          ctx.thenPersist(IntimationCreated(empId, intimation.reason, intimation.requests))(_ => ctx.reply(Done))
+          ctx.thenPersist(IntimationCreated(empId, intimationReq.reason, intimationReq.requests))(_ => ctx.reply(Done))
         else {
           val msg = s"System only supports single active intimation at a given time. Cancel an active intimation first so as to create a new intimation."
           ctx.invalidCommand(msg)
@@ -137,14 +138,41 @@ class EmployeePersistenceEntity extends PersistentEntity {
     }.onCommand[UpdateIntimation, Done] {
       case (UpdateIntimation(empId, intimationReq), ctx, state) =>
         log.info(s"EmployeePersistenceEntity at state = $state received UpdateIntimation command.")
+
         val intimations = state.get.intimations
         lazy val requests1 = intimations.head.requests
-        val requests2 = intimationReq.requests
+        lazy val requests2 = intimationReq.requests
 
-        lazy val requestsAlreadyConsumed = requests1.filter(_.date.isBefore(LocalDate.now()))
-        val newRequests = if (intimations.nonEmpty) requestsAlreadyConsumed ++ requests2 else requests2
+        lazy val latestRequestDate = requests1.map(_.date).toList.sortWith(_.isBefore(_)).last
 
-        ctx.thenPersist(IntimationUpdated(empId, intimationReq.reason, newRequests))(_ => ctx.reply(Done))
+        lazy val requestsAlreadyConsumed = requests1.filter(r => r.date.isBefore(LocalDate.now()) || already5(r.date))
+        lazy val newRequestAlreadyConsumed = requests2.filter(r => r.date.isBefore(LocalDate.now()) || already5(r.date))
+
+        if (intimations.isEmpty) {
+          val msg = s"No intimations found."
+          ctx.invalidCommand(msg)
+
+          log.info(s"InvalidCommandException: $msg")
+          ctx.done
+
+        } else if (latestRequestDate.isBefore(LocalDate.now()) || already5(latestRequestDate)) {
+          val msg = s"No active intimations found to update."
+          ctx.invalidCommand(msg)
+
+          log.info(s"InvalidCommandException: $msg")
+          ctx.done
+
+        } else if (!(requestsAlreadyConsumed equals newRequestAlreadyConsumed)) {
+          val msg = s"Dates in past can't be modified."
+          ctx.invalidCommand(msg)
+
+          log.info(s"InvalidCommandException: $msg")
+          ctx.done
+
+        } else {
+          val newRequests = requestsAlreadyConsumed ++ requests2
+          ctx.thenPersist(IntimationUpdated(empId, intimationReq.reason, newRequests))(_ => ctx.reply(Done))
+        }
 
     }.onCommand[CancelIntimation, Done] {
       case (CancelIntimation(empId), ctx, state) =>
@@ -186,7 +214,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
         Some(EmployeeState(e.id, e.name, e.gender, e.doj, e.pfn, e.isActive, e.leaves, intimations))
 
       case (IntimationCancelled(_, reason, requests), Some(e)) =>
-        val intimations = IntimationReq(reason, requests) :: e.intimations.tail
+        val intimations = if (requests.isEmpty) e.intimations.tail else IntimationReq(reason, requests) :: e.intimations.tail
         Some(EmployeeState(e.id, e.name, e.gender, e.doj, e.pfn, e.isActive, e.leaves, intimations))
 
     }
