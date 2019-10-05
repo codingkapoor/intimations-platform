@@ -5,11 +5,11 @@ import com.codingkapoor.employee.api.model.RequestType
 import com.codingkapoor.employee.api.model.RequestType.RequestType
 import com.codingkapoor.employee.persistence.read.dao.intimation.IntimationTableDef._
 
-case class RequestEntity(id: Option[Int] = None, date: Int, month: Int, year: Int, requestType: RequestType, intimationId: Option[Int])
+case class RequestEntity(date: Int, month: Int, year: Int, requestType: RequestType, intimationId: Long, id: Long = 0L)
 
 class RequestTableDef(tag: Tag) extends Table[RequestEntity](tag, "request") {
 
-  def id = column[Option[Int]]("ID", O.PrimaryKey, O.AutoInc)
+  def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
 
   def date = column[Int]("DATE")
 
@@ -22,15 +22,15 @@ class RequestTableDef(tag: Tag) extends Table[RequestEntity](tag, "request") {
 
   def requestType = column[RequestType]("REQUEST_TYPE")
 
-  def intimationId = column[Option[Int]]("INTIMATION_ID")
+  def intimationId = column[Long]("INTIMATION_ID")
 
   def intimationFK =
-    foreignKey("INTIMATION_FK", intimationId, intimations)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+    foreignKey("INTIMATION_FK", intimationId, intimations)(_.id, onDelete = ForeignKeyAction.Cascade)
 
   override def * =
-    (id, date, month, year, requestType, intimationId) <> (RequestEntity.tupled, RequestEntity.unapply)
+    (date, month, year, requestType, intimationId, id).mapTo[RequestEntity]
 }
 
 object RequestTableDef {
-  val requests = TableQuery[RequestTableDef]
+  lazy val requests = TableQuery[RequestTableDef]
 }

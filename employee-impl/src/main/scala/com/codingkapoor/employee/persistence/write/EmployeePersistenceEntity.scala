@@ -110,10 +110,11 @@ class EmployeePersistenceEntity extends PersistentEntity {
       case (CreateIntimation(empId, intimation), ctx, state) =>
         log.info(s"EmployeePersistenceEntity at state = $state received CreateIntimation command.")
 
-        val lastestRequestDate = state.get.intimations.head.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
-        val newLatestRequestDate = intimation.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
+        val intimations = state.get.intimations
+        lazy val lastestRequestDate = intimations.head.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
+        lazy val newLatestRequestDate = intimation.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
 
-        if(newLatestRequestDate.isAfter(lastestRequestDate))
+        if(intimations.isEmpty || newLatestRequestDate.isAfter(lastestRequestDate))
           ctx.thenPersist(IntimationCreated(empId, intimation.reason, intimation.requests))(_ => ctx.reply(Done))
         else {
           val msg = s"System only supports single active intimation at a given time. Cancel an active intimation first so as to create a new intimation."
@@ -126,22 +127,32 @@ class EmployeePersistenceEntity extends PersistentEntity {
     }.onCommand[UpdateIntimation, Done] {
       case (UpdateIntimation(empId, intimationReq), ctx, state) =>
         log.info(s"EmployeePersistenceEntity at state = $state received UpdateIntimation command.")
-        val requests1 = state.get.intimations.head.requests
+        val intimations = state.get.intimations
+        lazy val requests1 = intimations.head.requests
         val requests2 = intimationReq.requests
 
-        val requestsAlreadyConsumed = requests1.filter(_.date.isBefore(LocalDate.now()))
-        val newRequests = requestsAlreadyConsumed ++ requests2
+        lazy val requestsAlreadyConsumed = requests1.filter(_.date.isBefore(LocalDate.now()))
+        val newRequests = if(intimations.nonEmpty) requestsAlreadyConsumed ++ requests2 else requests2
 
         ctx.thenPersist(IntimationUpdated(empId, intimationReq.reason, newRequests))(_ => ctx.reply(Done))
 
     }.onCommand[CancelIntimation, Done] {
       case (CancelIntimation(empId), ctx, state) =>
         log.info(s"EmployeePersistenceEntity at state = $state received CancelIntimation command.")
-        val requests = state.get.intimations.head.requests
-        val reason = state.get.intimations.head.reason
-        val requestsAlreadyConsumed = requests.filter(_.date.isBefore(LocalDate.now()))
+        val intimations = state.get.intimations
+        lazy val requests = intimations.head.requests
+        lazy val reason = intimations.head.reason
+        lazy val requestsAlreadyConsumed = requests.filter(_.date.isBefore(LocalDate.now()))
 
-        ctx.thenPersist(IntimationCancelled(empId, reason, requestsAlreadyConsumed))(_ => ctx.reply(Done))
+        if (intimations.nonEmpty)
+          ctx.thenPersist(IntimationCancelled(empId, reason, requestsAlreadyConsumed))(_ => ctx.reply(Done))
+        else {
+          val msg = s"No intimations found."
+          ctx.invalidCommand(msg)
+
+          log.info(s"InvalidCommandException: $msg")
+          ctx.done
+        }
 
     }.onEvent {
       case (EmployeeTerminated(id, name, gender, doj, pfn, isActive, leaves), state) =>

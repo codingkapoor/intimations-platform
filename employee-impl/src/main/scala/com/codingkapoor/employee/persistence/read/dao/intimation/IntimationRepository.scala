@@ -15,8 +15,12 @@ class IntimationRepository(db: Database) {
   val intimations = IntimationTableDef.intimations
   val requests = RequestTableDef.requests
 
-  def createIntimation(intimation: IntimationEntity): DBIO[Option[Int]] = {
+  def createIntimation(intimation: IntimationEntity): DBIO[Long] = {
     (intimations returning intimations.map(_.id)) += intimation
+  }
+
+  def getActiveIntimation(empId: String): DBIO[Option[IntimationEntity]] = {
+    intimations.filter(i => i.empId === empId && i.latestRequestDate >= LocalDate.now()).result.headOption
   }
 
   def getActiveIntimations: Future[Seq[(IntimationEntity, RequestEntity)]] = {
