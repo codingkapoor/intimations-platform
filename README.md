@@ -115,6 +115,7 @@ mysql> SELECT * FROM employee;
 
 ## Api Docs
 ### Add Employee
+#### Request
 ```
 curl -X POST \
   http://localhost:9000/api/employees \
@@ -127,6 +128,9 @@ curl -X POST \
     "pfn": "PFKN111"
 }'
 ```
+#### Response
+`200 OK`
+
 ### Get Employee
 ### Get Employees
 ### Delete Employee
