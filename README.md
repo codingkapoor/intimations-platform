@@ -132,6 +132,36 @@ curl -X POST \
 `200 OK`
 
 ### Get Employee
+#### Request
+```
+curl -X GET \
+  http://localhost:9000/api/employees/128 \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "id": "128",
+    "name": "Shivam",
+    "gender": "M",
+    "doj": "2017-01-16",
+    "pfn": "PFKN110"
+}'
+```
+#### Response
+```
+200 OK
+
+{
+    "id": 128,
+    "name": "Shivam",
+    "gender": "M",
+    "doj": "2017-01-16",
+    "pfn": "PFKN111",
+    "isActive": true,
+    "leaves": {
+        "earned": 0,
+        "sick": 0
+    }
+}
+```
 ### Get Employees
 ### Delete Employee
 ### Terminate Employee
