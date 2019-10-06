@@ -19,6 +19,44 @@ $mysql -u codingkapoor -u
 mysql > CREATE DATABASE simplelms;
 ```
 
+### Create Tables
+```
+CREATE TABLE `employee` (
+  `ID` bigint(20) NOT NULL,
+  `NAME` text NOT NULL,
+  `GENDER` text NOT NULL,
+  `DOJ` date NOT NULL,
+  `PFN` varchar(64) NOT NULL,
+  `IS_ACTIVE` tinyint(1) NOT NULL,
+  `EARNED_LEAVES` int(11) NOT NULL,
+  `SICK_LEAVES` int(11) NOT NULL,
+  PRIMARY KEY (`ID`),
+  UNIQUE KEY `PFN` (`PFN`)
+)
+
+CREATE TABLE `intimation` (
+  `EMP_ID` bigint(20) NOT NULL,
+  `REASON` text NOT NULL,
+  `LATEST_REQUEST_DATE` date NOT NULL,
+  `ID` bigint(20) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`ID`),
+  KEY `EMP_FK` (`EMP_ID`),
+  CONSTRAINT `EMP_FK` FOREIGN KEY (`EMP_ID`) REFERENCES `employee` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION
+) 
+
+CREATE TABLE `request` (
+  `DATE` int(11) NOT NULL,
+  `MONTH` int(11) NOT NULL,
+  `YEAR` int(11) NOT NULL,
+  `REQUEST_TYPE` text NOT NULL,
+  `INTIMATION_ID` bigint(20) NOT NULL,
+  `ID` bigint(20) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`ID`),
+  KEY `INTIMATION_FK` (`INTIMATION_ID`),
+  CONSTRAINT `INTIMATION_FK` FOREIGN KEY (`INTIMATION_ID`) REFERENCES `intimation` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION
+)
+```
+
 ## Dev
 ### Clone Repo
 ```
