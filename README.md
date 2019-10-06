@@ -256,7 +256,7 @@ curl -X PUT \
 200 OK
 ```
 
-A terminated employee is not an active member of an organization.
+A terminated employee is not an active member of an organization. Hence, `isActive` is set to `false`.
 
 ```
 curl -X GET \
@@ -290,6 +290,7 @@ curl -X GET \
 ]
 ```
 ### Delete Employee
+This also deletes all the intimations and requests as a cascading delete effect.
 #### Privilege
 Administrator
 #### Request
@@ -329,6 +330,7 @@ curl -X POST \
 200 OK
 ```
 ### Get Intimations By Month
+This returns both active as well as inactive intimations for a given month for an employee.
 #### Privilege
 Employee
 #### Request
@@ -358,6 +360,7 @@ curl -X GET \
 ]
 ```
 ### Get Active Intimations
+This returns all active intimations from all employees.
 #### Privilege
 Employee
 #### Request
@@ -401,6 +404,7 @@ curl -X GET \
 ]
 ```
 ### Update Intimation
+Only requests in the future can be modified.
 #### Privilege
 Employee
 #### Request
@@ -432,6 +436,7 @@ curl -X PUT \
 200 OK
 ```
 ### Cancel Intimation
+Requests in the past don't get cancelled.
 #### Privilege
 Employee
 #### Request
