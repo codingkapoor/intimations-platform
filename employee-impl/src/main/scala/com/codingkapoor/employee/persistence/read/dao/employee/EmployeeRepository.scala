@@ -16,7 +16,7 @@ class EmployeeRepository(db: Database) {
   }
 
   def terminateEmployee(employee: EmployeeEntity): DBIO[Done] = {
-    employees.update(employee).map(_ => Done)
+    employees.insertOrUpdate(employee).map(_ => Done)
   }
 
   def getEmployees: Future[Seq[EmployeeEntity]] = {
