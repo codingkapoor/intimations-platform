@@ -163,6 +163,42 @@ curl -X GET \
 }
 ```
 ### Get Employees
+#### Request
+```
+curl -X GET \
+  http://localhost:9000/api/employees \
+```
+#### Response
+```
+200 OK
+
+[
+    {
+        "id": 128,
+        "name": "Shivam",
+        "gender": "M",
+        "doj": "2017-01-16",
+        "pfn": "PFKN111",
+        "isActive": true,
+        "leaves": {
+            "earned": 0,
+            "sick": 0
+        }
+    },
+    {
+        "id": 129,
+        "name": "Neha",
+        "gender": "F",
+        "doj": "2019-10-11",
+        "pfn": "PFKN112",
+        "isActive": true,
+        "leaves": {
+            "earned": 0,
+            "sick": 0
+        }
+    }
+]
+```
 ### Delete Employee
 ### Terminate Employee
 ### Create Intimation
