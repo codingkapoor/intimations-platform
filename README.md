@@ -319,30 +319,109 @@ curl -X POST \
 ### Get Intimations By Month
 #### Request
 ```
+curl -X GET \
+  'http://localhost:9000/api/employees/128/intimations?month=10&year=2019' \
 ```
 #### Response
 ```
+200 OK
+
+[
+    {
+        "empId": 128,
+        "reason": "vacation",
+        "requests": [
+            {
+                "date": "2019-10-07",
+                "requestType": "FullDayWfh"
+            },
+            {
+                "date": "2019-10-08",
+                "requestType": "FullDayLeave"
+            }
+        ]
+    }
+]
 ```
 ### Get Active Intimations
 #### Request
 ```
+curl -X GET \
+  http://localhost:9000/api/employees/intimations \
 ```
 #### Response
 ```
+200 OK
+
+[
+    {
+        "empId": 128,
+        "reason": "vacation",
+        "requests": [
+            {
+                "date": "2019-10-07",
+                "requestType": "FullDayWfh"
+            },
+            {
+                "date": "2019-10-08",
+                "requestType": "FullDayLeave"
+            }
+        ]
+    },
+    {
+        "empId": 129,
+        "reason": "vacation",
+        "requests": [
+            {
+                "date": "2019-10-21",
+                "requestType": "FullDayWfh"
+            },
+            {
+                "date": "2019-10-22",
+                "requestType": "FullDayLeave"
+            }
+        ]
+    }
+]
 ```
 ### Update Intimation
 #### Request
 ```
+curl -X PUT \
+  http://localhost:9000/api/employees/129/intimations \
+  -H 'Content-Type: application/json' \
+  -d '{
+	"reason": "vacation",
+	"requests": [
+		{
+			"date": "2019-10-21",
+			"requestType": "FullDayLeave"
+		},
+		{
+			"date": "2019-10-22",
+			"requestType": "FullDayLeave"
+		},
+		{
+			"date": "2019-10-23",
+			"requestType": "FullDayWfh"
+		}
+	]
+}
+'
 ```
 #### Response
 ```
+200 OK
 ```
 ### Cancel Intimation
 #### Request
 ```
+curl -X PUT \
+  http://localhost:9000/api/employees/129/intimations/cancel \
 ```
 #### Response
 ```
+200 OK
 ```
 ### Get Leaves
 #### Request
