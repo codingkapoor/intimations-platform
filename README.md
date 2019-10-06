@@ -153,7 +153,8 @@ mysql> SELECT * FROM employee;
 
 ## Api Docs
 ### Add Employee
-**Privilege**: Admin
+#### Privilege
+Admin
 #### Request
 ```
 curl -X POST \
