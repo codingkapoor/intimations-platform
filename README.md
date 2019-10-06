@@ -326,7 +326,7 @@ curl -X DELETE \
 #### Response
 ```
 ```
-### Get Leaves Of An Employee
+### Get Leaves
 #### Request
 ```
 ```
