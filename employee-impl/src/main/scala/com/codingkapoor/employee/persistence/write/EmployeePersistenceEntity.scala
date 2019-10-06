@@ -109,7 +109,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
     }.onCommand[DeleteEmployee, Done] {
       case (DeleteEmployee(id), ctx, state) =>
         log.info(s"EmployeePersistenceEntity at state = $state received DeleteEmployee command.")
-        ctx.thenPersist(EmployeeDeleted(id))(_ => ctx.reply((Done)))
+        ctx.thenPersist(EmployeeDeleted(id))(_ => ctx.reply(Done))
 
     }.onCommand[CreateIntimation, Done] {
       case (CreateIntimation(empId, intimationReq), ctx, state) =>
