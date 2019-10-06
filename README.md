@@ -237,16 +237,6 @@ curl -X GET \
     }
 ]
 ```
-### Delete Employee
-#### Request
-```
-curl -X DELETE \
-  http://localhost:9000/api/employees/129 \
-```
-#### Response
-```
-200 OK
-```
 ### Terminate Employee
 #### Request
 ```
@@ -291,9 +281,55 @@ curl -X GET \
     }
 ]
 ```
+### Delete Employee
+#### Request
+```
+curl -X DELETE \
+  http://localhost:9000/api/employees/129 \
+```
+#### Response
+```
+200 OK
+```
 ### Create Intimation
-### Cancel Intimation
-### Get Intimations By Month Of An Employee
-### Get All Active Intimations
+#### Request
+```
+```
+#### Response
+```
+```
+### Get Intimations By Month
+#### Request
+```
+```
+#### Response
+```
+```
+### Get Active Intimations
+#### Request
+```
+```
+#### Response
+```
+```
 ### Update Intimation
+#### Request
+```
+```
+#### Response
+```
+```
+### Cancel Intimation
+#### Request
+```
+```
+#### Response
+```
+```
 ### Get Leaves Of An Employee
+#### Request
+```
+```
+#### Response
+```
+```
