@@ -154,7 +154,7 @@ mysql> SELECT * FROM employee;
 ## Api Docs
 ### Add Employee
 #### Privilege
-Admin
+Administrator
 #### Request
 ```
 curl -X POST \
@@ -172,6 +172,8 @@ curl -X POST \
 `200 OK`
 
 ### Get Employee
+#### Privilege
+Employee
 #### Request
 ```
 curl -X GET \
@@ -203,6 +205,8 @@ curl -X GET \
 }
 ```
 ### Get Employees
+#### Privilege
+Administrator
 #### Request
 ```
 curl -X GET \
@@ -240,6 +244,8 @@ curl -X GET \
 ]
 ```
 ### Terminate Employee
+#### Privilege
+Administrator
 #### Request
 ```
 curl -X PUT \
@@ -284,6 +290,8 @@ curl -X GET \
 ]
 ```
 ### Delete Employee
+#### Privilege
+Administrator
 #### Request
 ```
 curl -X DELETE \
@@ -294,6 +302,8 @@ curl -X DELETE \
 200 OK
 ```
 ### Create Intimation
+#### Privilege
+Employee
 #### Request
 ```
 curl -X POST \
@@ -319,6 +329,8 @@ curl -X POST \
 200 OK
 ```
 ### Get Intimations By Month
+#### Privilege
+Employee
 #### Request
 ```
 curl -X GET \
@@ -346,6 +358,8 @@ curl -X GET \
 ]
 ```
 ### Get Active Intimations
+#### Privilege
+Employee
 #### Request
 ```
 curl -X GET \
@@ -387,6 +401,8 @@ curl -X GET \
 ]
 ```
 ### Update Intimation
+#### Privilege
+Employee
 #### Request
 ```
 curl -X PUT \
@@ -416,6 +432,8 @@ curl -X PUT \
 200 OK
 ```
 ### Cancel Intimation
+#### Privilege
+Employee
 #### Request
 ```
 curl -X PUT \
@@ -426,6 +444,8 @@ curl -X PUT \
 200 OK
 ```
 ### Get Leaves
+#### Privilege
+Employee
 #### Request
 ```
 curl -X GET \
