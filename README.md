@@ -426,7 +426,13 @@ curl -X PUT \
 ### Get Leaves
 #### Request
 ```
+curl -X GET \
+  http://localhost:9000/api/employees/128/leaves \
 ```
 #### Response
 ```
+{
+    "earned": 12,
+    "sick": 8
+}
 ```
