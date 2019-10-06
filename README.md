@@ -239,6 +239,15 @@ curl -X GET \
 ```
 ### Delete Employee
 ### Terminate Employee
+#### Request
+```
+curl -X PUT \
+  http://localhost:9000/api/employees/129/terminate \
+```
+#### Response
+```
+200 OK
+```
 ### Create Intimation
 ### Cancel Intimation
 ### Get Intimations By Month Of An Employee
