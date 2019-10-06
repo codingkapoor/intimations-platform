@@ -294,9 +294,27 @@ curl -X DELETE \
 ### Create Intimation
 #### Request
 ```
+curl -X POST \
+  http://localhost:9000/api/employees/128/intimations \
+  -H 'Content-Type: application/json' \
+  -d '{
+	"reason": "vacation",
+	"requests": [
+		{
+			"date": "2019-10-07",
+			"requestType": "FullDayWfh"
+		},
+		{
+			"date": "2019-10-08",
+			"requestType": "FullDayLeave"
+		}
+	]
+}
+'
 ```
 #### Response
 ```
+200 OK
 ```
 ### Get Intimations By Month
 #### Request
