@@ -112,3 +112,16 @@ mysql> SELECT * FROM employee;
 +-----+--------+--------+------------+---------+
 1 row in set (0.00 sec)
 ```
+
+## Api Docs
+### Add Employee
+### Get Employee
+### Get Employees
+### Delete Employee
+### Terminate Employee
+### Create Intimation
+### Cancel Intimation
+### Get Intimations By Month Of An Employee
+### Get All Active Intimations
+### Update Intimation
+### Get Leaves Of An Employee
