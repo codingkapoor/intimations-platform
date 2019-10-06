@@ -115,6 +115,18 @@ mysql> SELECT * FROM employee;
 
 ## Api Docs
 ### Add Employee
+```
+curl -X POST \
+  http://localhost:9000/api/employees \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "id": 128,
+    "name": "Shivam",
+    "gender": "M",
+    "doj": "2017-01-16",
+    "pfn": "PFKN111"
+}'
+```
 ### Get Employee
 ### Get Employees
 ### Delete Employee
