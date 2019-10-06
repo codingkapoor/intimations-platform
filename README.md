@@ -238,6 +238,15 @@ curl -X GET \
 ]
 ```
 ### Delete Employee
+#### Request
+```
+curl -X DELETE \
+  http://localhost:9000/api/employees/129 \
+```
+#### Response
+```
+200 OK
+```
 ### Terminate Employee
 #### Request
 ```
