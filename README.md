@@ -15,7 +15,7 @@ mysql> GRANT ALL PRIVILEGES ON * . * TO 'codingkapoor'@'localhost';
 
 ### Create Database
 ```
-$mysql -u codingkapoor -u
+$mysql -u codingkapoor -p
 mysql > CREATE DATABASE simplelms;
 ```
 
