@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.codingkapoor.employee.api
-import com.codingkapoor.employee.api.model.{Employee, EmployeeAddedKafkaEvent, EmployeeDeletedKafkaEvent, EmployeeKafkaEvent, EmployeeTerminatedKafkaEvent, IntimationCancelledKafkaEvent, IntimationCreatedKafkaEvent, IntimationReq, IntimationRes, IntimationUpdatedKafkaEvent, Leaves, Request}
+import com.codingkapoor.employee.api.model.{ContactInfo, Employee, EmployeeAddedKafkaEvent, EmployeeDeletedKafkaEvent, EmployeeKafkaEvent, EmployeeTerminatedKafkaEvent, IntimationCancelledKafkaEvent, IntimationCreatedKafkaEvent, IntimationReq, IntimationRes, IntimationUpdatedKafkaEvent, Leaves, Location, Request}
 import com.codingkapoor.employee.api.EmployeeService
 import com.codingkapoor.employee.persistence.read.dao.employee.{EmployeeEntity, EmployeeRepository}
 import com.codingkapoor.employee.persistence.read.dao.intimation.{IntimationEntity, IntimationRepository}
@@ -117,10 +117,10 @@ object EmployeeServiceImpl {
 
   private def convertPersistentEntityEventToKafkaEvent(eventStreamElement: EventStreamElement[EmployeeEvent]): EmployeeKafkaEvent = {
     eventStreamElement.event match {
-      case EmployeeAdded(id, name, gender, doj, pfn, isActive, leaves) =>
-        EmployeeAddedKafkaEvent(id, name, gender, doj, pfn, isActive, leaves)
+      case EmployeeAdded(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves) =>
+        EmployeeAddedKafkaEvent(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves)
 
-      case EmployeeTerminated(id, _, _, _, _, _, _) =>
+      case EmployeeTerminated(id, _, _, _, _, _, _, _, _, _) =>
         EmployeeTerminatedKafkaEvent(id)
 
       case EmployeeDeleted(id) =>
@@ -138,7 +138,8 @@ object EmployeeServiceImpl {
   }
 
   private def convertEmployeeReadEntityToEmployee(e: EmployeeEntity): Employee = {
-    api.model.Employee(e.id, e.name, e.gender, e.doj, e.pfn, e.isActive, Leaves(e.earnedLeaves, e.sickLeaves))
+    api.model.Employee(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, ContactInfo(e.phone, e.email),
+      Location(e.city, e.state, e.country), Leaves(e.earnedLeaves, e.sickLeaves))
   }
 
   private def convertToIntimationResponse(s: Seq[(IntimationEntity, RequestEntity)]): List[IntimationRes] = {

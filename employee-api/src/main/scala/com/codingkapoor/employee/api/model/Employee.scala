@@ -6,13 +6,26 @@ import play.api.libs.json.{Format, Json}
 import com.codingkapoor.employee.api.model
 import com.codingkapoor.employee.api.model.RequestType.RequestType
 
+case class ContactInfo(phone: String, email: String)
+
+object ContactInfo {
+  implicit val format: Format[ContactInfo] = Json.format[ContactInfo]
+}
+
+case class Location(city: String, state: String, country: String)
+
+object Location {
+  implicit val format: Format[Location] = Json.format[Location]
+}
+
 case class Leaves(earned: Int = 0, sick: Int = 0)
 
 object Leaves {
   implicit val format: Format[Leaves] = Json.using[Json.WithDefaultValues].format[Leaves]
 }
 
-case class Employee(id: Long, name: String, gender: String, doj: LocalDate, pfn: String, isActive: Boolean = true, leaves: Leaves = Leaves())
+case class Employee(id: Long, name: String, gender: String, doj: LocalDate, designation: String, pfn: String,
+                    isActive: Boolean = true, contactInfo: ContactInfo, location: Location, leaves: Leaves = Leaves())
 
 object Employee {
   implicit val format: Format[Employee] = Json.using[Json.WithDefaultValues].format[Employee]

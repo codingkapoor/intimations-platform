@@ -4,7 +4,7 @@ import java.time.LocalDate
 
 import com.lightbend.lagom.scaladsl.persistence.{AggregateEvent, AggregateEventTag}
 import play.api.libs.json.{Format, Json}
-import com.codingkapoor.employee.api.model.{Leaves, Request}
+import com.codingkapoor.employee.api.model.{ContactInfo, Leaves, Location, Request}
 
 object EmployeeEvent {
   val Tag: AggregateEventTag[EmployeeEvent] = AggregateEventTag[EmployeeEvent]
@@ -14,13 +14,15 @@ sealed trait EmployeeEvent extends AggregateEvent[EmployeeEvent] {
   def aggregateTag: AggregateEventTag[EmployeeEvent] = EmployeeEvent.Tag
 }
 
-case class EmployeeAdded(id: Long, name: String, gender: String, doj: LocalDate, pfn: String, isActive: Boolean, leaves: Leaves) extends EmployeeEvent
+case class EmployeeAdded(id: Long, name: String, gender: String, doj: LocalDate, designation: String, pfn: String, isActive: Boolean,
+                         contactInfo: ContactInfo, location: Location, leaves: Leaves) extends EmployeeEvent
 
 object EmployeeAdded {
   implicit val format: Format[EmployeeAdded] = Json.format[EmployeeAdded]
 }
 
-case class EmployeeTerminated(id: Long, name: String, gender: String, doj: LocalDate, pfn: String, isActive: Boolean, leaves: Leaves) extends EmployeeEvent
+case class EmployeeTerminated(id: Long, name: String, gender: String, doj: LocalDate, designation: String, pfn: String, isActive: Boolean,
+                              contactInfo: ContactInfo, location: Location, leaves: Leaves) extends EmployeeEvent
 
 object EmployeeTerminated {
   implicit val format: Format[EmployeeTerminated] = Json.format[EmployeeTerminated]

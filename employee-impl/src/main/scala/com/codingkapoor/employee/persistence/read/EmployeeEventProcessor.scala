@@ -36,7 +36,8 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
     val added = eventStreamElement.event
 
     val employee =
-      EmployeeEntity(added.id, added.name, added.gender, added.doj, added.pfn, added.isActive, added.leaves.earned, added.leaves.sick)
+      EmployeeEntity(added.id, added.name, added.gender, added.doj, added.designation, added.pfn, added.isActive, added.contactInfo.phone,
+        added.contactInfo.email, added.location.city, added.location.state, added.location.country, added.leaves.earned, added.leaves.sick)
 
     employeeRepository.addEmployee(employee)
   }
@@ -47,8 +48,9 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
     val terminated = eventStreamElement.event
 
     val employee =
-      EmployeeEntity(terminated.id, terminated.name, terminated.gender, terminated.doj, terminated.pfn,
-        terminated.isActive, terminated.leaves.earned, terminated.leaves.sick)
+      EmployeeEntity(terminated.id, terminated.name, terminated.gender, terminated.doj, terminated.designation, terminated.pfn,
+        terminated.isActive, terminated.contactInfo.phone, terminated.contactInfo.email, terminated.location.city,
+        terminated.location.state, terminated.location.country, terminated.leaves.earned, terminated.leaves.sick)
 
     employeeRepository.terminateEmployee(employee)
   }
