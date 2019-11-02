@@ -15,6 +15,10 @@ class EmployeeRepository(db: Database) {
     (employees += employee).map(_ => Done)
   }
 
+  def updateEmployee(employee: EmployeeEntity): DBIO[Done] = {
+    employees.insertOrUpdate(employee).map(_ => Done)
+  }
+
   def terminateEmployee(employee: EmployeeEntity): DBIO[Done] = {
     employees.insertOrUpdate(employee).map(_ => Done)
   }

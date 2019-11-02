@@ -21,6 +21,13 @@ object EmployeeAdded {
   implicit val format: Format[EmployeeAdded] = Json.format[EmployeeAdded]
 }
 
+case class EmployeeUpdated(id: Long, name: String, gender: String, doj: LocalDate, designation: String, pfn: String, isActive: Boolean,
+                         contactInfo: ContactInfo, location: Location, leaves: Leaves) extends EmployeeEvent
+
+object EmployeeUpdated {
+  implicit val format: Format[EmployeeUpdated] = Json.format[EmployeeUpdated]
+}
+
 case class EmployeeTerminated(id: Long, name: String, gender: String, doj: LocalDate, designation: String, pfn: String, isActive: Boolean,
                               contactInfo: ContactInfo, location: Location, leaves: Leaves) extends EmployeeEvent
 

@@ -12,10 +12,10 @@ object ContactInfo {
   implicit val format: Format[ContactInfo] = Json.format[ContactInfo]
 }
 
-case class Location(city: String, state: String, country: String)
+case class Location(city: String = "Bangalore", state: String = "Karnataka", country: String = "India")
 
 object Location {
-  implicit val format: Format[Location] = Json.format[Location]
+  implicit val format: Format[Location] = Json.using[Json.WithDefaultValues].format[Location]
 }
 
 case class Leaves(earned: Int = 0, sick: Int = 0)
@@ -25,7 +25,7 @@ object Leaves {
 }
 
 case class Employee(id: Long, name: String, gender: String, doj: LocalDate, designation: String, pfn: String,
-                    isActive: Boolean = true, contactInfo: ContactInfo, location: Location, leaves: Leaves = Leaves())
+                    isActive: Boolean = true, contactInfo: ContactInfo, location: Location = Location(), leaves: Leaves = Leaves())
 
 object Employee {
   implicit val format: Format[Employee] = Json.using[Json.WithDefaultValues].format[Employee]

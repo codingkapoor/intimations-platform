@@ -4,7 +4,7 @@ import akka.Done
 import com.codingkapoor.employee.persistence.read.dao.employee.{EmployeeEntity, EmployeeRepository}
 import com.codingkapoor.employee.persistence.read.dao.intimation.{IntimationEntity, IntimationRepository}
 import com.codingkapoor.employee.persistence.read.dao.request.{RequestEntity, RequestRepository}
-import com.codingkapoor.employee.persistence.write.{EmployeeAdded, EmployeeDeleted, EmployeeEvent, EmployeeTerminated, IntimationCancelled, IntimationCreated, IntimationUpdated}
+import com.codingkapoor.employee.persistence.write.{EmployeeAdded, EmployeeDeleted, EmployeeEvent, EmployeeTerminated, EmployeeUpdated, IntimationCancelled, IntimationCreated, IntimationUpdated}
 import com.lightbend.lagom.scaladsl.persistence.{AggregateEventTag, EventStreamElement, ReadSideProcessor}
 import com.lightbend.lagom.scaladsl.persistence.slick.SlickReadSide
 import org.slf4j.LoggerFactory
@@ -21,6 +21,7 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
       .builder[EmployeeEvent]("employeeoffset")
       .setGlobalPrepare(employeeRepository.createTable andThen intimationRepository.createTable andThen requestRepository.createTable)
       .setEventHandler[EmployeeAdded](processEmployeeAdded)
+      .setEventHandler[EmployeeUpdated](processEmployeeUpdated)
       .setEventHandler[EmployeeTerminated](processEmployeeTerminated)
       .setEventHandler[EmployeeDeleted](processEmployeeDeleted)
       .setEventHandler[IntimationCreated](processIntimationCreated)
@@ -40,6 +41,18 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
         added.contactInfo.email, added.location.city, added.location.state, added.location.country, added.leaves.earned, added.leaves.sick)
 
     employeeRepository.addEmployee(employee)
+  }
+
+  private def processEmployeeUpdated(eventStreamElement: EventStreamElement[EmployeeUpdated]): DBIO[Done] = {
+    log.info(s"EmployeeEventProcessor received EmployeeUpdated event.")
+
+    val updated = eventStreamElement.event
+
+    val employee =
+      EmployeeEntity(updated.id, updated.name, updated.gender, updated.doj, updated.designation, updated.pfn, updated.isActive, updated.contactInfo.phone,
+        updated.contactInfo.email, updated.location.city, updated.location.state, updated.location.country, updated.leaves.earned, updated.leaves.sick)
+
+    employeeRepository.updateEmployee(employee)
   }
 
   private def processEmployeeTerminated(eventStreamElement: EventStreamElement[EmployeeTerminated]): DBIO[Done] = {

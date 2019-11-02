@@ -19,6 +19,13 @@ object EmployeeAddedKafkaEvent {
   implicit val format: Format[EmployeeAddedKafkaEvent] = Json.format[EmployeeAddedKafkaEvent]
 }
 
+case class EmployeeUpdatedKafkaEvent(id: Long, name: String, gender: String, doj: LocalDate, designation: String, pfn: String,
+                                     isActive: Boolean, contactInfo: ContactInfo, location: Location, leaves: Leaves) extends EmployeeKafkaEvent
+
+object EmployeeUpdatedKafkaEvent {
+  implicit val format: Format[EmployeeUpdatedKafkaEvent] = Json.format[EmployeeUpdatedKafkaEvent]
+}
+
 case class EmployeeTerminatedKafkaEvent(id: Long) extends EmployeeKafkaEvent
 
 object EmployeeTerminatedKafkaEvent {

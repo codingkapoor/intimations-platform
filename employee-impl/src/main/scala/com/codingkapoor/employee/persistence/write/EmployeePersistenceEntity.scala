@@ -37,7 +37,17 @@ class EmployeePersistenceEntity extends PersistentEntity {
             EmployeeAdded(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, e.leaves)
           )(_ => ctx.reply(Done))
 
-      }.onCommand[TerminateEmployee, Done] {
+      }.onCommand[UpdateEmployee, Done] {
+      case (UpdateEmployee(id), ctx, state) =>
+        log.info(s"EmployeePersistenceEntity at state = $state received UpdateEmployee command.")
+
+        val msg = s"No employee found with id = $id."
+        ctx.invalidCommand(msg)
+
+        log.info(s"InvalidCommandException: $msg")
+        ctx.done
+
+    }.onCommand[TerminateEmployee, Done] {
       case (TerminateEmployee(id), ctx, state) =>
         log.info(s"EmployeePersistenceEntity at state = $state received TerminateEmployee command.")
 
@@ -104,7 +114,15 @@ class EmployeePersistenceEntity extends PersistentEntity {
           log.info(s"InvalidCommandException: $msg")
           ctx.done
 
-      }.onCommand[TerminateEmployee, Done] {
+      }.onCommand[UpdateEmployee, Done] {
+      case (UpdateEmployee(e), ctx, state) =>
+        log.info(s"EmployeePersistenceEntity at state = $state received UpdateEmployee command.")
+
+        ctx.thenPersist(
+          EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, e.leaves)
+        )(_ => ctx.reply(Done))
+
+    }.onCommand[TerminateEmployee, Done] {
       case (TerminateEmployee(_), ctx, state@Some(e)) =>
         log.info(s"EmployeePersistenceEntity at state = $state received TerminateEmployee command.")
         ctx.thenPersist(
@@ -206,6 +224,9 @@ class EmployeePersistenceEntity extends PersistentEntity {
         }
 
     }.onEvent {
+      case (EmployeeUpdated(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves), state) =>
+        Some(EmployeeState(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, state.get.intimations))
+
       case (EmployeeTerminated(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves), state) =>
         Some(EmployeeState(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, state.get.intimations))
 

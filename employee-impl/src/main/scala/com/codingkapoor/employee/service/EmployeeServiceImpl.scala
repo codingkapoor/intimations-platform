@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.codingkapoor.employee.api
-import com.codingkapoor.employee.api.model.{ContactInfo, Employee, EmployeeAddedKafkaEvent, EmployeeDeletedKafkaEvent, EmployeeKafkaEvent, EmployeeTerminatedKafkaEvent, IntimationCancelledKafkaEvent, IntimationCreatedKafkaEvent, IntimationReq, IntimationRes, IntimationUpdatedKafkaEvent, Leaves, Location, Request}
+import com.codingkapoor.employee.api.model.{ContactInfo, Employee, EmployeeAddedKafkaEvent, EmployeeDeletedKafkaEvent, EmployeeKafkaEvent, EmployeeTerminatedKafkaEvent, EmployeeUpdatedKafkaEvent, IntimationCancelledKafkaEvent, IntimationCreatedKafkaEvent, IntimationReq, IntimationRes, IntimationUpdatedKafkaEvent, Leaves, Location, Request}
 import com.codingkapoor.employee.api.EmployeeService
 import com.codingkapoor.employee.persistence.read.dao.employee.{EmployeeEntity, EmployeeRepository}
 import com.codingkapoor.employee.persistence.read.dao.intimation.{IntimationEntity, IntimationRepository}
@@ -31,6 +31,12 @@ class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, em
 
   override def addEmployee(): ServiceCall[Employee, Done] = ServiceCall { employee =>
     entityRef(employee.id).ask(AddEmployee(employee)).recover {
+      case e: InvalidCommandException => throw BadRequest(e.getMessage)
+    }
+  }
+
+  override def updateEmployee(id: Long): ServiceCall[Employee, Done] = ServiceCall { employee =>
+    entityRef(id).ask(UpdateEmployee(employee)).recover {
       case e: InvalidCommandException => throw BadRequest(e.getMessage)
     }
   }
@@ -119,6 +125,9 @@ object EmployeeServiceImpl {
     eventStreamElement.event match {
       case EmployeeAdded(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves) =>
         EmployeeAddedKafkaEvent(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves)
+
+      case EmployeeUpdated(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves) =>
+        EmployeeUpdatedKafkaEvent(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves)
 
       case EmployeeTerminated(id, _, _, _, _, _, _, _, _, _) =>
         EmployeeTerminatedKafkaEvent(id)

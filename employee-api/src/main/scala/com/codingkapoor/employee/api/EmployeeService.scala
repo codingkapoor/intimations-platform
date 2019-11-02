@@ -15,6 +15,8 @@ trait EmployeeService extends Service {
 
   def addEmployee(): ServiceCall[Employee, Done]
 
+  def updateEmployee(id: Long): ServiceCall[Employee, Done]
+
   def terminateEmployee(id: Long): ServiceCall[NotUsed, Done]
 
   def getEmployees: ServiceCall[NotUsed, Seq[Employee]]
@@ -43,6 +45,7 @@ trait EmployeeService extends Service {
     named("employee")
       .withCalls(
         restCall(Method.POST, "/api/employees", addEmployee _),
+        restCall(Method.PUT, "/api/employees/:id", updateEmployee _),
         restCall(Method.GET, "/api/employees", getEmployees _),
         restCall(Method.GET, "/api/employees/intimations", getActiveIntimations _),
         restCall(Method.PUT, "/api/employees/:id/terminate", terminateEmployee _),

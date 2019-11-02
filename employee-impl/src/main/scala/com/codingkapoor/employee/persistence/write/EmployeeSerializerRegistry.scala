@@ -9,6 +9,8 @@ object EmployeeSerializerRegistry extends JsonSerializerRegistry {
     JsonSerializer[EmployeeState],
     JsonSerializer[AddEmployee],
     JsonSerializer[EmployeeAdded],
+    JsonSerializer[UpdateEmployee],
+    JsonSerializer[EmployeeUpdated],
     JsonSerializer[TerminateEmployee],
     JsonSerializer[EmployeeTerminated],
     JsonSerializer[DeleteEmployee],
