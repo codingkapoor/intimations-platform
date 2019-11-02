@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.codingkapoor.employee.api
-import com.codingkapoor.employee.api.model.{ContactInfo, Employee, EmployeeAddedKafkaEvent, EmployeeDeletedKafkaEvent, EmployeeKafkaEvent, EmployeeTerminatedKafkaEvent, EmployeeUpdatedKafkaEvent, IntimationCancelledKafkaEvent, IntimationCreatedKafkaEvent, IntimationReq, IntimationRes, IntimationUpdatedKafkaEvent, Leaves, Location, Request}
+import com.codingkapoor.employee.api.model.{ContactInfo, Employee, EmployeeAddedKafkaEvent, EmployeeDeletedKafkaEvent, EmployeeInfo, EmployeeKafkaEvent, EmployeeTerminatedKafkaEvent, EmployeeUpdatedKafkaEvent, IntimationCancelledKafkaEvent, IntimationCreatedKafkaEvent, IntimationReq, IntimationRes, IntimationUpdatedKafkaEvent, Leaves, Location, Request}
 import com.codingkapoor.employee.api.EmployeeService
 import com.codingkapoor.employee.persistence.read.dao.employee.{EmployeeEntity, EmployeeRepository}
 import com.codingkapoor.employee.persistence.read.dao.intimation.{IntimationEntity, IntimationRepository}
@@ -35,8 +35,8 @@ class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, em
     }
   }
 
-  override def updateEmployee(id: Long): ServiceCall[Employee, Done] = ServiceCall { employee =>
-    entityRef(id).ask(UpdateEmployee(employee)).recover {
+  override def updateEmployee(id: Long): ServiceCall[EmployeeInfo, Employee] = ServiceCall { employeeInfo =>
+    entityRef(id).ask(UpdateEmployee(employeeInfo)).recover {
       case e: InvalidCommandException => throw BadRequest(e.getMessage)
     }
   }

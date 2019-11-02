@@ -6,7 +6,7 @@ import java.time.{LocalDate, LocalDateTime}
 import akka.Done
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
 import org.slf4j.LoggerFactory
-import com.codingkapoor.employee.api.model.IntimationReq
+import com.codingkapoor.employee.api.model.{Employee, IntimationReq}
 
 class EmployeePersistenceEntity extends PersistentEntity {
 
@@ -37,11 +37,11 @@ class EmployeePersistenceEntity extends PersistentEntity {
             EmployeeAdded(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, e.leaves)
           )(_ => ctx.reply(Done))
 
-      }.onCommand[UpdateEmployee, Done] {
-      case (UpdateEmployee(id), ctx, state) =>
+      }.onCommand[UpdateEmployee, Employee] {
+      case (UpdateEmployee(_), ctx, state@Some(e)) =>
         log.info(s"EmployeePersistenceEntity at state = $state received UpdateEmployee command.")
 
-        val msg = s"No employee found with id = $id."
+        val msg = s"No employee found with id = ${e.id}."
         ctx.invalidCommand(msg)
 
         log.info(s"InvalidCommandException: $msg")
@@ -114,13 +114,20 @@ class EmployeePersistenceEntity extends PersistentEntity {
           log.info(s"InvalidCommandException: $msg")
           ctx.done
 
-      }.onCommand[UpdateEmployee, Done] {
-      case (UpdateEmployee(e), ctx, state) =>
+      }.onCommand[UpdateEmployee, Employee] {
+      case (UpdateEmployee(employeeInfo), ctx, state@Some(e)) =>
         log.info(s"EmployeePersistenceEntity at state = $state received UpdateEmployee command.")
 
+        val designation = employeeInfo.designation.getOrElse(e.designation)
+        val contactInfo = employeeInfo.contactInfo.getOrElse(e.contactInfo)
+        val location = employeeInfo.location.getOrElse(e.location)
+        val leaves = employeeInfo.leaves.getOrElse(e.leaves)
+
+        val employee = Employee(e.id, e.name, e.gender, e.doj, designation, e.pfn, e.isActive, contactInfo, location, leaves)
+
         ctx.thenPersist(
-          EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, e.leaves)
-        )(_ => ctx.reply(Done))
+          EmployeeUpdated(e.id, e.name, e.gender, e.doj, designation, e.pfn, e.isActive, contactInfo, location, leaves)
+        )(_ => ctx.reply(employee))
 
     }.onCommand[TerminateEmployee, Done] {
       case (TerminateEmployee(_), ctx, state@Some(e)) =>

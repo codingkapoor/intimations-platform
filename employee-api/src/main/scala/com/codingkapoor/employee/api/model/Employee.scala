@@ -31,6 +31,12 @@ object Employee {
   implicit val format: Format[Employee] = Json.using[Json.WithDefaultValues].format[Employee]
 }
 
+case class EmployeeInfo(designation: Option[String], contactInfo: Option[ContactInfo], location: Option[Location], leaves: Option[Leaves])
+
+object EmployeeInfo {
+  implicit val format: Format[EmployeeInfo] = Json.format[EmployeeInfo]
+}
+
 object RequestType extends Enumeration {
   type RequestType = Value
   val FirstHalfWfh, SecondHalfWfh, FullDayWfh, FirstHalfLeave, SecondHalfLeave, FullDayLeave = Value

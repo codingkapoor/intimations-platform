@@ -5,7 +5,7 @@ import com.lightbend.lagom.scaladsl.api.broker.Topic
 import com.lightbend.lagom.scaladsl.api.broker.kafka.{KafkaProperties, PartitionKeyStrategy}
 import com.lightbend.lagom.scaladsl.api.transport.Method
 import com.lightbend.lagom.scaladsl.api.{Descriptor, Service, ServiceCall}
-import com.codingkapoor.employee.api.model.{Employee, EmployeeKafkaEvent, IntimationReq, IntimationRes, Leaves}
+import com.codingkapoor.employee.api.model.{Employee, EmployeeInfo, EmployeeKafkaEvent, IntimationReq, IntimationRes, Leaves}
 
 object EmployeeService {
   val TOPIC_NAME = "employee"
@@ -15,7 +15,7 @@ trait EmployeeService extends Service {
 
   def addEmployee(): ServiceCall[Employee, Done]
 
-  def updateEmployee(id: Long): ServiceCall[Employee, Done]
+  def updateEmployee(id: Long): ServiceCall[EmployeeInfo, Employee]
 
   def terminateEmployee(id: Long): ServiceCall[NotUsed, Done]
 

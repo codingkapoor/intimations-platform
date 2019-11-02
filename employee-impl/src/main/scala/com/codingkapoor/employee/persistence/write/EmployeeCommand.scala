@@ -3,7 +3,7 @@ package com.codingkapoor.employee.persistence.write
 import akka.Done
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.ReplyType
 import play.api.libs.json.{Format, Json}
-import com.codingkapoor.employee.api.model.{Employee, IntimationReq}
+import com.codingkapoor.employee.api.model.{Employee, EmployeeInfo, IntimationReq}
 
 sealed trait EmployeeCommand[R] extends ReplyType[R]
 
@@ -13,7 +13,7 @@ object AddEmployee {
   implicit val format: Format[AddEmployee] = Json.format[AddEmployee]
 }
 
-case class UpdateEmployee(employee: Employee) extends EmployeeCommand[Done]
+case class UpdateEmployee(employeeInfo: EmployeeInfo) extends EmployeeCommand[Employee]
 
 object UpdateEmployee {
   implicit val format: Format[UpdateEmployee] = Json.format[UpdateEmployee]
