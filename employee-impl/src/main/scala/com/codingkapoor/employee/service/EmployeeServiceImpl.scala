@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.codingkapoor.employee.api
-import com.codingkapoor.employee.api.model.{ContactInfo, Employee, EmployeeAddedKafkaEvent, EmployeeDeletedKafkaEvent, EmployeeInfo, EmployeeKafkaEvent, EmployeeTerminatedKafkaEvent, EmployeeUpdatedKafkaEvent, IntimationCancelledKafkaEvent, IntimationCreatedKafkaEvent, IntimationReq, IntimationRes, IntimationUpdatedKafkaEvent, Leaves, Location, Request}
+import com.codingkapoor.employee.api.model.{ActiveIntimationsRes, ContactInfo, Employee, EmployeeAddedKafkaEvent, EmployeeDeletedKafkaEvent, EmployeeInfo, EmployeeKafkaEvent, EmployeeTerminatedKafkaEvent, EmployeeUpdatedKafkaEvent, IntimationCancelledKafkaEvent, IntimationCreatedKafkaEvent, IntimationReq, IntimationRes, IntimationUpdatedKafkaEvent, Leaves, Location, Request}
 import com.codingkapoor.employee.api.EmployeeService
 import com.codingkapoor.employee.persistence.read.dao.employee.{EmployeeEntity, EmployeeRepository}
 import com.codingkapoor.employee.persistence.read.dao.intimation.{IntimationEntity, IntimationRepository}
@@ -103,11 +103,11 @@ class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, em
     val m = if (month.isEmpty) LocalDate.now().getMonthValue else month.get
     val y = if (year.isEmpty) LocalDate.now().getYear else year.get
 
-    intimationRepository.getIntimations(empId, m, y).map(convertToIntimationResponse)
+    intimationRepository.getIntimations(empId, m, y).map(convertToIntimationsResponse)
   }
 
-  override def getActiveIntimations: ServiceCall[NotUsed, List[IntimationRes]] = ServiceCall { _ =>
-    intimationRepository.getActiveIntimations.map(convertToIntimationResponse)
+  override def getActiveIntimations: ServiceCall[NotUsed, List[ActiveIntimationsRes]] = ServiceCall { _ =>
+    intimationRepository.getActiveIntimations.map(convertToActiveIntimationsResponse)
   }
 
   override def employeeTopic: Topic[EmployeeKafkaEvent] = {
@@ -151,7 +151,7 @@ object EmployeeServiceImpl {
       Location(e.city, e.state, e.country), Leaves(e.earnedLeaves, e.sickLeaves))
   }
 
-  private def convertToIntimationResponse(s: Seq[(IntimationEntity, RequestEntity)]): List[IntimationRes] = {
+  private def convertToIntimationsResponse(s: Seq[(IntimationEntity, RequestEntity)]): List[IntimationRes] = {
     s.groupBy { case (ie, _) => ie.empId } // group by employees
       .flatMap {
         case (empId, s) =>
@@ -162,6 +162,21 @@ object EmployeeServiceImpl {
                 ie.id -> (ie.reason, requests)
             }
             .map { case (_, t) => IntimationRes(empId, t._1, t._2) }
+      }
+      .toList
+  }
+
+  private def convertToActiveIntimationsResponse(s: Seq[((EmployeeEntity, IntimationEntity), RequestEntity)]): List[ActiveIntimationsRes] = {
+    s.groupBy { case ((ee, _), _) => ee } // group by employees
+      .flatMap {
+        case (ee, s) =>
+          s.groupBy { case ((_, ie), _) => ie } // group by intimations per employee so as to prepare requests per intimation
+            .map {
+              case (ie, s) =>
+                val requests = s.map { case ((_, _), re) => Request(LocalDate.of(re.year, re.month, re.date), re.requestType) }.toSet
+                ie.id -> (ie.reason, requests)
+            }
+            .map { case (_, t) => ActiveIntimationsRes(ee.id, ee.name, t._1, t._2) }
       }
       .toList
   }

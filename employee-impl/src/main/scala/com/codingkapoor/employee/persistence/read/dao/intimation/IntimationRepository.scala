@@ -6,12 +6,14 @@ import slick.dbio.DBIO
 import slick.jdbc.JdbcBackend.Database
 import slick.jdbc.MySQLProfile.api._
 import akka.Done
+import com.codingkapoor.employee.persistence.read.dao.employee.{EmployeeEntity, EmployeeTableDef}
 import com.codingkapoor.employee.persistence.read.dao.request.{RequestEntity, RequestTableDef}
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class IntimationRepository(db: Database) {
+  val employees = EmployeeTableDef.employees
   val intimations = IntimationTableDef.intimations
   val requests = RequestTableDef.requests
 
@@ -23,11 +25,12 @@ class IntimationRepository(db: Database) {
     intimations.filter(i => i.empId === empId && i.latestRequestDate >= LocalDate.now()).result.headOption
   }
 
-  def getActiveIntimations: Future[Seq[(IntimationEntity, RequestEntity)]] = {
+  def getActiveIntimations: Future[Seq[((EmployeeEntity, IntimationEntity), RequestEntity)]] = {
     db.run(
-      intimations
-        .join(requests).on(_.id === _.intimationId)
-        .filter { case (i, _) => i.latestRequestDate >= LocalDate.now() }
+      employees
+        .join(intimations).on(_.id === _.empId)
+        .join(requests).on(_._2.id === _.intimationId)
+        .filter { case ((_, i), _) => i.latestRequestDate >= LocalDate.now() }
         .result
     )
   }

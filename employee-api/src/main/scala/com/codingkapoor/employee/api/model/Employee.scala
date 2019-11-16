@@ -61,3 +61,9 @@ case class IntimationRes(empId: Long, reason: String, requests: Set[Request])
 object IntimationRes {
   implicit val format: Format[IntimationRes] = Json.format[IntimationRes]
 }
+
+case class ActiveIntimationsRes(empId: Long, empName: String, reason: String, requests: Set[Request])
+
+object ActiveIntimationsRes {
+  implicit val format: Format[ActiveIntimationsRes] = Json.format[ActiveIntimationsRes]
+}
