@@ -5,7 +5,7 @@ import com.codingkapoor.employee.api.model.RequestType
 import com.codingkapoor.employee.api.model.RequestType.RequestType
 import com.codingkapoor.employee.persistence.read.dao.intimation.IntimationTableDef._
 
-case class RequestEntity(date: Int, month: Int, year: Int, requestType: RequestType, intimationId: Long, id: Long = 0L)
+case class RequestEntity(date: Int, month: Int, year: Int, firstHalf: RequestType, secondHalf: RequestType, intimationId: Long, id: Long = 0L)
 
 class RequestTableDef(tag: Tag) extends Table[RequestEntity](tag, "request") {
 
@@ -20,7 +20,9 @@ class RequestTableDef(tag: Tag) extends Table[RequestEntity](tag, "request") {
   implicit val requestTypeColumnType =
     MappedColumnType.base[RequestType, String]({ r => r.toString }, { s => RequestType.withName(s) })
 
-  def requestType = column[RequestType]("REQUEST_TYPE")
+  def firstHalf = column[RequestType]("FIRST_HALF")
+
+  def secondHalf = column[RequestType]("SECOND_HALF")
 
   def intimationId = column[Long]("INTIMATION_ID")
 
@@ -28,7 +30,7 @@ class RequestTableDef(tag: Tag) extends Table[RequestEntity](tag, "request") {
     foreignKey("INTIMATION_FK", intimationId, intimations)(_.id, onDelete = ForeignKeyAction.Cascade)
 
   override def * =
-    (date, month, year, requestType, intimationId, id).mapTo[RequestEntity]
+    (date, month, year, firstHalf, secondHalf, intimationId, id).mapTo[RequestEntity]
 }
 
 object RequestTableDef {

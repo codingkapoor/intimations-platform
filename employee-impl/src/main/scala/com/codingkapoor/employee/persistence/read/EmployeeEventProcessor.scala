@@ -94,7 +94,7 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
         val month = request.date.getMonthValue
         val year = request.date.getYear
 
-        val re = RequestEntity(date, month, year, request.requestType, id)
+        val re = RequestEntity(date, month, year, request.firstHalf, request.secondHalf, id)
         log.debug(s"RequestEntity = $re")
 
         requestRepository.addRequest(re)
@@ -122,7 +122,7 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
           val month = request.date.getMonthValue
           val year = request.date.getYear
 
-          val re = RequestEntity(date, month, year, request.requestType, id)
+          val re = RequestEntity(date, month, year, request.firstHalf, request.secondHalf, id)
           log.debug(s"RequestEntity = $re")
 
           requestRepository.addRequest(re)
@@ -152,7 +152,7 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
             val month = request.date.getMonthValue
             val year = request.date.getYear
 
-            val re = RequestEntity(date, month, year, request.requestType, id)
+            val re = RequestEntity(date, month, year, request.firstHalf, request.secondHalf, id)
             log.debug(s"RequestEntity = $re")
 
             requestRepository.addRequest(re)

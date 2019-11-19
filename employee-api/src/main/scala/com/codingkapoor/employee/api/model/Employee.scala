@@ -3,7 +3,6 @@ package com.codingkapoor.employee.api.model
 import java.time.{LocalDate, LocalDateTime}
 
 import play.api.libs.json.{Format, Json}
-import com.codingkapoor.employee.api.model
 import com.codingkapoor.employee.api.model.RequestType.RequestType
 
 case class ContactInfo(phone: String, email: String)
@@ -39,12 +38,12 @@ object EmployeeInfo {
 
 object RequestType extends Enumeration {
   type RequestType = Value
-  val FirstHalfWfh, SecondHalfWfh, FullDayWfh, FirstHalfLeave, SecondHalfLeave, FullDayLeave = Value
+  val WFO, WFH, Leave = Value
 
-  implicit val format: Format[model.RequestType.Value] = Json.formatEnum(this)
+  implicit val format: Format[RequestType.Value] = Json.formatEnum(this)
 }
 
-case class Request(date: LocalDate, requestType: RequestType)
+case class Request(date: LocalDate, firstHalf: RequestType, secondHalf: RequestType)
 
 object Request {
   implicit val format: Format[Request] = Json.format[Request]
