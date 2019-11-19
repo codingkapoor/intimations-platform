@@ -1,8 +1,8 @@
 package com.codingkapoor.employee.api.model
 
-import java.time.LocalDate
-import play.api.libs.json.{Format, Json}
+import java.time.{LocalDate, LocalDateTime}
 
+import play.api.libs.json.{Format, Json}
 import com.codingkapoor.employee.api.model
 import com.codingkapoor.employee.api.model.RequestType.RequestType
 
@@ -50,6 +50,12 @@ object Request {
   implicit val format: Format[Request] = Json.format[Request]
 }
 
+case class Intimation(reason: String, lastModified: LocalDateTime, requests: Set[Request])
+
+object Intimation {
+  implicit val format: Format[Intimation] = Json.format[Intimation]
+}
+
 case class IntimationReq(reason: String, requests: Set[Request])
 
 object IntimationReq {
@@ -62,7 +68,7 @@ object IntimationRes {
   implicit val format: Format[IntimationRes] = Json.format[IntimationRes]
 }
 
-case class ActiveIntimationsRes(empId: Long, empName: String, reason: String, requests: Set[Request])
+case class ActiveIntimationsRes(empId: Long, empName: String, reason: String, lastModified: LocalDateTime, requests: Set[Request])
 
 object ActiveIntimationsRes {
   implicit val format: Format[ActiveIntimationsRes] = Json.format[ActiveIntimationsRes]
