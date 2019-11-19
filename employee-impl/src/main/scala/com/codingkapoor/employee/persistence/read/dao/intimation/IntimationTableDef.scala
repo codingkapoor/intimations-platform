@@ -1,11 +1,11 @@
 package com.codingkapoor.employee.persistence.read.dao.intimation
 
-import java.time.LocalDate
+import java.time.{LocalDate, LocalDateTime}
 
 import slick.jdbc.MySQLProfile.api._
 import com.codingkapoor.employee.persistence.read.dao.employee.EmployeeTableDef._
 
-final case class IntimationEntity(empId: Long, reason: String, latestRequestDate: LocalDate, id: Long = 0L)
+final case class IntimationEntity(empId: Long, reason: String, latestRequestDate: LocalDate, lastModified: LocalDateTime, id: Long = 0L)
 
 class IntimationTableDef(tag: Tag) extends Table[IntimationEntity](tag, "intimation") {
 
@@ -20,8 +20,10 @@ class IntimationTableDef(tag: Tag) extends Table[IntimationEntity](tag, "intimat
 
   def latestRequestDate = column[LocalDate]("LATEST_REQUEST_DATE")
 
+  def lastModified = column[LocalDateTime]("LAST_MODIFIED")
+
   override def * =
-    (empId, reason, latestRequestDate, id).mapTo[IntimationEntity]
+    (empId, reason, latestRequestDate, lastModified, id).mapTo[IntimationEntity]
 }
 
 object IntimationTableDef {

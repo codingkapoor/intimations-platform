@@ -84,8 +84,9 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
     val requests = created.requests.toList.sortWith { case (rd1, rd2) => rd1.date.isBefore(rd2.date) }
 
     val latestRequestDate = requests.last.date
+    val lastModified = created.lastModified
 
-    val ie = IntimationEntity(empId, reason, latestRequestDate)
+    val ie = IntimationEntity(empId, reason, latestRequestDate, lastModified)
 
     intimationRepository.createIntimation(ie).flatMap { id =>
       DBIO.sequence(requests.map { request =>
@@ -110,8 +111,9 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
     val requests = updated.requests.toList.sortWith { case (rd1, rd2) => rd1.date.isBefore(rd2.date) }
 
     val latestRequestDate = requests.last.date
+    val lastModified = updated.lastModified
 
-    val ie = IntimationEntity(empId, reason, latestRequestDate)
+    val ie = IntimationEntity(empId, reason, latestRequestDate, lastModified)
 
     intimationRepository.deleteIntimation(empId).flatMap { _ =>
       intimationRepository.createIntimation(ie).flatMap { id =>
@@ -136,11 +138,12 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
     val empId = cancelled.empId
     val reason = cancelled.reason
     val requests = cancelled.requests.toList.sortWith { case (rd1, rd2) => rd1.date.isBefore(rd2.date) }
+    val lastModified = cancelled.lastModified
 
     if (requests.nonEmpty) {
       val latestRequestDate = requests.last.date
 
-      val ie = IntimationEntity(empId, reason, latestRequestDate)
+      val ie = IntimationEntity(empId, reason, latestRequestDate, lastModified)
 
       intimationRepository.deleteIntimation(empId).flatMap { _ =>
         intimationRepository.createIntimation(ie).flatMap { id =>

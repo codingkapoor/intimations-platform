@@ -135,14 +135,14 @@ object EmployeeServiceImpl {
       case EmployeeDeleted(id) =>
         EmployeeDeletedKafkaEvent(id)
 
-      case IntimationCreated(empId, reason, requests) =>
-        IntimationCreatedKafkaEvent(empId, reason, requests)
+      case IntimationCreated(empId, reason, lastModified, requests) =>
+        IntimationCreatedKafkaEvent(empId, reason, lastModified, requests)
 
-      case IntimationUpdated(empId, reason, requests) =>
-        IntimationUpdatedKafkaEvent(empId, reason, requests)
+      case IntimationUpdated(empId, reason, lastModified, requests) =>
+        IntimationUpdatedKafkaEvent(empId, reason, lastModified, requests)
 
-      case IntimationCancelled(empId, reason, requests) =>
-        IntimationCancelledKafkaEvent(empId, reason, requests)
+      case IntimationCancelled(empId, reason, lastModified, requests) =>
+        IntimationCancelledKafkaEvent(empId, reason, lastModified, requests)
     }
   }
 
@@ -174,9 +174,9 @@ object EmployeeServiceImpl {
             .map {
               case (ie, s) =>
                 val requests = s.map { case ((_, _), re) => Request(LocalDate.of(re.year, re.month, re.date), re.requestType) }.toSet
-                ie.id -> (ie.reason, requests)
+                ie.id -> (ie.reason, ie.lastModified, requests)
             }
-            .map { case (_, t) => ActiveIntimationsRes(ee.id, ee.name, t._1, t._2) }
+            .map { case (_, t) => ActiveIntimationsRes(ee.id, ee.name, t._1, t._2, t._3) }
       }
       .toList
   }

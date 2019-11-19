@@ -6,7 +6,7 @@ import java.time.{LocalDate, LocalDateTime}
 import akka.Done
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
 import org.slf4j.LoggerFactory
-import com.codingkapoor.employee.api.model.{Employee, IntimationReq}
+import com.codingkapoor.employee.api.model.{Employee, Intimation, IntimationReq}
 
 class EmployeePersistenceEntity extends PersistentEntity {
 
@@ -156,7 +156,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
           ctx.done
 
         } else if (intimations.isEmpty || latestRequestDate.isBefore(LocalDate.now()) || already5(latestRequestDate))
-          ctx.thenPersist(IntimationCreated(empId, intimationReq.reason, intimationReq.requests))(_ => ctx.reply(Done))
+          ctx.thenPersist(IntimationCreated(empId, intimationReq.reason, LocalDateTime.now(), intimationReq.requests))(_ => ctx.reply(Done))
 
         else {
           val msg = s"System only supports single active intimation at a given time. Cancel an active intimation first so as to create a new intimation."
@@ -202,7 +202,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         } else {
           val newRequests = requestsAlreadyConsumed ++ requests2
-          ctx.thenPersist(IntimationUpdated(empId, intimationReq.reason, newRequests))(_ => ctx.reply(Done))
+          ctx.thenPersist(IntimationUpdated(empId, intimationReq.reason, LocalDateTime.now(), newRequests))(_ => ctx.reply(Done))
         }
 
     }.onCommand[CancelIntimation, Done] {
@@ -227,7 +227,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         else {
           val requestsAlreadyConsumed = requests.filter(r => r.date.isBefore(LocalDate.now()) || already5(r.date))
-          ctx.thenPersist(IntimationCancelled(empId, reason, requestsAlreadyConsumed))(_ => ctx.reply(Done))
+          ctx.thenPersist(IntimationCancelled(empId, reason, LocalDateTime.now(), requestsAlreadyConsumed))(_ => ctx.reply(Done))
         }
 
     }.onEvent {
@@ -240,16 +240,16 @@ class EmployeePersistenceEntity extends PersistentEntity {
       case (EmployeeDeleted(_), _) =>
         None
 
-      case (IntimationCreated(_, reason, requests), Some(e)) =>
-        val intimations = IntimationReq(reason, requests) :: e.intimations
+      case (IntimationCreated(_, reason, lastModified, requests), Some(e)) =>
+        val intimations = Intimation(reason, lastModified, requests) :: e.intimations
         Some(EmployeeState(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, e.leaves, intimations))
 
-      case (IntimationUpdated(_, reason, requests), Some(e)) =>
-        val intimations = IntimationReq(reason, requests) :: e.intimations.tail
+      case (IntimationUpdated(_, reason, lastModified, requests), Some(e)) =>
+        val intimations = Intimation(reason, lastModified, requests) :: e.intimations.tail
         Some(EmployeeState(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, e.leaves, intimations))
 
-      case (IntimationCancelled(_, reason, requests), Some(e)) =>
-        val intimations = if (requests.isEmpty) e.intimations.tail else IntimationReq(reason, requests) :: e.intimations.tail
+      case (IntimationCancelled(_, reason, lastModified, requests), Some(e)) =>
+        val intimations = if (requests.isEmpty) e.intimations.tail else Intimation(reason, lastModified, requests) :: e.intimations.tail
         Some(EmployeeState(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, e.leaves, intimations))
 
     }
