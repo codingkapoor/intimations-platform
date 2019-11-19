@@ -158,7 +158,7 @@ object EmployeeServiceImpl {
           s.groupBy { case (ie, _) => ie } // group by intimations per employee so as to prepare requests per intimation
             .map {
               case (ie, s) =>
-                val requests = s.map { case (_, r) => Request(LocalDate.of(r.year, r.month, r.date), r.requestType) }.toSet
+                val requests = s.map { case (_, re) => Request(LocalDate.of(re.year, re.month, re.date), re.firstHalf, re.secondHalf) }.toSet
                 ie.id -> (ie.reason, requests)
             }
             .map { case (_, t) => IntimationRes(empId, t._1, t._2) }
@@ -173,7 +173,7 @@ object EmployeeServiceImpl {
           s.groupBy { case ((_, ie), _) => ie } // group by intimations per employee so as to prepare requests per intimation
             .map {
               case (ie, s) =>
-                val requests = s.map { case ((_, _), re) => Request(LocalDate.of(re.year, re.month, re.date), re.requestType) }.toSet
+                val requests = s.map { case ((_, _), re) => Request(LocalDate.of(re.year, re.month, re.date), re.firstHalf, re.secondHalf) }.toSet
                 ie.id -> (ie.reason, ie.lastModified, requests)
             }
             .map { case (_, t) => ActiveIntimationsRes(ee.id, ee.name, t._1, t._2, t._3) }
