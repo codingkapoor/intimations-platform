@@ -26,29 +26,35 @@ CREATE TABLE `employee` (
   `NAME` text NOT NULL,
   `GENDER` text NOT NULL,
   `DOJ` date NOT NULL,
+  `DESIGNATION` text NOT NULL,
   `PFN` varchar(64) NOT NULL,
   `IS_ACTIVE` tinyint(1) NOT NULL,
+  `PHONE` text NOT NULL,
+  `EMAIL` text NOT NULL,
+  `CITY` text NOT NULL,
+  `STATE` text NOT NULL,
+  `COUNTRY` text NOT NULL,
   `EARNED_LEAVES` int(11) NOT NULL,
   `SICK_LEAVES` int(11) NOT NULL,
   PRIMARY KEY (`ID`),
   UNIQUE KEY `PFN` (`PFN`)
-)
+) 
 
 CREATE TABLE `intimation` (
   `EMP_ID` bigint(20) NOT NULL,
   `REASON` text NOT NULL,
   `LATEST_REQUEST_DATE` date NOT NULL,
+  `LAST_MODIFIED` text NOT NULL,
   `ID` bigint(20) NOT NULL AUTO_INCREMENT,
-  PRIMARY KEY (`ID`),
-  KEY `EMP_FK` (`EMP_ID`),
-  CONSTRAINT `EMP_FK` FOREIGN KEY (`EMP_ID`) REFERENCES `employee` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION
-) 
+  PRIMARY KEY (`ID`)
+)
 
 CREATE TABLE `request` (
   `DATE` int(11) NOT NULL,
   `MONTH` int(11) NOT NULL,
   `YEAR` int(11) NOT NULL,
-  `REQUEST_TYPE` text NOT NULL,
+  `FIRST_HALF` text NOT NULL,
+  `SECOND_HALF` text NOT NULL,
   `INTIMATION_ID` bigint(20) NOT NULL,
   `ID` bigint(20) NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`ID`),
@@ -98,15 +104,33 @@ $ curl http://localhost:9008/services
 ```
 curl -X POST \
   http://localhost:9000/api/employees \
+  -H 'Accept: */*' \
+  -H 'Accept-Encoding: gzip, deflate' \
+  -H 'Cache-Control: no-cache' \
+  -H 'Connection: keep-alive' \
+  -H 'Content-Length: 427' \
+  -H 'Content-Type: application/json' \
   -H 'cache-control: no-cache' \
-  -H 'content-type: application/json' \
-  -H 'postman-token: 7e3f3675-c27d-3dd2-df54-a32f276c7b41' \
   -d '{
-	"id": "128",
-	"name": "Shivam",
-	"gender": "M",
-	"doj": "2017-01-16",
-	"pfn": "PFKN110"
+    "id": 128,
+    "name": "Shivam Kapoor",
+    "gender": "M",
+    "doj": "2017-01-16",
+    "designation": "Sr. Big Data Developer",
+    "pfn": "PYKRP00452140000000084",
+    "contactInfo": {
+    	"phone": "+91-9663006554",
+    	"email": "mail@shivamkapoor.com"
+    },
+    "location": {
+    	"city": "Bangalore",
+    	"state": "Karnataka",
+    	"country": "India"
+    },
+    "leaves": {
+    	"earned": 11,
+    	"sick": 2
+    }
 }'
 ```
 
@@ -117,7 +141,7 @@ __consumer_offsets
 employee
 
 $ /opt/kafka_2.12-1.0.0/bin/kafka-console-consumer.sh --topic employee --bootstrap-server localhost:9092 --from-beginning
-{"gender":"M","name":"Shivam","pfn":"PFKN110","id":"128","type":"EmployeeAdded","doj":"2017-01-16"}
+{"leaves":{"earned":11,"sick":2},"contactInfo":{"phone":"+91-9663006554","email":"mail@shivamkapoor.com"},"gender":"M","name":"Shivam Kapoor","pfn":"PYKRP00452140000000084","location":{"city":"Bangalore","state":"Karnataka","country":"India"},"designation":"Sr. Big Data Developer","id":128,"type":"EmployeeAddedKafkaEvent","isActive":true,"doj":"2017-11-16"}
 ```
 
 ### Verify Cassandra
@@ -143,11 +167,12 @@ cqlsh:simplelms> select * from messages ;
 $ mysql -u codingkapoor -p
 mysql> USE simplelms;
 mysql> SELECT * FROM employee;
-+-----+--------+--------+------------+---------+
-| ID  | NAME   | GENDER | DOJ        | PFN     |
-+-----+--------+--------+------------+---------+
-| 128 | Shivam | M      | 2017-01-16 | PFKN110 |
-+-----+--------+--------+------------+---------+
++-----+---------------+--------+------------+--------------------+------------------------+-----------+----------------+-------------------------+-----------+-----------+---------+---------------+-------------+
+| ID  | NAME          | GENDER | DOJ        | DESIGNATION        | PFN                    | IS_ACTIVE | PHONE          | EMAIL                   | CITY      | STATE     | COUNTRY | EARNED_LEAVES | SICK_LEAVES |
++-----+---------------+--------+------------+--------------------+------------------------+-----------+----------------+-------------------------+-----------+-----------+---------+---------------+-------------+
+| 128 | Shivam Kapoor | M      | 2017-11-16 | Sr. Big Data Developer | PYKRP00452140000000084 |         1 | +91-9663006554 | mail@shivamkapoor.com | Bangalore | Karnataka | India   |            11 |           2 |
++-----+---------------+--------+------------+--------------------+------------------------+-----------+----------------+-------------------------+-----------+-----------+---------+---------------+-------------+
+
 1 row in set (0.00 sec)
 ```
 
@@ -159,13 +184,33 @@ Administrator
 ```
 curl -X POST \
   http://localhost:9000/api/employees \
+  -H 'Accept: */*' \
+  -H 'Accept-Encoding: gzip, deflate' \
+  -H 'Cache-Control: no-cache' \
+  -H 'Connection: keep-alive' \
+  -H 'Content-Length: 427' \
   -H 'Content-Type: application/json' \
+  -H 'cache-control: no-cache' \
   -d '{
     "id": 128,
-    "name": "Shivam",
+    "name": "Shivam Kapoor",
     "gender": "M",
     "doj": "2017-01-16",
-    "pfn": "PFKN111"
+    "designation": "Sr. Big Data Developer",
+    "pfn": "PYKRP00452140000000084",
+    "contactInfo": {
+    	"phone": "+91-9663006554",
+    	"email": "mail@shivamkapoor.com"
+    },
+    "location": {
+    	"city": "Bangalore",
+    	"state": "Karnataka",
+    	"country": "India"
+    },
+    "leaves": {
+    	"earned": 11,
+    	"sick": 2
+    }
 }'
 ```
 #### Response
@@ -177,15 +222,7 @@ Employee
 #### Request
 ```
 curl -X GET \
-  http://localhost:9000/api/employees/128 \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "id": "128",
-    "name": "Shivam",
-    "gender": "M",
-    "doj": "2017-01-16",
-    "pfn": "PFKN110"
-}'
+  http://localhost:9000/api/employees/128 
 ```
 #### Response
 ```
@@ -193,14 +230,24 @@ curl -X GET \
 
 {
     "id": 128,
-    "name": "Shivam",
+    "name": "Shivam Kapoor",
     "gender": "M",
-    "doj": "2017-01-16",
-    "pfn": "PFKN111",
+    "doj": "2019-11-16",
+    "designation": "Sr. Big Data Developer",
+    "pfn": "PYKRP00452140000000084",
     "isActive": true,
+    "contactInfo": {
+        "phone": "+91-9663006554",
+        "email": "mail@shivamkapoor.com"
+    },
+    "location": {
+        "city": "Bangalore",
+        "state": "Karnataka",
+        "country": "India"
+    },
     "leaves": {
-        "earned": 0,
-        "sick": 0
+        "earned": 11,
+        "sick": 2
     }
 }
 ```
@@ -210,7 +257,7 @@ Administrator
 #### Request
 ```
 curl -X GET \
-  http://localhost:9000/api/employees \
+  http://localhost:9000/api/employees 
 ```
 #### Response
 ```
@@ -219,26 +266,24 @@ curl -X GET \
 [
     {
         "id": 128,
-        "name": "Shivam",
+        "name": "Shivam Kapoor",
         "gender": "M",
-        "doj": "2017-01-16",
-        "pfn": "PFKN111",
+        "doj": "2017-11-16",
+        "designation": "Sr. Big Data Developer",
+        "pfn": "PYKRP00452140000000084",
         "isActive": true,
+        "contactInfo": {
+            "phone": "+91-9663006554",
+            "email": "mail@shivamkapoor.com"
+        },
+        "location": {
+            "city": "Bangalore",
+            "state": "Karnataka",
+            "country": "India"
+        },
         "leaves": {
-            "earned": 0,
-            "sick": 0
-        }
-    },
-    {
-        "id": 129,
-        "name": "Neha",
-        "gender": "F",
-        "doj": "2019-10-11",
-        "pfn": "PFKN112",
-        "isActive": true,
-        "leaves": {
-            "earned": 0,
-            "sick": 0
+            "earned": 11,
+            "sick": 2
         }
     }
 ]
@@ -249,7 +294,7 @@ Administrator
 #### Request
 ```
 curl -X PUT \
-  http://localhost:9000/api/employees/129/terminate \
+  http://localhost:9000/api/employees/128/terminate \
 ```
 #### Response
 ```
@@ -265,26 +310,24 @@ curl -X GET \
 [
     {
         "id": 128,
-        "name": "Shivam",
+        "name": "Shivam Kapoor",
         "gender": "M",
-        "doj": "2017-01-16",
-        "pfn": "PFKN111",
-        "isActive": true,
-        "leaves": {
-            "earned": 0,
-            "sick": 0
-        }
-    },
-    {
-        "id": 129,
-        "name": "Neha",
-        "gender": "F",
-        "doj": "2019-10-11",
-        "pfn": "PFKN112",
+        "doj": "2017-11-16",
+        "designation": "Sr. Big Data Developer",
+        "pfn": "PYKRP00452140000000084",
         "isActive": false,
+        "contactInfo": {
+            "phone": "+91-9663006554",
+            "email": "mail@shivamkapoor.com"
+        },
+        "location": {
+            "city": "Bangalore",
+            "state": "Karnataka",
+            "country": "India"
+        },
         "leaves": {
-            "earned": 0,
-            "sick": 0
+            "earned": 11,
+            "sick": 2
         }
     }
 ]
@@ -296,7 +339,7 @@ Administrator
 #### Request
 ```
 curl -X DELETE \
-  http://localhost:9000/api/employees/129 \
+  http://localhost:9000/api/employees/128 \
 ```
 #### Response
 ```
@@ -309,21 +352,23 @@ Employee
 ```
 curl -X POST \
   http://localhost:9000/api/employees/128/intimations \
+  -H 'Accept: */*' \
+  -H 'Accept-Encoding: gzip, deflate' \
+  -H 'Cache-Control: no-cache' \
+  -H 'Connection: keep-alive' \
+  -H 'Content-Length: 152' \
   -H 'Content-Type: application/json' \
+  -H 'cache-control: no-cache' \
   -d '{
-	"reason": "vacation",
+	"reason": "Need to attend to some personal work. Will be available across all channels.",
 	"requests": [
 		{
-			"date": "2019-10-07",
-			"requestType": "FullDayWfh"
-		},
-		{
-			"date": "2019-10-08",
-			"requestType": "FullDayLeave"
+			"date": "2019-11-20",
+			"firstHalf": "WFO",
+			"secondHalf": "WFH"
 		}
 	]
-}
-'
+}'
 ```
 #### Response
 ```
@@ -345,15 +390,12 @@ curl -X GET \
 [
     {
         "empId": 128,
-        "reason": "vacation",
+        "reason": "Need to attend to some personal work. Will be available across all channels.",
         "requests": [
             {
-                "date": "2019-10-07",
-                "requestType": "FullDayWfh"
-            },
-            {
-                "date": "2019-10-08",
-                "requestType": "FullDayLeave"
+                "date": "2019-11-20",
+                "firstHalf": "WFO",
+                "secondHalf": "WFH"
             }
         ]
     }
@@ -375,29 +417,14 @@ curl -X GET \
 [
     {
         "empId": 128,
-        "reason": "vacation",
+        "empName": "Shivam Kapoor",
+        "reason": "Need to attend to some personal work.",
+        "lastModified": "2019-11-19T09:14:41.713",
         "requests": [
             {
-                "date": "2019-10-07",
-                "requestType": "FullDayWfh"
-            },
-            {
-                "date": "2019-10-08",
-                "requestType": "FullDayLeave"
-            }
-        ]
-    },
-    {
-        "empId": 129,
-        "reason": "vacation",
-        "requests": [
-            {
-                "date": "2019-10-21",
-                "requestType": "FullDayWfh"
-            },
-            {
-                "date": "2019-10-22",
-                "requestType": "FullDayLeave"
+                "date": "2019-11-20",
+                "firstHalf": "WFO",
+                "secondHalf": "WFH"
             }
         ]
     }
@@ -410,26 +437,24 @@ Employee
 #### Request
 ```
 curl -X PUT \
-  http://localhost:9000/api/employees/129/intimations \
+  http://localhost:9000/api/employees/128/intimations \
+  -H 'Accept: */*' \
+  -H 'Accept-Encoding: gzip, deflate' \
+  -H 'Cache-Control: no-cache' \
+  -H 'Connection: keep-alive' \
+  -H 'Content-Length: 154' \
   -H 'Content-Type: application/json' \
+  -H 'cache-control: no-cache' \
   -d '{
-	"reason": "vacation",
+	"reason": "Not feeling well.",
 	"requests": [
 		{
-			"date": "2019-10-21",
-			"requestType": "FullDayLeave"
-		},
-		{
-			"date": "2019-10-22",
-			"requestType": "FullDayLeave"
-		},
-		{
-			"date": "2019-10-23",
-			"requestType": "FullDayWfh"
+			"date": "2019-11-20",
+			"firstHalf": "WFO",
+			"secondHalf": "Leave"
 		}
 	]
-}
-'
+}'
 ```
 #### Response
 ```
