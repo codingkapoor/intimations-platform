@@ -1,5 +1,5 @@
-# simple-lms-platform
-Platform for simple lms.
+# intimations-platform
+Platform for Intimations.
 
 ## Scope
 1. Maintains list of all the employees.
