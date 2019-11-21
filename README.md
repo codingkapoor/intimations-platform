@@ -16,7 +16,7 @@ mysql> GRANT ALL PRIVILEGES ON * . * TO 'codingkapoor'@'localhost';
 ### Create Database
 ```
 $mysql -u codingkapoor -p
-mysql > CREATE DATABASE simplelms;
+mysql > CREATE DATABASE intimations;
 ```
 
 ### Create Tables
@@ -66,12 +66,12 @@ CREATE TABLE `request` (
 ## Dev
 ### Clone Repo
 ```
-$ git clone git@github.com:codingkapoor/simple-lms-platform.git
+$ git clone git@github.com:codingkapoor/intimations-platform.git
 ```
 
 ### Start All Services
 ```
-$ cd simple-lms-platform
+$ cd intimations-platform
 $ sbt
 sbt> runAll
 
@@ -147,8 +147,8 @@ $ /opt/kafka_2.12-1.0.0/bin/kafka-console-consumer.sh --topic employee --bootstr
 ### Verify Cassandra
 ```
 $ /opt/apache-cassandra-3.11.4/bin/cqlsh localhost 4000
-cqlsh> USE simplelms;
-cqlsh:simplelms> select * from messages ;
+cqlsh> USE intimations;
+cqlsh:intimations> select * from messages ;
 
  persistence_id                                 | partition_nr | sequence_nr | timestamp                            | timebucket | used | event                                                                                                                                                                                                                                                                                                                                      | event_manifest | message | meta | meta_ser_id | meta_ser_manifest | ser_id  | ser_manifest                                              | tag1                                                      | tag2 | tag3 | writer_uuid
 ------------------------------------------------+--------------+-------------+--------------------------------------+------------+------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------+---------+------+-------------+-------------------+---------+-----------------------------------------------------------+-----------------------------------------------------------+------+------+--------------------------------------
@@ -165,7 +165,7 @@ cqlsh:simplelms> select * from messages ;
 ### Verify Mysql
 ```
 $ mysql -u codingkapoor -p
-mysql> USE simplelms;
+mysql> USE intimations;
 mysql> SELECT * FROM employee;
 +-----+---------------+--------+------------+--------------------+------------------------+-----------+----------------+-------------------------+-----------+-----------+---------+---------------+-------------+
 | ID  | NAME          | GENDER | DOJ        | DESIGNATION        | PFN                    | IS_ACTIVE | PHONE          | EMAIL                   | CITY      | STATE     | COUNTRY | EARNED_LEAVES | SICK_LEAVES |
