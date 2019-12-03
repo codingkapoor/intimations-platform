@@ -184,4 +184,6 @@ mysql> SELECT * FROM employee;
 1 row in set (0.00 sec)
 ```
 
+<br/>
+
 [API Documentation](https://github.com/codingkapoor/intimations-platform/wiki/API-Documentation)
