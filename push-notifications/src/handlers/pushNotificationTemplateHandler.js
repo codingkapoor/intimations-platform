@@ -21,7 +21,7 @@ const getPushNotificationMessage = function(message){
     tomorrow = formatDate(tomorrow);
     if(message.requests){
         let item = message.requests[0];
-        let dayText = (item.date === today) ? ' today' :  (item.date === tomorrow) ? ' tomorrow' : '';
+        let dayText = (item.date === today) ? ' today ' :  (item.date === tomorrow) ? ' tomorrow ' : '';
         pushNotification.title = getPushNotificationTitle(message, item, dayText, hasMoreThanOneRequest);
         pushNotification.content = message.reason;
         pushNotificationHandler.handlePushTokens(pushNotification);
@@ -30,18 +30,18 @@ const getPushNotificationMessage = function(message){
 }
 
 const getPushNotificationTitle = function(message, item, day, hasMoreThanOneRequest){
-    let appendFirstValText = (item.firstHalf === 'Leave') ? 'on' : '';
-    let appendSecondValText = (item.secondHalf === 'Leave') ? 'on' : '';
-    let appendText = hasMoreThanOneRequest ? ' and has planned leaves/WFH for subsequent days' : '';
+    let appendFirstValText = (item.firstHalf === 'Leave') ? ' on ' : '';
+    let appendSecondValText = (item.secondHalf === 'Leave') ? ' on ' : '';
+    let appendText = hasMoreThanOneRequest ? ' and has planned leaves/WFH for subsequent days ' : '';
     let messageText = '';
     if(day){
         (item.firstHalf === item.secondHalf) ?  messageText = message.id + ' is ' + appendFirstValText + item.firstHalf  + day + appendText :
-        (item.firstHalf === 'WFO') ? messageText = message.id + ' is ' + appendSecondValText + item.secondHalf + 'in second half ' + day + appendText :
-        (item.secondHalf === 'WFO') ? messageText = message.id + ' is ' + appendFirstValText + item.firstHalf + 'in first half' + day + appendText :
-        messageText = message.id + ' is ' + appendFirstValText + item.firstHalf + 'in first half and' + appendSecondValText + item.secondHalf + 'in second half' + day + appendText;
-        return messageText;
+        (item.firstHalf === 'WFO') ? messageText = message.id + ' is ' + appendSecondValText + item.secondHalf + ' in second half ' + day + appendText :
+        (item.secondHalf === 'WFO') ? messageText = message.id + ' is ' + appendFirstValText + item.firstHalf + ' in first half ' + day + appendText :
+        messageText = message.id + ' is ' + appendFirstValText + item.firstHalf + ' in first half and ' + appendSecondValText + item.secondHalf + ' in second half ' + day + appendText;
+        return messageText.replace(/\s+/g,' ').trim();
     }else{
-        return message.id + ' has planned WFH/Leaves for subsequent days';
+        return message.id + ' has planned WFH/Leaves for subsequent days.';
     }
 }
 
