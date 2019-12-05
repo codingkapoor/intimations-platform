@@ -1,6 +1,7 @@
 let pool = require('../../database');
 let pushNotificationTemplate = require('./pushNotificationTemplateHandler');
-const table = 'tokens';
+let db_config = require('../../db_config');
+const table = db_config.table;
 
 handleKafkaEvents = function(message){
     var data = JSON.parse(message.value);

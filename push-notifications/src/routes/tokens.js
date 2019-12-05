@@ -1,9 +1,10 @@
 var express = require('express');
 let router = express.Router();
 let pool = require('../../database');
+let db_config = require('../../db_config');
 
 let savedPushTokens = [];
-const table = 'tokens';
+const table = db_config.table;
 
 const saveToken = (req) => {
   pool.query(`SELECT * FROM ${table}`,(err, response) => {
@@ -35,8 +36,8 @@ router.post('/register/:id', (req, res) => {
 
 router.post('/deregister/:id', (req, res) => {
   removeToken(req);
-  console.log(`Received employee to deregister , ${req.body.token}`);
-  res.send(`Received employee to deregister, ${req.body.token}`);
+  console.log(`Received employee to deregister , ${req.params.id}`);
+  res.send(`Received employee to deregister, ${req.params.id}`);
 });
 
 module.exports = router;

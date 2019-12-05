@@ -24,9 +24,9 @@ const getPushNotificationMessage = function(message){
         let dayText = (item.date === today) ? ' today' :  (item.date === tomorrow) ? ' tomorrow' : '';
         pushNotification.title = getPushNotificationTitle(message, item, dayText, hasMoreThanOneRequest);
         pushNotification.content = message.reason;
+        pushNotificationHandler.handlePushTokens(pushNotification);
         return;
     }
-    pushNotificationHandler.handlePushTokens(pushNotification);
 }
 
 const getPushNotificationTitle = function(message, item, day, hasMoreThanOneRequest){
