@@ -1,4 +1,4 @@
-var express = require('express');
+let express = require('express');
 let router = express.Router();
 let pool = require('../../database');
 let db_config = require('../../db_config');

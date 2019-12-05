@@ -4,7 +4,7 @@ let db_config = require('../../db_config');
 const table = db_config.table;
 
 handleKafkaEvents = function(message){
-    var data = JSON.parse(message.value);
+    let data = JSON.parse(message.value);
     switch(data.type){
         case 'EmployeeAddedKafkaEvent':
             pool.query(`INSERT INTO ${table} (id,token) VALUES ('${data.id}', '')` , (err, res) => {
