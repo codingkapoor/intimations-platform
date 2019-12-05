@@ -1,9 +1,11 @@
-var mysql = require('mysql')
-var pool = mysql.createPool({
+let mysql = require('mysql');
+let db_config = require('./db_config');
+
+let pool = mysql.createPool({
     host: 'localhost',
-    user: 'sneharamnath',
-    password: 'sneharamnath',
-    database: 'userTokens'
+    user: db_config.userName,
+    password: db_config.password,
+    database: db_config.database
 })
 pool.getConnection((err, connection) => {
     if (err) {
@@ -20,4 +22,4 @@ pool.getConnection((err, connection) => {
     if (connection) connection.release()
     return
 })
-module.exports = pool
+module.exports = pool;
