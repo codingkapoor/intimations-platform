@@ -1,1 +1,1 @@
-# pushnotifications-server
+# push-notifications
