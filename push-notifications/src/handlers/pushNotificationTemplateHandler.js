@@ -1,8 +1,8 @@
-let pushNotificationHandler = require('./pushNotificationsHandler');
+import * as pushNotificationHandler from './pushNotificationsHandler';
 
 let pushNotification = {};
 
-const formatDate = function(date) {
+const formatDate = (date) => {
 
     let day = `${date.getDate()}`.padStart(2,0);
     let month = `${date.getMonth() + 1}`.padStart(2,0);
@@ -11,7 +11,7 @@ const formatDate = function(date) {
     return year + '-' + month + '-' + day;
 }
   
-const getPushNotificationMessage = function(message){
+export const getPushNotificationMessage = (message) =>{
     pushNotification = {};
     let today = new Date();
     let tomorrow = new Date(today);
@@ -29,7 +29,7 @@ const getPushNotificationMessage = function(message){
     }
 }
 
-const getPushNotificationTitle = function(message, item, day, hasMoreThanOneRequest){
+const getPushNotificationTitle = (message, item, day, hasMoreThanOneRequest) => {
     let appendFirstValText = (item.firstHalf === 'Leave') ? ' on ' : '';
     let appendSecondValText = (item.secondHalf === 'Leave') ? ' on ' : '';
     let appendText = hasMoreThanOneRequest ? ' and has planned leaves/WFH for subsequent days ' : '';
@@ -45,14 +45,10 @@ const getPushNotificationTitle = function(message, item, day, hasMoreThanOneRequ
     }
 }
 
-const getPushNotificationMessageForCancelledIntimation = function(message){
+export const getPushNotificationMessageForCancelledIntimation = (message) =>{
     pushNotification = {};
     pushNotification.title = 'Cancelled Intimation';
     pushNotification.content = message.reason;
     pushNotificationHandler.handlePushTokens(pushNotification);
 }
 
-module.exports = {
-    getPushNotificationMessage: getPushNotificationMessage,
-    getPushNotificationMessageForCancelledIntimation: getPushNotificationMessageForCancelledIntimation
-};

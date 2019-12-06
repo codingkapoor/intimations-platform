@@ -1,10 +1,9 @@
-let express = require('express');
+import express from 'express';
+import pool from '../conf/database';
+import {db} from '../conf/config';
 let router = express.Router();
-let pool = require('../../database');
-let db_config = require('../../db_config');
-
 let savedPushTokens = [];
-const table = db_config.table;
+const table = db.table;
 
 const saveToken = (req) => {
   pool.query(`SELECT * FROM ${table}`,(err, response) => {
@@ -40,4 +39,4 @@ router.post('/deregister/:id', (req, res) => {
   res.send(`Received employee to deregister, ${req.params.id}`);
 });
 
-module.exports = router;
+export default router;

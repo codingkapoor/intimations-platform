@@ -1,9 +1,9 @@
-let pool = require('../../database');
-let pushNotificationTemplate = require('./pushNotificationTemplateHandler');
-let db_config = require('../../db_config');
-const table = db_config.table;
+import pool from '../conf/database';
+import {db} from '../conf/config';
+import * as pushNotificationTemplate from './pushNotificationTemplateHandler';
+const table = db.table;
 
-handleKafkaEvents = function(message){
+export const handleKafkaEvents = (message) => {
     let data = JSON.parse(message.value);
     switch(data.type){
         case 'EmployeeAddedKafkaEvent':
@@ -30,5 +30,3 @@ handleKafkaEvents = function(message){
             // do nothing for now
     }
 }
-
-module.exports.handleKafkaEvents = handleKafkaEvents;
