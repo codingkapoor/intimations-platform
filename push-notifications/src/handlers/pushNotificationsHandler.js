@@ -1,6 +1,6 @@
-import {Expo} from 'expo-server-sdk';
+import { Expo } from 'expo-server-sdk';
 import pool from '../conf/database';
-import {db} from '../conf/config';
+import { db } from '../conf/config';
 
 // let savedPushTokens = ['ExponentPushToken[P6Hm9oEChVDz7OPwO-_Qsj]'];
 
@@ -16,17 +16,17 @@ export const handlePushTokens = (message) => {
         });
         let notifications = [];
         for (let pushToken of savedPushTokens) {
-          if (!Expo.isExpoPushToken(pushToken)) {
-            console.error(`Push token ${pushToken} is not a valid Expo push token`);
-            continue;
-          }
-          notifications.push({
-            to: pushToken,
-            sound: 'default',
-            title: message.title,
-            body: message.content,
-            data: message
-          })
+            if (!Expo.isExpoPushToken(pushToken)) {
+                console.error(`Push token ${pushToken} is not a valid Expo push token`);
+                continue;
+            }
+            notifications.push({
+                to: pushToken,
+                sound: 'default',
+                title: message.title,
+                body: message.content,
+                data: message
+            })
         }
         let chunks = expo.chunkPushNotifications(notifications);
         (async () => {
@@ -38,6 +38,6 @@ export const handlePushTokens = (message) => {
                     console.error(error);
                 }
             }
-        })(); 
+        })();
     });
 }
