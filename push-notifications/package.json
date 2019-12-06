@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Push-notifications",
   "scripts": {
-    "start": "nodemon app.js",
+    "start": "nodemon --exec babel-node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
@@ -12,6 +12,7 @@
     "express": "^4.17.1",
     "http-errors": "^1.7.3",
     "kafka-node": "^5.0.0",
+    "lowercase-keys": "^2.0.0",
     "mysql": "^2.17.1",
     "pino": "^5.13.6",
     "pino-http": "^4.3.0",
@@ -20,6 +21,10 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@babel/cli": "^7.7.4",
+    "@babel/core": "^7.7.4",
+    "@babel/node": "^7.7.4",
+    "@babel/preset-env": "^7.7.4",
     "nodemon": "^2.0.1"
   }
 }

@@ -1,12 +1,13 @@
-let mysql = require('mysql');
-let db_config = require('./db_config');
+import mysql from 'mysql';
+import { db } from './config/index';
 
 let pool = mysql.createPool({
     host: 'localhost',
-    user: db_config.userName,
-    password: db_config.password,
-    database: db_config.database
-})
+    user: db.userName,
+    password: db.password,
+    database: db.database
+});
+
 pool.getConnection((err, connection) => {
     if (err) {
         if (err.code === 'PROTOCOL_CONNECTION_LOST') {
@@ -21,5 +22,6 @@ pool.getConnection((err, connection) => {
     }
     if (connection) connection.release()
     return
-})
-module.exports = pool;
+});
+
+export default pool;

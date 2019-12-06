@@ -1,33 +1,32 @@
-const { Expo } = require('expo-server-sdk');
-let pool = require('../../database');
-let db_config = require('../../db_config');
-
-const expo = new Expo();
+import { Expo } from 'expo-server-sdk';
+import pool from '../database';
+import { db } from '../config/index';
 
 // let savedPushTokens = ['ExponentPushToken[P6Hm9oEChVDz7OPwO-_Qsj]'];
 
+const expo = new Expo();
+const table = db.table;
 let savedPushTokens = [];
-const table = db_config.table;
 
-const handlePushTokens = (message) => {
-    pool.query(`SELECT * FROM ${table}`, function(err, response){
+export const handlePushTokens = (message) => {
+    pool.query(`SELECT * FROM ${table}`, (err, response) => {
         savedPushTokens = JSON.parse(JSON.stringify(response));
         savedPushTokens = savedPushTokens.map(element => {
             return element.token;
         });
         let notifications = [];
         for (let pushToken of savedPushTokens) {
-          if (!Expo.isExpoPushToken(pushToken)) {
-            console.error(`Push token ${pushToken} is not a valid Expo push token`);
-            continue;
-          }
-          notifications.push({
-            to: pushToken,
-            sound: 'default',
-            title: message.title,
-            body: message.content,
-            data: message
-          })
+            if (!Expo.isExpoPushToken(pushToken)) {
+                console.error(`Push token ${pushToken} is not a valid Expo push token`);
+                continue;
+            }
+            notifications.push({
+                to: pushToken,
+                sound: 'default',
+                title: message.title,
+                body: message.content,
+                data: message
+            })
         }
         let chunks = expo.chunkPushNotifications(notifications);
         (async () => {
@@ -39,8 +38,6 @@ const handlePushTokens = (message) => {
                     console.error(error);
                 }
             }
-        })(); 
+        })();
     });
 }
-
-module.exports.handlePushTokens = handlePushTokens;
