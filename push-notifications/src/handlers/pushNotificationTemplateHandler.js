@@ -2,7 +2,7 @@ import * as pushNotificationHandler from './pushNotificationsHandler';
 
 let pushNotification = {};
 
-const formatDate = (date) => {
+const formatDate = date => {
 
     let day = `${date.getDate()}`.padStart(2, 0);
     let month = `${date.getMonth() + 1}`.padStart(2, 0);

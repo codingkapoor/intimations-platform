@@ -1,21 +1,23 @@
 import express from 'express';
 import kafka from 'kafka-node';
 import * as kafkaStreams from './src/handlers/kafkaEventStreamHandler';
+
 import indexRouter from './src/routes/index';
 import tokenRouter from './src/routes/tokens';
+import { kafkaConfig, expressServer } from './src/config/index'
 
 const Consumer = kafka.Consumer;
-const client = new kafka.KafkaClient("localhost:2181");
+const client = new kafka.KafkaClient(kafkaConfig.interface + ":" + kafkaConfig.port);
 let app = express();
 
 //Handle push notifications
 
-const consumer = new Consumer(client, [ { topic: 'employee', partition: 0 } ], { autoCommit: true });
+const consumer = new Consumer(client, [{ topic: kafkaConfig.consumer.topic, partition: kafkaConfig.consumer.partition }], { autoCommit: true });
 consumer.on('message', (message) => {
     kafkaStreams.handleKafkaEvents(message);
 });
 
-const PORT_NUMBER = 3000; // port on which you want to run your server on
+const PORT_NUMBER = expressServer.port; // port on which you want to run your server on
 
 app.use(express.json());
 

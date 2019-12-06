@@ -1,6 +1,6 @@
 import { Expo } from 'expo-server-sdk';
-import pool from '../conf/database';
-import { db } from '../conf/config';
+import pool from '../database';
+import { db } from '../config/index';
 
 // let savedPushTokens = ['ExponentPushToken[P6Hm9oEChVDz7OPwO-_Qsj]'];
 

@@ -1,6 +1,9 @@
 import express from 'express';
-import pool from '../conf/database';
-import { db } from '../conf/config';
+import pool from '../database';
+import lowercaseKeys from 'lowercase-keys';
+
+import { db } from '../config/index';
+
 let router = express.Router();
 let savedPushTokens = [];
 const table = db.table;
@@ -9,6 +12,7 @@ const saveToken = (req) => {
   pool.query(`SELECT * FROM ${table}`, (err, response) => {
     savedPushTokens = JSON.parse(JSON.stringify(response));
     savedPushTokens.forEach(element => {
+      element = lowercaseKeys(element);
       if ((element.id === parseInt(req.params.id) && !element.token.length) ||
         (element.id === parseInt(req.params.id) && element.token != req.body.token)) {
         pool.query(`UPDATE ${table} SET token = "${req.body.token}" WHERE ID = ${req.params.id}`, (err, res) => {
