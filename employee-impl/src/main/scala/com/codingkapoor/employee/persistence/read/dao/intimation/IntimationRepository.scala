@@ -21,10 +21,6 @@ class IntimationRepository(db: Database) {
     (intimations returning intimations.map(_.id)) += intimation
   }
 
-  def getActiveIntimation(empId: Long): DBIO[Option[IntimationEntity]] = {
-    intimations.filter(i => i.empId === empId && i.latestRequestDate >= LocalDate.now()).result.headOption
-  }
-
   def getActiveIntimations: Future[Seq[((EmployeeEntity, IntimationEntity), RequestEntity)]] = {
     db.run(
       employees
@@ -35,7 +31,7 @@ class IntimationRepository(db: Database) {
     )
   }
 
-  def getIntimations(empId: Long, month: Int, year: Int): Future[Seq[(IntimationEntity, RequestEntity)]] = {
+  def getInactiveIntimations(empId: Long, month: Int, year: Int): Future[Seq[(IntimationEntity, RequestEntity)]] = {
     db.run(
       intimations
         .join(requests).on(_.id === _.intimationId)
