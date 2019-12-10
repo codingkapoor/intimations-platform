@@ -1,6 +1,17 @@
+import lowercaseKeys from 'lowercase-keys';
+
 import * as pushNotificationHandler from './pushNotificationsHandler';
+import pool from '../database';
+import { db } from '../config';
 
 let pushNotification = {};
+const table = db.table;
+let savedPushTokens = [];
+let loggedInUser = {
+    name: '',
+    token: ''
+}
+let pushNotificationTokens = [];
 
 const formatDate = date => {
 
@@ -19,36 +30,70 @@ export const getPushNotificationMessage = (message) => {
     tomorrow.setDate(tomorrow.getDate() + 1)
     today = formatDate(today);
     tomorrow = formatDate(tomorrow);
-    if (message.requests) {
-        let item = message.requests[0];
-        let dayText = (item.date === today) ? ' today ' : (item.date === tomorrow) ? ' tomorrow ' : '';
-        pushNotification.title = getPushNotificationTitle(message, item, dayText, hasMoreThanOneRequest);
-        pushNotification.content = message.reason;
-        pushNotificationHandler.handlePushTokens(pushNotification);
-        return;
-    }
+    getLoggedInUserDetails().then((res)=>{
+        setPushnotificationsTokensObj(res, message);
+        if (message.requests) {
+            let item = message.requests[0];
+            let dayText = (item.date === today) ? ' today ' : (item.date === tomorrow) ? ' tomorrow ' : '';
+            pushNotification.title = getPushNotificationTitle(loggedInUser.name, item, dayText, hasMoreThanOneRequest);
+            pushNotification.content = message.reason;
+            pushNotificationHandler.handlePushTokens(pushNotification, pushNotificationTokens);
+            return;
+        }
+    })
 }
 
-const getPushNotificationTitle = (message, item, day, hasMoreThanOneRequest) => {
+const setPushnotificationsTokensObj = (response, message) => {
+    loggedInUser = {
+        name: '',
+        token: ''
+    }
+    pushNotificationTokens = [];
+    savedPushTokens = JSON.parse(JSON.stringify(response));
+    savedPushTokens.forEach(element => {
+        element = lowercaseKeys(element);
+        if(message.id === element.id){
+            loggedInUser.name = element.name;
+            loggedInUser.token = element.token;
+        }
+        if(element.token !== loggedInUser.token){
+            pushNotificationTokens.push(element.token);
+        }
+    });
+}
+
+const getPushNotificationTitle = (name, item, day, hasMoreThanOneRequest) => {
     let appendFirstValText = (item.firstHalf === 'Leave') ? ' on ' : '';
     let appendSecondValText = (item.secondHalf === 'Leave') ? ' on ' : '';
     let appendText = hasMoreThanOneRequest ? ' and has planned leaves/WFH for subsequent days ' : '';
     let messageText = '';
     if (day) {
-        (item.firstHalf === item.secondHalf) ? messageText = message.id + ' is ' + appendFirstValText + item.firstHalf + day + appendText :
-            (item.firstHalf === 'WFO') ? messageText = message.id + ' is ' + appendSecondValText + item.secondHalf + ' in second half ' + day + appendText :
-                (item.secondHalf === 'WFO') ? messageText = message.id + ' is ' + appendFirstValText + item.firstHalf + ' in first half ' + day + appendText :
-                    messageText = message.id + ' is ' + appendFirstValText + item.firstHalf + ' in first half and ' + appendSecondValText + item.secondHalf + ' in second half ' + day + appendText;
+        (item.firstHalf === item.secondHalf) ? messageText = name + ' is ' + appendFirstValText + item.firstHalf + day + appendText :
+            (item.firstHalf === 'WFO') ? messageText = name + ' is ' + appendSecondValText + item.secondHalf + ' in second half ' + day + appendText :
+                (item.secondHalf === 'WFO') ? messageText = name + ' is ' + appendFirstValText + item.firstHalf + ' in first half ' + day + appendText :
+                    messageText = name + ' is ' + appendFirstValText + item.firstHalf + ' in first half and ' + appendSecondValText + item.secondHalf + ' in second half ' + day + appendText;
         return messageText.replace(/\s+/g, ' ').trim();
     } else {
-        return message.id + ' has planned WFH/Leaves for subsequent days.';
+        return name + ' has planned WFH/Leaves for subsequent days.';
     }
 }
 
+const getLoggedInUserDetails = () => {
+    return new Promise((resolve, reject) => {
+        pool.query(`SELECT * FROM ${table}`, (err, response) => {
+            if (err) throw err;
+            resolve(response);
+        });
+    })
+}
+ 
 export const getPushNotificationMessageForCancelledIntimation = (message) => {
-    pushNotification = {};
-    pushNotification.title = 'Cancelled Intimation';
-    pushNotification.content = message.reason;
-    pushNotificationHandler.handlePushTokens(pushNotification);
+    getLoggedInUserDetails().then((res)=>{
+        setPushnotificationsTokensObj(res, message);
+        pushNotification = {};
+        pushNotification.title = `${loggedInUser.name} has cancelled Intimation`;
+        pushNotification.content = message.reason;
+        pushNotificationHandler.handlePushTokens(pushNotification, pushNotificationTokens);
+    })
 }
 

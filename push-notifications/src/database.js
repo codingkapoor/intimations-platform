@@ -1,5 +1,5 @@
 import mysql from 'mysql';
-import { db } from './config/index';
+import { db } from './config';
 
 let pool = mysql.createPool({
     host: 'localhost',

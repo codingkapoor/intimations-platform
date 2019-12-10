@@ -2,7 +2,7 @@ import express from 'express';
 import pool from '../database';
 import lowercaseKeys from 'lowercase-keys';
 
-import { db } from '../config/index';
+import { db } from '../config';
 
 let router = express.Router();
 let savedPushTokens = [];
