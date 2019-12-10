@@ -1,8 +1,8 @@
 package com.codingkapoor.employee.persistence.read.dao.intimation
 
 import java.time.{LocalDate, LocalDateTime}
-
 import slick.jdbc.MySQLProfile.api._
+
 import com.codingkapoor.employee.persistence.read.dao.employee.EmployeeTableDef._
 
 final case class IntimationEntity(empId: Long, reason: String, latestRequestDate: LocalDate, lastModified: LocalDateTime, id: Long = 0L)

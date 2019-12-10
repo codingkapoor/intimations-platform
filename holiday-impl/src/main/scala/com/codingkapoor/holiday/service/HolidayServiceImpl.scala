@@ -1,27 +1,31 @@
 package com.codingkapoor.holiday.service
 
-import java.time.LocalDate
-
 import akka.{Done, NotUsed}
-import com.codingkapoor.holiday.api.{Holiday, HolidayService}
+
+import scala.concurrent.ExecutionContext.Implicits.global
 import com.lightbend.lagom.scaladsl.api.ServiceCall
-import org.slf4j.LoggerFactory
+import com.codingkapoor.holiday.api.{Holiday, HolidayRes, HolidayService}
+import com.codingkapoor.holiday.repository.{HolidayDao, HolidayEntity}
 
-import scala.concurrent.Future
+class HolidayServiceImpl(holidayDao: HolidayDao) extends HolidayService {
 
-class HolidayServiceImpl extends HolidayService {
+  import HolidayServiceImpl._
 
-  private val log = LoggerFactory.getLogger(classOf[HolidayServiceImpl])
-
-  override def addHoliday(): ServiceCall[Holiday, Done] = ServiceCall { _ =>
-    Future.successful(Done)
+  override def addHoliday(): ServiceCall[Holiday, Done] = ServiceCall { holiday =>
+    holidayDao.addHoliday(HolidayEntity(holiday.date, holiday.occasion)).map(_ => Done)
   }
 
   override def deleteHoliday(id: Long): ServiceCall[NotUsed, Done] = ServiceCall { _ =>
-    Future.successful(Done)
+    holidayDao.deleteHoliday(id).map(_ => Done)
   }
 
-  override def getHolidays: ServiceCall[NotUsed, Seq[Holiday]] = ServiceCall { _ =>
-    Future.successful(Seq(Holiday(LocalDate.now(), "Happy Birthday")))
+  override def getHolidays: ServiceCall[NotUsed, Seq[HolidayRes]] = ServiceCall { _ =>
+    holidayDao.getHolidays.map(_.map(convertHolidayEntityToHolidayRes))
+  }
+}
+
+object HolidayServiceImpl {
+  def convertHolidayEntityToHolidayRes(he: HolidayEntity): HolidayRes = {
+    HolidayRes(he.id, he.date, he.occasion)
   }
 }

@@ -47,6 +47,7 @@ lazy val `holiday-impl` = (project in file("holiday-impl"))
   .enablePlugins(LagomScala)
   .settings(
     libraryDependencies ++= Seq(
+      lagomScaladslPersistenceJdbc,
       lagomScaladslTestKit,
       mysql,
       macwire,

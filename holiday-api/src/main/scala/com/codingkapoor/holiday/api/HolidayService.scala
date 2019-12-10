@@ -10,7 +10,7 @@ trait HolidayService extends Service {
 
   def deleteHoliday(id: Long): ServiceCall[NotUsed, Done]
 
-  def getHolidays: ServiceCall[NotUsed, Seq[Holiday]]
+  def getHolidays: ServiceCall[NotUsed, Seq[HolidayRes]]
 
   override final def descriptor: Descriptor = {
     import Service._
