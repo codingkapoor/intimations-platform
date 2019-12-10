@@ -1,5 +1,5 @@
 import pool from '../database';
-import { db } from '../config/index';
+import { db } from '../config';
 import * as pushNotificationTemplate from './pushNotificationTemplateHandler';
 const table = db.table;
 
@@ -7,7 +7,7 @@ export const handleKafkaEvents = (message) => {
     let data = JSON.parse(message.value);
     switch (data.type) {
         case 'EmployeeAddedKafkaEvent':
-            pool.query(`INSERT INTO ${table} (ID,token) VALUES ('${data.id}', '')`, (err, res) => {
+            pool.query(`INSERT INTO ${table} (ID,token,name) VALUES ('${data.id}', '', '${data.name}')`, (err, res) => {
                 if (err) throw err;
                 console.log("1 record inserted");
             });
