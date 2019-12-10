@@ -180,8 +180,8 @@ mysql> SELECT * FROM employee;
 
 <br/>
 
-[API Documentation](https://github.com/codingkapoor/intimations-platform/wiki/API-Documentation)
+[Employee](https://github.com/codingkapoor/intimations-platform/wiki/Employee)
 
-[Holidays](https://github.com/codingkapoor/intimations-platform/wiki/Holidays)
+[Holiday](https://github.com/codingkapoor/intimations-platform/wiki/Holiday)
 
 [Push Notifications](https://github.com/codingkapoor/intimations-platform/wiki/Push-Notifications)
