@@ -63,12 +63,6 @@ CREATE TABLE `request` (
   KEY `INTIMATION_FK` (`INTIMATION_ID`),
   CONSTRAINT `INTIMATION_FK` FOREIGN KEY (`INTIMATION_ID`) REFERENCES `intimation` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION
 )
-
-CREATE TABLE `holiday` (
-  `DATE` varchar(255) NOT NULL,
-  `OCCASION` text NOT NULL,
-  PRIMARY KEY (`DATE`)
-)
 ```
 
 ## Dev
@@ -187,3 +181,7 @@ mysql> SELECT * FROM employee;
 <br/>
 
 [API Documentation](https://github.com/codingkapoor/intimations-platform/wiki/API-Documentation)
+
+[Holidays](https://github.com/codingkapoor/intimations-platform/wiki/Holidays)
+
+[Push Notifications](https://github.com/codingkapoor/intimations-platform/wiki/Push-Notifications)
