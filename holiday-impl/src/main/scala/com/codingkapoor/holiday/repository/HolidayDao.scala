@@ -4,6 +4,8 @@ import slick.jdbc.JdbcBackend.Database
 import slick.jdbc.MySQLProfile.api._
 import scala.concurrent.Future
 
+import com.codingkapoor.holiday.api.MonthYear
+
 class HolidayDao(db: Database) {
   val holidays = HolidayTableDef.holidays
 
@@ -11,7 +13,7 @@ class HolidayDao(db: Database) {
     db.run((holidays returning holidays.map(_.id)) += holiday)
   }
 
-  def getHolidays: Future[Seq[HolidayEntity]] = {
+  def getHolidays(start: MonthYear, end: MonthYear): Future[Seq[HolidayEntity]] = {
     db.run(holidays.result)
   }
 
