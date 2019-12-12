@@ -57,6 +57,19 @@ lazy val `holiday-impl` = (project in file("holiday-impl"))
   .settings(lagomForkedTestSettings)
   .dependsOn(`holiday-api`)
 
+lazy val `audit` = (project in file("audit"))
+  .enablePlugins(LagomScala)
+  .settings(
+    libraryDependencies ++= Seq(
+      lagomScaladslTestKit,
+      lagomScaladslKafkaClient,
+      macwire,
+      scalaTest
+    )
+  )
+  .settings(lagomForkedTestSettings)
+  .dependsOn(`employee-api`)
+
 lagomServiceGatewayAddress in ThisBuild := "0.0.0.0"
 
 //lagomCassandraCleanOnStart in ThisBuild := true
