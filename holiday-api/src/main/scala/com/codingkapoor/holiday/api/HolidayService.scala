@@ -16,7 +16,6 @@ trait HolidayService extends Service with HolidayPathParamSerializer {
 
   override final def descriptor: Descriptor = {
     import Service._
-    import MonthYear._
 
     named("holiday")
       .withCalls(
