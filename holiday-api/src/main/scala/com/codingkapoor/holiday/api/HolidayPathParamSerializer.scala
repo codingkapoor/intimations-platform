@@ -9,7 +9,10 @@ import MonthYear._
 
 trait HolidayPathParamSerializer {
   implicit val datePathParamSerializer: PathParamSerializer[LocalDate] = {
-    required[LocalDate]("LocalDate")(LocalDate.parse)(_.toString)
+    def serializer(date: LocalDate): String = date.toString
+    def deserializer(str: String): LocalDate = LocalDate.parse(str)
+
+    required[LocalDate]("LocalDate")(deserializer)(serializer)
   }
 
   implicit val monthYearPathParamSerializer: PathParamSerializer[MonthYear] = {
