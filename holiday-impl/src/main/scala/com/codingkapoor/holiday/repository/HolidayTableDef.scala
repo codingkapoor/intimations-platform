@@ -1,19 +1,22 @@
 package com.codingkapoor.holiday.repository
 
-import java.time.LocalDate
 import slick.jdbc.MySQLProfile.api._
 
-case class HolidayEntity(date: LocalDate, occasion: String, id: Long = 0L)
+case class HolidayEntity(date: Int, month: Int, year: Int, occasion: String)
 
 class HolidayTableDef(tag: Tag) extends Table[HolidayEntity](tag, "holiday") {
 
-  def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
+  def date = column[Int]("DATE")
 
-  def date = column[LocalDate]("DATE")
+  def month = column[Int]("MONTH")
+
+  def year = column[Int]("YEAR")
 
   def occasion = column[String]("OCCASION")
 
-  override def * = (date, occasion, id).mapTo[HolidayEntity]
+  override def * = (date, month, year, occasion).mapTo[HolidayEntity]
+
+  def pk = primaryKey("pk_holiday", (date, month, year))
 }
 
 object HolidayTableDef {
