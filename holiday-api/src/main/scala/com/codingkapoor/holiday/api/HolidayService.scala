@@ -12,7 +12,7 @@ trait HolidayService extends Service with HolidayPathParamSerializer {
 
   def deleteHoliday(date: LocalDate): ServiceCall[NotUsed, Done]
 
-  def getHolidays(start: MonthYear, end: MonthYear): ServiceCall[NotUsed, Seq[Holiday]]
+  def getHolidays(start: LocalDate, end: LocalDate): ServiceCall[NotUsed, Seq[Holiday]]
 
   override final def descriptor: Descriptor = {
     import Service._
