@@ -1,10 +1,11 @@
 import lowercaseKeys from 'lowercase-keys';
 
 import * as pushNotificationHandler from './pushNotificationsHandler';
+import * as mailNotifications from './mailNotificationHandler';
 import pool from '../database';
 import { db } from '../config';
 
-let pushNotification = {};
+let notification = {};
 const table = db.table;
 let savedPushTokens = [];
 let loggedInUser = {
@@ -22,22 +23,23 @@ const formatDate = date => {
     return year + '-' + month + '-' + day;
 }
 
-export const getPushNotificationMessage = (message) => {
-    pushNotification = {};
+export const getNotificationMessage = (message) => {
+    notification = {};
     let today = new Date();
     let tomorrow = new Date(today);
     let hasMoreThanOneRequest = message.requests.length === 1 ? false : message.requests.length > 1 ? true : '';
     tomorrow.setDate(tomorrow.getDate() + 1)
     today = formatDate(today);
     tomorrow = formatDate(tomorrow);
-    getLoggedInUserDetails().then((res)=>{
+    getLoggedInUserDetails().then((res) => {
         setPushnotificationsTokensObj(res, message);
         if (message.requests) {
             let item = message.requests[0];
             let dayText = (item.date === today) ? ' today ' : (item.date === tomorrow) ? ' tomorrow ' : '';
-            pushNotification.title = getPushNotificationTitle(loggedInUser.name, item, dayText, hasMoreThanOneRequest);
-            pushNotification.content = message.reason;
-            pushNotificationHandler.handlePushTokens(pushNotification, pushNotificationTokens);
+            notification.title = getNotificationTitle(loggedInUser.name, item, dayText, hasMoreThanOneRequest);
+            notification.content = message.reason;
+            pushNotificationHandler.handlePushTokens(notification, pushNotificationTokens);
+            mailNotifications.sendMailNotification(notification);
             return;
         }
     })
@@ -52,17 +54,17 @@ const setPushnotificationsTokensObj = (response, message) => {
     savedPushTokens = JSON.parse(JSON.stringify(response));
     savedPushTokens.forEach(element => {
         element = lowercaseKeys(element);
-        if(message.id === element.id){
+        if (message.id === element.id) {
             loggedInUser.name = element.name;
             loggedInUser.token = element.token;
         }
-        if(element.token !== loggedInUser.token){
+        if (element.token !== loggedInUser.token) {
             pushNotificationTokens.push(element.token);
         }
     });
 }
 
-const getPushNotificationTitle = (name, item, day, hasMoreThanOneRequest) => {
+const getNotificationTitle = (name, item, day, hasMoreThanOneRequest) => {
     let appendFirstValText = (item.firstHalf === 'Leave') ? ' on ' : '';
     let appendSecondValText = (item.secondHalf === 'Leave') ? ' on ' : '';
     let appendText = hasMoreThanOneRequest ? ' and has planned leaves/WFH for subsequent days ' : '';
@@ -86,14 +88,15 @@ const getLoggedInUserDetails = () => {
         });
     })
 }
- 
-export const getPushNotificationMessageForCancelledIntimation = (message) => {
-    getLoggedInUserDetails().then((res)=>{
+
+export const getNotificationMessageForCancelledIntimation = (message) => {
+    getLoggedInUserDetails().then((res) => {
         setPushnotificationsTokensObj(res, message);
-        pushNotification = {};
-        pushNotification.title = `${loggedInUser.name} has cancelled Intimation`;
-        pushNotification.content = message.reason;
-        pushNotificationHandler.handlePushTokens(pushNotification, pushNotificationTokens);
+        notification = {};
+        notification.title = `${loggedInUser.name} has cancelled Intimation`;
+        notification.content = message.reason;
+        pushNotificationHandler.handlePushTokens(notification, pushNotificationTokens);
+        mailNotifications.sendMailNotification(notification);
     })
 }
 
