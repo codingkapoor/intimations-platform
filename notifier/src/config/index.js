@@ -8,7 +8,7 @@ export const db = {
 export const kafkaConfig = {
     interface: 'localhost',
     port: 2181,
-    consumer : {
+    consumer: {
         topic: 'employee',
         partition: 0
     }
