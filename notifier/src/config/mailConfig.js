@@ -7,7 +7,7 @@ export const smtpConfig = {
     port: 587,
     auth: {
         user: 'sneha.ramnath@glassbeam.com',
-        pass: '2812568family'
+        pass: 'password'
     }
 }
 
