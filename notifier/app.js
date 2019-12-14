@@ -10,15 +10,15 @@ const Consumer = kafka.Consumer;
 const client = new kafka.KafkaClient(kafkaConfig.interface + ":" + kafkaConfig.port);
 let app = express();
 
-//Handle push notifications
+//Handle notifications
 
 const consumer = new Consumer(client, [{ topic: kafkaConfig.consumer.topic, partition: kafkaConfig.consumer.partition }], { autoCommit: true });
 consumer.on('message', (message) => {
     kafkaStreams.handleKafkaEvents(message);
 });
 
-const PORT_NUMBER = expressServer.port; // port on which you want to run your server on
-
+// port on which you want to run your server 
+const PORT_NUMBER = expressServer.port;
 app.use(express.json());
 
 // Routes
