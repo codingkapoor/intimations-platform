@@ -69,15 +69,21 @@ class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, em
   }
 
   override def createIntimation(empId: Long): ServiceCall[IntimationReq, Done] = ServiceCall { intimationReq =>
-    entityRef(empId).ask(CreateIntimation(empId, intimationReq)).recover {
-      case e: InvalidCommandException => throw BadRequest(e.message)
-    }
+    if (intimationReq.reason.length > 0)
+      entityRef(empId).ask(CreateIntimation(empId, intimationReq)).recover {
+        case e: InvalidCommandException => throw BadRequest(e.message)
+      }
+    else
+      throw BadRequest("Please provide a valid reason.")
   }
 
   override def updateIntimation(empId: Long): ServiceCall[IntimationReq, Done] = ServiceCall { intimationReq =>
-    entityRef(empId).ask(UpdateIntimation(empId, intimationReq)).recover {
-      case e: InvalidCommandException => throw BadRequest(e.message)
-    }
+    if (intimationReq.reason.length > 0)
+      entityRef(empId).ask(UpdateIntimation(empId, intimationReq)).recover {
+        case e: InvalidCommandException => throw BadRequest(e.message)
+      }
+    else
+      throw BadRequest("Please provide a valid reason.")
   }
 
   override def cancelIntimation(empId: Long): ServiceCall[NotUsed, Done] = ServiceCall { _ =>
