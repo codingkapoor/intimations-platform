@@ -10,6 +10,8 @@ import scala.concurrent.Future
 class HolidayDao(db: Database) {
   val holidays = HolidayTableDef.holidays
 
+  createTable
+
   def addHoliday(holiday: HolidayEntity): Future[Int] = {
     db.run(holidays += holiday)
   }
@@ -21,4 +23,7 @@ class HolidayDao(db: Database) {
   def deleteHoliday(date: LocalDate): Future[Int] = {
     db.run(holidays.filter(h => h.date === date).delete)
   }
+
+  def createTable: Future[Unit] = db.run(holidays.schema.createIfNotExists)
+
 }
