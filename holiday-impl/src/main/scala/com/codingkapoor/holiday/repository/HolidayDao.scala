@@ -1,21 +1,24 @@
 package com.codingkapoor.holiday.repository
 
+import java.time.LocalDate
+
 import slick.jdbc.JdbcBackend.Database
 import slick.jdbc.MySQLProfile.api._
+
 import scala.concurrent.Future
 
 class HolidayDao(db: Database) {
   val holidays = HolidayTableDef.holidays
 
-  def addHoliday(holiday: HolidayEntity): Future[Long] = {
-    db.run((holidays returning holidays.map(_.id)) += holiday)
+  def addHoliday(holiday: HolidayEntity): Future[Int] = {
+    db.run(holidays += holiday)
   }
 
-  def getHolidays: Future[Seq[HolidayEntity]] = {
-    db.run(holidays.result)
+  def getHolidays(start: LocalDate, end: LocalDate): Future[Seq[HolidayEntity]] = {
+    db.run(holidays.filter(h => h.date >= start && h.date <= end).result)
   }
 
-  def deleteHoliday(id: Long): Future[Int] = {
-    db.run(holidays.filter(i => i.id === id).delete)
+  def deleteHoliday(date: LocalDate): Future[Int] = {
+    db.run(holidays.filter(h => h.date === date).delete)
   }
 }
