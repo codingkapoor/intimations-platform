@@ -1,4 +1,4 @@
-package com.codingkapoor.employee.persistence.read.dao.employee
+package com.codingkapoor.employee.persistence.read.repository.employee
 
 import akka.Done
 import slick.jdbc.JdbcBackend.Database
@@ -7,7 +7,7 @@ import slick.jdbc.MySQLProfile.api._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class EmployeeRepository(db: Database) {
+class EmployeeDao(db: Database) {
 
   val employees = EmployeeTableDef.employees
 

@@ -1,4 +1,4 @@
-package com.codingkapoor.employee.persistence.read.dao.intimation
+package com.codingkapoor.employee.persistence.read.repository.intimation
 
 import java.time.LocalDate
 import slick.dbio.DBIO
@@ -8,10 +8,10 @@ import akka.Done
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-import com.codingkapoor.employee.persistence.read.dao.employee.{EmployeeEntity, EmployeeTableDef}
-import com.codingkapoor.employee.persistence.read.dao.request.{RequestEntity, RequestTableDef}
+import com.codingkapoor.employee.persistence.read.repository.employee.{EmployeeEntity, EmployeeTableDef}
+import com.codingkapoor.employee.persistence.read.repository.request.{RequestEntity, RequestTableDef}
 
-class IntimationRepository(db: Database) {
+class IntimationDao(db: Database) {
   val employees = EmployeeTableDef.employees
   val intimations = IntimationTableDef.intimations
   val requests = RequestTableDef.requests

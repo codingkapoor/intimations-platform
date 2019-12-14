@@ -1,9 +1,9 @@
 package com.codingkapoor.employee.persistence.read
 
 import akka.Done
-import com.codingkapoor.employee.persistence.read.dao.employee.{EmployeeEntity, EmployeeRepository}
-import com.codingkapoor.employee.persistence.read.dao.intimation.{IntimationEntity, IntimationRepository}
-import com.codingkapoor.employee.persistence.read.dao.request.{RequestEntity, RequestRepository}
+import com.codingkapoor.employee.persistence.read.repository.employee.{EmployeeEntity, EmployeeDao}
+import com.codingkapoor.employee.persistence.read.repository.intimation.{IntimationEntity, IntimationDao}
+import com.codingkapoor.employee.persistence.read.repository.request.{RequestEntity, RequestDao}
 import com.codingkapoor.employee.persistence.write.{EmployeeAdded, EmployeeDeleted, EmployeeEvent, EmployeeTerminated, EmployeeUpdated, IntimationCancelled, IntimationCreated, IntimationUpdated}
 import com.lightbend.lagom.scaladsl.persistence.{AggregateEventTag, EventStreamElement, ReadSideProcessor}
 import com.lightbend.lagom.scaladsl.persistence.slick.SlickReadSide
@@ -12,8 +12,8 @@ import slick.jdbc.MySQLProfile.api._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: EmployeeRepository,
-                             intimationRepository: IntimationRepository, requestRepository: RequestRepository) extends ReadSideProcessor[EmployeeEvent] {
+class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: EmployeeDao,
+                             intimationRepository: IntimationDao, requestRepository: RequestDao) extends ReadSideProcessor[EmployeeEvent] {
   private val log = LoggerFactory.getLogger(classOf[EmployeeEventProcessor])
 
   override def buildHandler(): ReadSideProcessor.ReadSideHandler[EmployeeEvent] =

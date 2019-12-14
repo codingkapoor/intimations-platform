@@ -14,13 +14,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import com.codingkapoor.employee.api
 import com.codingkapoor.employee.api.model._
 import com.codingkapoor.employee.api.EmployeeService
-import com.codingkapoor.employee.persistence.read.dao.employee.{EmployeeEntity, EmployeeRepository}
-import com.codingkapoor.employee.persistence.read.dao.intimation.{IntimationEntity, IntimationRepository}
-import com.codingkapoor.employee.persistence.read.dao.request.{RequestEntity, RequestRepository}
+import com.codingkapoor.employee.persistence.read.repository.employee.{EmployeeEntity, EmployeeDao}
+import com.codingkapoor.employee.persistence.read.repository.intimation.{IntimationEntity, IntimationDao}
+import com.codingkapoor.employee.persistence.read.repository.request.{RequestEntity, RequestDao}
 import com.codingkapoor.employee.persistence.write._
 
-class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, employeeRepository: EmployeeRepository,
-                          intimationRepository: IntimationRepository, requestRepository: RequestRepository) extends EmployeeService {
+class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, employeeRepository: EmployeeDao,
+                          intimationRepository: IntimationDao, requestRepository: RequestDao) extends EmployeeService {
 
   import EmployeeServiceImpl._
 

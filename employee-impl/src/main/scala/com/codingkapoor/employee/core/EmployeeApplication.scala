@@ -2,9 +2,9 @@ package com.codingkapoor.employee.core
 
 import com.codingkapoor.employee.api.EmployeeService
 import com.codingkapoor.employee.persistence.read.EmployeeEventProcessor
-import com.codingkapoor.employee.persistence.read.dao.employee.EmployeeRepository
-import com.codingkapoor.employee.persistence.read.dao.intimation.IntimationRepository
-import com.codingkapoor.employee.persistence.read.dao.request.RequestRepository
+import com.codingkapoor.employee.persistence.read.repository.employee.EmployeeDao
+import com.codingkapoor.employee.persistence.read.repository.intimation.IntimationDao
+import com.codingkapoor.employee.persistence.read.repository.request.RequestDao
 import com.codingkapoor.employee.persistence.write.{EmployeePersistenceEntity, EmployeeSerializerRegistry}
 import com.codingkapoor.employee.service.EmployeeServiceImpl
 import com.lightbend.lagom.scaladsl.broker.kafka.LagomKafkaComponents
@@ -26,9 +26,9 @@ abstract class EmployeeApplication(context: LagomApplicationContext)
   override lazy val lagomServer = serverFor[EmployeeService](wire[EmployeeServiceImpl])
   override lazy val jsonSerializerRegistry = EmployeeSerializerRegistry
 
-  lazy val employeeRepository = wire[EmployeeRepository]
-  lazy val intimationRepository = wire[IntimationRepository]
-  lazy val requestRepository = wire[RequestRepository]
+  lazy val employeeRepository = wire[EmployeeDao]
+  lazy val intimationRepository = wire[IntimationDao]
+  lazy val requestRepository = wire[RequestDao]
 
   persistentEntityRegistry.register(wire[EmployeePersistenceEntity])
   readSide.register(wire[EmployeeEventProcessor])

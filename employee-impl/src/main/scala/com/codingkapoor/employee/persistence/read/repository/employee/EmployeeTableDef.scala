@@ -1,4 +1,4 @@
-package com.codingkapoor.employee.persistence.read.dao.employee
+package com.codingkapoor.employee.persistence.read.repository.employee
 
 import java.time.LocalDate
 import slick.jdbc.MySQLProfile.api._

@@ -1,4 +1,4 @@
-package com.codingkapoor.employee.persistence.read.dao.request
+package com.codingkapoor.employee.persistence.read.repository.request
 
 import slick.dbio.DBIO
 import slick.jdbc.JdbcBackend.Database
@@ -7,7 +7,7 @@ import akka.Done
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class RequestRepository(db: Database) {
+class RequestDao(db: Database) {
   val requests = RequestTableDef.requests
 
   def addRequest(request: RequestEntity): DBIO[Done] = {
