@@ -1,7 +1,6 @@
 package com.codingkapoor.employee.service
 
 import java.time.LocalDate
-
 import akka.{Done, NotUsed}
 import com.lightbend.lagom.scaladsl.api.ServiceCall
 import com.lightbend.lagom.scaladsl.api.broker.Topic
@@ -10,8 +9,8 @@ import com.lightbend.lagom.scaladsl.broker.TopicProducer
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.InvalidCommandException
 import com.lightbend.lagom.scaladsl.persistence.{EventStreamElement, PersistentEntityRegistry}
 import org.slf4j.LoggerFactory
-
 import scala.concurrent.ExecutionContext.Implicits.global
+
 import com.codingkapoor.employee.api
 import com.codingkapoor.employee.api.model._
 import com.codingkapoor.employee.api.EmployeeService
@@ -87,11 +86,8 @@ class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, em
     }
   }
 
-  override def getInactiveIntimations(empId: Long, month: Option[Int], year: Option[Int]): ServiceCall[NotUsed, List[InactiveIntimation]] = ServiceCall { _ =>
-    val m = if (month.isEmpty) LocalDate.now().getMonthValue else month.get
-    val y = if (year.isEmpty) LocalDate.now().getYear else year.get
-
-    intimationRepository.getInactiveIntimations(empId, m, y).map(convertToInactiveIntimations)
+  override def getInactiveIntimations(empId: Long, start: LocalDate, end: LocalDate): ServiceCall[NotUsed, List[InactiveIntimation]] = ServiceCall { _ =>
+    intimationRepository.getInactiveIntimations(empId, start, end).map(convertToInactiveIntimations)
   }
 
   override def getActiveIntimations: ServiceCall[NotUsed, List[ActiveIntimation]] = ServiceCall { _ =>
@@ -146,7 +142,7 @@ object EmployeeServiceImpl {
           s.groupBy { case (ie, _) => ie } // group by intimations per employee so as to prepare requests per intimation
             .map {
               case (ie, s) =>
-                val requests = s.map { case (_, re) => Request(LocalDate.of(re.year, re.month, re.date), re.firstHalf, re.secondHalf) }.toSet
+                val requests = s.map { case (_, re) => Request(re.date, re.firstHalf, re.secondHalf) }.toSet
                 ie.id -> (ie.reason, requests)
             }
             .map { case (id, t) => InactiveIntimation(id, empId, t._1, t._2) }
@@ -161,7 +157,7 @@ object EmployeeServiceImpl {
           s.groupBy { case ((_, ie), _) => ie } // group by intimations per employee so as to prepare requests per intimation
             .map {
               case (ie, s) =>
-                val requests = s.map { case ((_, _), re) => Request(LocalDate.of(re.year, re.month, re.date), re.firstHalf, re.secondHalf) }.toSet
+                val requests = s.map { case ((_, _), re) => Request(re.date, re.firstHalf, re.secondHalf) }.toSet
                 ie.id -> (ie.reason, ie.lastModified, requests)
             }
             .map { case (id, t) => ActiveIntimation(id, ee.id, ee.name, t._1, t._2, t._3) }

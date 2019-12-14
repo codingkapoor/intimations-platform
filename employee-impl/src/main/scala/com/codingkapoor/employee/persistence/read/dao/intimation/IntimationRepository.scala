@@ -1,16 +1,15 @@
 package com.codingkapoor.employee.persistence.read.dao.intimation
 
 import java.time.LocalDate
-
 import slick.dbio.DBIO
 import slick.jdbc.JdbcBackend.Database
 import slick.jdbc.MySQLProfile.api._
 import akka.Done
-import com.codingkapoor.employee.persistence.read.dao.employee.{EmployeeEntity, EmployeeTableDef}
-import com.codingkapoor.employee.persistence.read.dao.request.{RequestEntity, RequestTableDef}
-
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+
+import com.codingkapoor.employee.persistence.read.dao.employee.{EmployeeEntity, EmployeeTableDef}
+import com.codingkapoor.employee.persistence.read.dao.request.{RequestEntity, RequestTableDef}
 
 class IntimationRepository(db: Database) {
   val employees = EmployeeTableDef.employees
@@ -31,11 +30,11 @@ class IntimationRepository(db: Database) {
     )
   }
 
-  def getInactiveIntimations(empId: Long, month: Int, year: Int): Future[Seq[(IntimationEntity, RequestEntity)]] = {
+  def getInactiveIntimations(empId: Long, start: LocalDate, end: LocalDate): Future[Seq[(IntimationEntity, RequestEntity)]] = {
     db.run(
       intimations
         .join(requests).on(_.id === _.intimationId)
-        .filter { case (i, r) => i.empId === empId && r.month === month && r.year === year }
+        .filter { case (i, r) => i.empId === empId && r.date >= start && r.date <= end }
         .result
     )
   }

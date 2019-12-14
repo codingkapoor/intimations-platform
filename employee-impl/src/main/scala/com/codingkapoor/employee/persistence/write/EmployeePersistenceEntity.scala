@@ -2,11 +2,11 @@ package com.codingkapoor.employee.persistence.write
 
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, LocalDateTime}
-
 import akka.Done
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
 import org.slf4j.LoggerFactory
-import com.codingkapoor.employee.api.model.{Employee, Intimation, IntimationReq}
+
+import com.codingkapoor.employee.api.model.{Employee, Intimation}
 
 class EmployeePersistenceEntity extends PersistentEntity {
 

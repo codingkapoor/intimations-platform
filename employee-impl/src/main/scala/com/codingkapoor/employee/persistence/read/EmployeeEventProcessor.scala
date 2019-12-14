@@ -90,11 +90,9 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
 
     intimationRepository.createIntimation(ie).flatMap { id =>
       DBIO.sequence(requests.map { request =>
-        val date = request.date.getDayOfMonth
-        val month = request.date.getMonthValue
-        val year = request.date.getYear
+        val date = request.date
 
-        val re = RequestEntity(date, month, year, request.firstHalf, request.secondHalf, id)
+        val re = RequestEntity(date, request.firstHalf, request.secondHalf, id)
         log.debug(s"RequestEntity = $re")
 
         requestRepository.addRequest(re)
@@ -118,11 +116,9 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
     intimationRepository.deleteIntimation(empId).flatMap { _ =>
       intimationRepository.createIntimation(ie).flatMap { id =>
         DBIO.sequence(requests.map { request =>
-          val date = request.date.getDayOfMonth
-          val month = request.date.getMonthValue
-          val year = request.date.getYear
+          val date = request.date
 
-          val re = RequestEntity(date, month, year, request.firstHalf, request.secondHalf, id)
+          val re = RequestEntity(date, request.firstHalf, request.secondHalf, id)
           log.debug(s"RequestEntity = $re")
 
           requestRepository.addRequest(re)
@@ -148,11 +144,9 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
       intimationRepository.deleteIntimation(empId).flatMap { _ =>
         intimationRepository.createIntimation(ie).flatMap { id =>
           DBIO.sequence(requests.map { request =>
-            val date = request.date.getDayOfMonth
-            val month = request.date.getMonthValue
-            val year = request.date.getYear
+            val date = request.date
 
-            val re = RequestEntity(date, month, year, request.firstHalf, request.secondHalf, id)
+            val re = RequestEntity(date, request.firstHalf, request.secondHalf, id)
             log.debug(s"RequestEntity = $re")
 
             requestRepository.addRequest(re)
