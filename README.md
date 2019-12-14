@@ -52,14 +52,12 @@ CREATE TABLE `intimation` (
 )
 
 CREATE TABLE `request` (
-  `DATE` int(11) NOT NULL,
-  `MONTH` int(11) NOT NULL,
-  `YEAR` int(11) NOT NULL,
+  `DATE` date NOT NULL,
   `FIRST_HALF` text NOT NULL,
   `SECOND_HALF` text NOT NULL,
   `INTIMATION_ID` bigint(20) NOT NULL,
   `ID` bigint(20) NOT NULL AUTO_INCREMENT,
-  PRIMARY KEY (`ID`),
+  PRIMARY KEY (`ID`)
   KEY `INTIMATION_FK` (`INTIMATION_ID`),
   CONSTRAINT `INTIMATION_FK` FOREIGN KEY (`INTIMATION_ID`) REFERENCES `intimation` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION
 )
@@ -79,40 +77,55 @@ sbt> runAll
 
 $ curl http://localhost:9008/services
 [
-  {
-    "name": "cas_native",
-    "url": "tcp://127.0.0.1:4000/cas_native",
-    "portName": null
-  },
-  {
-    "name": "kafka_native",
-    "url": "tcp://localhost:9092/kafka_native",
-    "portName": null
-  },
-  {
-    "name": "employee",
-    "url": "http://127.0.0.1:53823",
-    "portName": null
-  },
-  {
-    "name": "employee",
-    "url": "http://127.0.0.1:53823",
-    "portName": "http"
-  }
+    {
+        "name": "employee",
+        "portName": "http",
+        "url": "http://127.0.0.1:53823"
+    },
+    {
+        "name": "holiday",
+        "portName": null,
+        "url": "http://127.0.0.1:53358"
+    },
+    {
+        "name": "holiday",
+        "portName": "http",
+        "url": "http://127.0.0.1:53358"
+    },
+    {
+        "name": "cas_native",
+        "portName": null,
+        "url": "tcp://127.0.0.1:4000/cas_native"
+    },
+    {
+        "name": "audit",
+        "portName": null,
+        "url": "http://127.0.0.1:51496"
+    },
+    {
+        "name": "audit",
+        "portName": "http",
+        "url": "http://127.0.0.1:51496"
+    },
+    {
+        "name": "employee",
+        "portName": null,
+        "url": "http://127.0.0.1:53823"
+    },
+    {
+        "name": "kafka_native",
+        "portName": null,
+        "url": "tcp://localhost:9092/kafka_native"
+    }
 ]
+
 ```
 
 ### Create Employee
 ```
 curl -X POST \
   http://localhost:9000/api/employees \
-  -H 'Accept: */*' \
-  -H 'Accept-Encoding: gzip, deflate' \
-  -H 'Cache-Control: no-cache' \
-  -H 'Connection: keep-alive' \
-  -H 'Content-Length: 427' \
   -H 'Content-Type: application/json' \
-  -H 'cache-control: no-cache' \
   -d '{
     "id": 128,
     "name": "Shivam Kapoor",

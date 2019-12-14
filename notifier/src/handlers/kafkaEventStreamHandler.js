@@ -1,6 +1,6 @@
 import pool from '../database';
 import { db } from '../config';
-import * as pushNotificationTemplate from './pushNotificationTemplateHandler';
+import * as notificationTemplate from './notificationTemplateHandler';
 const table = db.table;
 
 export const handleKafkaEvents = (message) => {
@@ -21,10 +21,10 @@ export const handleKafkaEvents = (message) => {
             break;
         case 'IntimationCreatedKafkaEvent':
         case 'IntimationUpdatedKafkaEvent':
-            pushNotificationTemplate.getPushNotificationMessage(data);
+            notificationTemplate.getNotificationMessage(data);
             break;
         case 'IntimationCancelledKafkaEvent':
-            pushNotificationTemplate.getPushNotificationMessageForCancelledIntimation(data);
+            notificationTemplate.getNotificationMessageForCancelledIntimation(data);
             break;
         default:
         // do nothing for now
