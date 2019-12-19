@@ -4,7 +4,7 @@ import * as kafkaStreams from './src/handlers/kafkaEventStreamHandler';
 
 import indexRouter from './src/routes/index';
 import tokenRouter from './src/routes/tokens';
-import { kafkaConfig, expressServer } from './src/config/index'
+import { kafkaConfig } from './src/config'
 
 const Consumer = kafka.Consumer;
 const client = new kafka.KafkaClient(kafkaConfig.interface + ":" + kafkaConfig.port);
@@ -18,15 +18,25 @@ consumer.on('message', (message) => {
 });
 
 // port on which you want to run your server 
-const PORT_NUMBER = expressServer.port;
 app.use(express.json());
 
 // Routes
 app.use('/', indexRouter);
 app.use('/token', tokenRouter);
 
-app.listen(PORT_NUMBER, () => {
-    console.log('Server Online on Port' + PORT_NUMBER);
+// catch 404 and forward to error handler
+app.use(function (req, res, next) {
+    var err = new Error('Not Found');
+    err.status = 404;
+});
+
+// error handler
+app.use(function (err, req, res, next) {
+    res.status(err.status || 500);
+    res.render('error', {
+        message: err.message,
+        error: (app.get('env') === 'development') ? err : {}
+    });
 });
 
 export default app;

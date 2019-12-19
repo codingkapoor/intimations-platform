@@ -3,10 +3,12 @@
   "version": "1.0.0",
   "description": "Push-notifications",
   "scripts": {
-    "start": "nodemon --exec babel-node app.js",
+    "start": "nodemon --exec babel-node ./src/bin/www",
+    "server": "babel-node ./src/bin/www",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "debug": "^4.1.1",
     "esm": "^3.2.25",
     "expo-server-sdk": "^3.4.0",
     "express": "^4.17.1",

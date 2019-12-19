@@ -1,7 +1,7 @@
 import { Expo } from 'expo-server-sdk';
 const expo = new Expo();
 
-export const handlePushTokens = (message, savedPushTokens) => {
+export const handlePushTokens = (message, notificationData, savedPushTokens) => {
     let notifications = [];
     for (let pushToken of savedPushTokens) {
         if (!Expo.isExpoPushToken(pushToken)) {
@@ -13,7 +13,7 @@ export const handlePushTokens = (message, savedPushTokens) => {
             sound: 'default',
             title: message.title,
             body: message.content,
-            data: message
+            data: notificationData
         })
     }
     let chunks = expo.chunkPushNotifications(notifications);
