@@ -7,12 +7,12 @@ import { db } from '../config';
 
 let notification = {};
 const table = db.table;
-let savedPushTokens = [];
 let loggedInUser = {
     name: '',
     token: ''
 }
 let pushNotificationTokens = [];
+let nameIdMap = {};
 
 const formatDate = date => {
 
@@ -23,7 +23,7 @@ const formatDate = date => {
     return year + '-' + month + '-' + day;
 }
 
-export const getNotificationMessage = (message) => {
+export const getNotificationMessage = message => {
     notification = {};
     let today = new Date();
     let tomorrow = new Date(today);
@@ -33,12 +33,13 @@ export const getNotificationMessage = (message) => {
     tomorrow = formatDate(tomorrow);
     getLoggedInUserDetails().then((res) => {
         setPushnotificationsTokensObj(res, message);
+        let notificationDataObj = setNotificationDataObj(message);
         if (message.requests) {
             let item = message.requests[0];
             let dayText = (item.date === today) ? ' today ' : (item.date === tomorrow) ? ' tomorrow ' : '';
             notification.title = getNotificationTitle(loggedInUser.name, item, dayText, hasMoreThanOneRequest);
             notification.content = message.reason;
-            pushNotificationHandler.handlePushTokens(notification, pushNotificationTokens);
+            pushNotificationHandler.handlePushTokens(notification,notificationDataObj,pushNotificationTokens);
             mailNotifications.sendMailNotification(notification);
             return;
         }
@@ -50,10 +51,15 @@ const setPushnotificationsTokensObj = (response, message) => {
         name: '',
         token: ''
     }
+    nameIdMap = {};
     pushNotificationTokens = [];
-    savedPushTokens = JSON.parse(JSON.stringify(response));
-    savedPushTokens.forEach(element => {
+    let data = JSON.parse(JSON.stringify(response));
+    data.forEach(element => {
         element = lowercaseKeys(element);
+
+        // Save name id map for sending push notifications
+        nameIdMap[element.id] = element.name;
+        
         if (message.id === element.id) {
             loggedInUser.name = element.name;
             loggedInUser.token = element.token;
@@ -89,14 +95,27 @@ const getLoggedInUserDetails = () => {
     })
 }
 
-export const getNotificationMessageForCancelledIntimation = (message) => {
+export const getNotificationMessageForCancelledIntimation = message => {
     getLoggedInUserDetails().then((res) => {
         setPushnotificationsTokensObj(res, message);
         notification = {};
+        let notificationDataObj = setNotificationDataObj(message);
+        
         notification.title = `${loggedInUser.name} has cancelled Intimation`;
         notification.content = message.reason;
-        pushNotificationHandler.handlePushTokens(notification, pushNotificationTokens);
+        pushNotificationHandler.handlePushTokens(notification, notificationDataObj, pushNotificationTokens);
         mailNotifications.sendMailNotification(notification);
     })
+}
+
+const setNotificationDataObj = (message) => {
+    let notificationDataObj = {
+        empId: message.id,
+        empName: nameIdMap[message.id],
+        reason: message.reason,
+        lastModified: message.lastModified,
+        requests: message.requests
+    };
+    return notificationDataObj;
 }
 
