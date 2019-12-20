@@ -67,7 +67,7 @@ object InactiveIntimation {
   implicit val format: Format[InactiveIntimation] = Json.format[InactiveIntimation]
 }
 
-case class ActiveIntimation(id: Long, empId: Long, empName: String, reason: String, lastModified: LocalDateTime, requests: Set[Request])
+case class ActiveIntimation(id: Long, empId: Long, empName: String, reason: String, latestRequestDate: LocalDate, lastModified: LocalDateTime, requests: Set[Request])
 
 object ActiveIntimation {
   implicit val format: Format[ActiveIntimation] = Json.format[ActiveIntimation]

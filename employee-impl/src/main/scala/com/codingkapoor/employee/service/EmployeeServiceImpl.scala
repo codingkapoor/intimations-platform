@@ -164,9 +164,9 @@ object EmployeeServiceImpl {
             .map {
               case (ie, s) =>
                 val requests = s.map { case ((_, _), re) => Request(re.date, re.firstHalf, re.secondHalf) }.toSet
-                ie.id -> (ie.reason, ie.lastModified, requests)
+                ie.id -> (ie.reason, ie.latestRequestDate, ie.lastModified, requests)
             }
-            .map { case (id, t) => ActiveIntimation(id, ee.id, ee.name, t._1, t._2, t._3) }
+            .map { case (id, t) => ActiveIntimation(id, ee.id, ee.name, t._1, t._2, t._3, t._4) }
       }
       .toList
   }
