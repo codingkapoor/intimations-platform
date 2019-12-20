@@ -1,7 +1,7 @@
 export const db = {
     userName: 'codingkapoor',
     password: 'codingkapoor',
-    database: 'push-notifications',
+    database: 'notifier',
     table: 'tokens'
 }
 
