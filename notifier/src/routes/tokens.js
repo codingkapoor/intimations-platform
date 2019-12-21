@@ -13,9 +13,9 @@ const saveToken = (req) => {
     savedPushTokens = JSON.parse(JSON.stringify(response));
     savedPushTokens.forEach(element => {
       element = lowercaseKeys(element);
-      if ((element.id === parseInt(req.params.id) && !element.token.length) ||
-        (element.id === parseInt(req.params.id) && element.token != req.body.token)) {
-        pool.query(`UPDATE ${table} SET token = "${req.body.token}" WHERE ID = ${req.params.id}`, (err, res) => {
+      if ((element.empid === parseInt(req.params.id) && !element.token) ||
+        (element.empid === parseInt(req.params.id) && element.token != req.body.token)) {
+        pool.query(`UPDATE ${table} SET token = "${req.body.token}" WHERE empId = ${req.params.id}`, (err, res) => {
           if (err) throw err;
           console.log("1 record updated");
         });
@@ -25,7 +25,7 @@ const saveToken = (req) => {
 }
 
 const removeToken = (req) => {
-  pool.query(`UPDATE ${table} SET token = "" WHERE ID = ${req.params.id}`, (err, res) => {
+  pool.query(`UPDATE ${table} SET token = null WHERE empId = ${req.params.id}`, (err, res) => {
     if (err) throw err;
     console.log("1 record updated");
   });
