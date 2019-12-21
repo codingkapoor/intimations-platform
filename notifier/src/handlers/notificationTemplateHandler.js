@@ -56,11 +56,10 @@ const setPushnotificationsTokensObj = (response, message) => {
     let data = JSON.parse(JSON.stringify(response));
     data.forEach(element => {
         element = lowercaseKeys(element);
-
         // Save name id map for sending push notifications
-        nameIdMap[element.id] = element.name;
+        nameIdMap[element.empid] = element.name;
         
-        if (message.id === element.id) {
+        if (message.id === element.empid) {
             loggedInUser.name = element.name;
             loggedInUser.token = element.token;
         }

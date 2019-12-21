@@ -7,14 +7,14 @@ export const handleKafkaEvents = (message) => {
     let data = JSON.parse(message.value);
     switch (data.type) {
         case 'EmployeeAddedKafkaEvent':
-            pool.query(`INSERT INTO ${table} (ID,token,name) VALUES ('${data.id}', '', '${data.name}')`, (err, res) => {
+            pool.query(`INSERT INTO ${table} (empId,token,name) VALUES ('${data.id}', null, '${data.name}')`, (err, res) => {
                 if (err) throw err;
                 console.log("1 record inserted");
             });
             break;
         case 'EmployeeDeletedKafkaEvent':
         case 'EmployeeTerminatedKafkaEvent':
-            pool.query(`DELETE FROM ${table} WHERE ID = ${data.id}`, (err, res) => {
+            pool.query(`DELETE FROM ${table} WHERE empId = ${data.id}`, (err, res) => {
                 if (err) throw err;
                 console.log("1 record deleted");
             });
