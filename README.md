@@ -197,4 +197,4 @@ mysql> SELECT * FROM employee;
 
 [Holiday](https://github.com/codingkapoor/intimations-platform/wiki/Holiday)
 
-[Push Notifications](https://github.com/codingkapoor/intimations-platform/wiki/Push-Notifications)
+[Notifier](https://github.com/codingkapoor/intimations-platform/wiki/Notifier)
