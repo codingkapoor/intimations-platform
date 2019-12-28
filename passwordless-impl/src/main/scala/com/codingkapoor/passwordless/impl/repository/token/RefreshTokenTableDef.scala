@@ -1,5 +1,24 @@
 package com.codingkapoor.passwordless.impl.repository.token
 
-class RefreshTokenTableDef {
+import java.time.LocalDateTime
+import slick.jdbc.MySQLProfile.api._
 
+final case class RefreshTokenEntity(refreshToken: String, empId: Long, email: String, createdAt: LocalDateTime)
+
+class RefreshTokenTableDef(tag: Tag) extends Table[RefreshTokenEntity](tag, "refresh_tokens") {
+
+  def refreshToken = column[String]("REFRESH_TOKEN", O.PrimaryKey)
+
+  def empId = column[Long]("EMP_ID")
+
+  def email = column[String]("EMAIL")
+
+  def createdAt = column[LocalDateTime]("CREATED_AT")
+
+  override def * =
+    (refreshToken, empId, email, createdAt).mapTo[RefreshTokenEntity]
+}
+
+object RefreshTokenTableDef {
+  lazy val refreshTokens = TableQuery[RefreshTokenTableDef]
 }
