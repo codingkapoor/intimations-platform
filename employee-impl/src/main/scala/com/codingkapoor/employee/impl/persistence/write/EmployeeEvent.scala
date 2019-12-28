@@ -2,6 +2,7 @@ package com.codingkapoor.employee.impl.persistence.write
 
 import java.time.{LocalDate, LocalDateTime}
 
+import com.codingkapoor.employee.api.model.Role.Role
 import com.lightbend.lagom.scaladsl.persistence.{AggregateEvent, AggregateEventTag}
 import play.api.libs.json.{Format, Json}
 import com.codingkapoor.employee.api.model.{ContactInfo, Leaves, Location, Request}
@@ -15,21 +16,21 @@ sealed trait EmployeeEvent extends AggregateEvent[EmployeeEvent] {
 }
 
 case class EmployeeAdded(id: Long, name: String, gender: String, doj: LocalDate, designation: String, pfn: String, isActive: Boolean,
-                         contactInfo: ContactInfo, location: Location, leaves: Leaves) extends EmployeeEvent
+                         contactInfo: ContactInfo, location: Location, leaves: Leaves, roles: List[Role]) extends EmployeeEvent
 
 object EmployeeAdded {
   implicit val format: Format[EmployeeAdded] = Json.format[EmployeeAdded]
 }
 
 case class EmployeeUpdated(id: Long, name: String, gender: String, doj: LocalDate, designation: String, pfn: String, isActive: Boolean,
-                         contactInfo: ContactInfo, location: Location, leaves: Leaves) extends EmployeeEvent
+                         contactInfo: ContactInfo, location: Location, leaves: Leaves, roles: List[Role]) extends EmployeeEvent
 
 object EmployeeUpdated {
   implicit val format: Format[EmployeeUpdated] = Json.format[EmployeeUpdated]
 }
 
 case class EmployeeTerminated(id: Long, name: String, gender: String, doj: LocalDate, designation: String, pfn: String, isActive: Boolean,
-                              contactInfo: ContactInfo, location: Location, leaves: Leaves) extends EmployeeEvent
+                              contactInfo: ContactInfo, location: Location, leaves: Leaves, roles: List[Role]) extends EmployeeEvent
 
 object EmployeeTerminated {
   implicit val format: Format[EmployeeTerminated] = Json.format[EmployeeTerminated]

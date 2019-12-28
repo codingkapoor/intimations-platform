@@ -34,7 +34,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
           log.info(s"EmployeePersistenceEntity at state = $state received AddEmployee command.")
 
           ctx.thenPersist(
-            EmployeeAdded(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, e.leaves)
+            EmployeeAdded(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, e.leaves, e.roles)
           )(_ => ctx.reply(Done))
 
       }.onCommand[UpdateEmployee, Employee] {
@@ -98,8 +98,8 @@ class EmployeePersistenceEntity extends PersistentEntity {
         ctx.done
 
     }.onEvent {
-      case (EmployeeAdded(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves), _) =>
-        Some(EmployeeState(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, Nil))
+      case (EmployeeAdded(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles), _) =>
+        Some(EmployeeState(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles, Nil))
     }
 
   private val employeeAdded: Actions =
@@ -123,17 +123,17 @@ class EmployeePersistenceEntity extends PersistentEntity {
         val location = employeeInfo.location.getOrElse(e.location)
         val leaves = employeeInfo.leaves.getOrElse(e.leaves)
 
-        val employee = Employee(e.id, e.name, e.gender, e.doj, designation, e.pfn, e.isActive, contactInfo, location, leaves)
+        val employee = Employee(e.id, e.name, e.gender, e.doj, designation, e.pfn, e.isActive, contactInfo, location, leaves, e.roles)
 
         ctx.thenPersist(
-          EmployeeUpdated(e.id, e.name, e.gender, e.doj, designation, e.pfn, e.isActive, contactInfo, location, leaves)
+          EmployeeUpdated(e.id, e.name, e.gender, e.doj, designation, e.pfn, e.isActive, contactInfo, location, leaves, e.roles)
         )(_ => ctx.reply(employee))
 
     }.onCommand[TerminateEmployee, Done] {
       case (TerminateEmployee(_), ctx, state@Some(e)) =>
         log.info(s"EmployeePersistenceEntity at state = $state received TerminateEmployee command.")
         ctx.thenPersist(
-          EmployeeTerminated(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, isActive = false, e.contactInfo, e.location, e.leaves)
+          EmployeeTerminated(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, isActive = false, e.contactInfo, e.location, e.leaves, e.roles)
         )(_ => ctx.reply(Done))
 
     }.onCommand[DeleteEmployee, Done] {
@@ -231,26 +231,26 @@ class EmployeePersistenceEntity extends PersistentEntity {
         }
 
     }.onEvent {
-      case (EmployeeUpdated(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves), state) =>
-        Some(EmployeeState(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, state.get.intimations))
+      case (EmployeeUpdated(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles), state) =>
+        Some(EmployeeState(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles, state.get.intimations))
 
-      case (EmployeeTerminated(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves), state) =>
-        Some(EmployeeState(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, state.get.intimations))
+      case (EmployeeTerminated(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles), state) =>
+        Some(EmployeeState(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles, state.get.intimations))
 
       case (EmployeeDeleted(_), _) =>
         None
 
       case (IntimationCreated(_, reason, lastModified, requests), Some(e)) =>
         val intimations = Intimation(reason, lastModified, requests) :: e.intimations
-        Some(EmployeeState(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, e.leaves, intimations))
+        Some(EmployeeState(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, e.leaves, e.roles, intimations))
 
       case (IntimationUpdated(_, reason, lastModified, requests), Some(e)) =>
         val intimations = Intimation(reason, lastModified, requests) :: e.intimations.tail
-        Some(EmployeeState(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, e.leaves, intimations))
+        Some(EmployeeState(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, e.leaves, e.roles, intimations))
 
       case (IntimationCancelled(_, reason, lastModified, requests), Some(e)) =>
         val intimations = if (requests.isEmpty) e.intimations.tail else Intimation(reason, lastModified, requests) :: e.intimations.tail
-        Some(EmployeeState(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, e.leaves, intimations))
+        Some(EmployeeState(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, e.leaves, e.roles, intimations))
 
     }
 }

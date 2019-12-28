@@ -113,13 +113,13 @@ object EmployeeServiceImpl {
 
   private def convertPersistentEntityEventToKafkaEvent(eventStreamElement: EventStreamElement[EmployeeEvent]): EmployeeKafkaEvent = {
     eventStreamElement.event match {
-      case EmployeeAdded(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves) =>
-        EmployeeAddedKafkaEvent(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves)
+      case EmployeeAdded(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles) =>
+        EmployeeAddedKafkaEvent(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles)
 
-      case EmployeeUpdated(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves) =>
-        EmployeeUpdatedKafkaEvent(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves)
+      case EmployeeUpdated(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles) =>
+        EmployeeUpdatedKafkaEvent(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles)
 
-      case EmployeeTerminated(id, _, _, _, _, _, _, _, _, _) =>
+      case EmployeeTerminated(id, _, _, _, _, _, _, _, _, _, _) =>
         EmployeeTerminatedKafkaEvent(id)
 
       case EmployeeDeleted(id) =>
@@ -138,7 +138,7 @@ object EmployeeServiceImpl {
 
   private def convertEmployeeReadEntityToEmployee(e: EmployeeEntity): Employee = {
     api.model.Employee(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, ContactInfo(e.phone, e.email),
-      Location(e.city, e.state, e.country), Leaves(e.earnedLeaves, e.sickLeaves))
+      Location(e.city, e.state, e.country), Leaves(e.earnedLeaves, e.sickLeaves), e.roles)
   }
 
   private def convertToInactiveIntimations(s: Seq[(IntimationEntity, RequestEntity)]): List[InactiveIntimation] = {
