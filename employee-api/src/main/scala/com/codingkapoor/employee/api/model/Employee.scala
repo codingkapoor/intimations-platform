@@ -1,8 +1,8 @@
 package com.codingkapoor.employee.api.model
 
 import java.time.{LocalDate, LocalDateTime}
-
 import play.api.libs.json.{Format, Json}
+
 import com.codingkapoor.employee.api.model.RequestType.RequestType
 import com.codingkapoor.employee.api.model.Role.Role
 
@@ -38,6 +38,8 @@ object Employee {
   implicit val format: Format[Employee] = Json.using[Json.WithDefaultValues].format[Employee]
 }
 
+// TODO: Employee terminated could always be re-hired
+// TODO: Uupdate employee roles
 case class EmployeeInfo(designation: Option[String], contactInfo: Option[ContactInfo], location: Option[Location], leaves: Option[Leaves])
 
 object EmployeeInfo {
