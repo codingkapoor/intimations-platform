@@ -85,9 +85,12 @@ lazy val `passwordless-impl` = (project in file("passwordless-impl"))
     libraryDependencies ++= Seq(
       nimbusJoseJwt,
       lagomScaladslTestKit,
+      lagomScaladslPersistenceJdbc,
+      lagomScaladslKafkaClient,
       macwire,
       scalaTest,
-      courier
+      courier,
+      mysql
     )
   )
   .settings(lagomForkedTestSettings)

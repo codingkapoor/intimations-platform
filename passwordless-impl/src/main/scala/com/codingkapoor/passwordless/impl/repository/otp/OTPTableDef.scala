@@ -30,5 +30,5 @@ class OTPTableDef(tag: Tag) extends Table[OTPEntity](tag, "intimation") {
 }
 
 object OTPTableDef {
-  lazy val intimations = TableQuery[OTPTableDef]
+  lazy val otps = TableQuery[OTPTableDef]
 }
