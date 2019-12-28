@@ -22,7 +22,7 @@ trait PasswordlessService extends Service {
 
     named("passwordless")
       .withCalls(
-        restCall(Method.POST, "/api/passwordless/employees/:email/otp", createOTP _),
+        restCall(Method.GET, "/api/passwordless/employees/:email/otp", createOTP _),
         restCall(Method.POST, "/api/passwordless/employees/:email/tokens", createTokens _),
         restCall(Method.POST, "/api/passwordless/employees/:email/jwt", createJWT _)
       )

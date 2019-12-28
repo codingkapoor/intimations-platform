@@ -7,11 +7,11 @@ final case class RefreshTokenEntity(refreshToken: String, empId: Long, email: St
 
 class RefreshTokenTableDef(tag: Tag) extends Table[RefreshTokenEntity](tag, "refresh_tokens") {
 
-  def refreshToken = column[String]("REFRESH_TOKEN", O.PrimaryKey)
+  def email = column[String]("EMAIL", O.PrimaryKey)
+
+  def refreshToken = column[String]("REFRESH_TOKEN")
 
   def empId = column[Long]("EMP_ID")
-
-  def email = column[String]("EMAIL")
 
   def createdAt = column[LocalDateTime]("CREATED_AT")
 

@@ -10,11 +10,11 @@ final case class OTPEntity(otp: Int, empId: Long, email: String, roles: List[Rol
 
 class OTPTableDef(tag: Tag) extends Table[OTPEntity](tag, "otps") {
 
-  def otp = column[Int]("OTP", O.PrimaryKey)
+  def email = column[String]("EMAIL", O.PrimaryKey)
+
+  def otp = column[Int]("OTP")
 
   def empId = column[Long]("EMP_ID")
-
-  def email = column[String]("EMAIL")
 
   implicit val rolesColumnType =
     MappedColumnType.base[List[Role], String]({ r => r.map(_.toString).mkString(",") }, { s => s.split(",").map(r => Role.withName(r)).toList })

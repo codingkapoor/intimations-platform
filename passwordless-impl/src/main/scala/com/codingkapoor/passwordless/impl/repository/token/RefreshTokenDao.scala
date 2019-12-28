@@ -10,15 +10,15 @@ class RefreshTokenDao(db: Database) {
 
   createTable
 
-  def createOTP(refreshToken: RefreshTokenEntity): Future[Int] = {
+  def addRefreshToken(refreshToken: RefreshTokenEntity): Future[Int] = {
     db.run(refreshTokens += refreshToken)
   }
 
-  def getOTP(email: String): Future[Option[RefreshTokenEntity]] = {
+  def getRefreshToken(email: String): Future[Option[RefreshTokenEntity]] = {
     db.run(refreshTokens.filter(_.email === email).result.headOption)
   }
 
-  def deleteOTP(empId: Long): Future[Int] = {
+  def deleteRefreshToken(empId: Long): Future[Int] = {
     db.run(refreshTokens.filter(_.empId === empId).delete)
   }
 
