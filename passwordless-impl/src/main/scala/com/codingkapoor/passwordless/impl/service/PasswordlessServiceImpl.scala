@@ -16,7 +16,8 @@ import com.codingkapoor.passwordless.api.model.Tokens
 import com.codingkapoor.passwordless.impl.repository.otp.{OTPDao, OTPEntity}
 import com.codingkapoor.passwordless.impl.repository.token.RefreshTokenDao
 
-class PasswordlessServiceImpl(employeeService: EmployeeService, mailOTPService: MailOTPService, otpDao: OTPDao, refreshTokenDao: RefreshTokenDao) extends PasswordlessService {
+class PasswordlessServiceImpl(employeeService: EmployeeService, mailOTPService: MailOTPService, otpDao: OTPDao, refreshTokenDao: RefreshTokenDao)
+  extends PasswordlessService {
 
   import PasswordlessServiceImpl._
 

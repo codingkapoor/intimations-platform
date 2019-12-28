@@ -9,7 +9,7 @@ import slick.jdbc.MySQLProfile.api._
 case class EmployeeEntity(id: Long, name: String, gender: String, doj: LocalDate, designation: String, pfn: String, isActive: Boolean,
                           phone: String, email: String, city: String, state: String, country: String, earnedLeaves: Int, sickLeaves: Int, roles: List[Role])
 
-class EmployeeTableDef(tag: Tag) extends Table[EmployeeEntity](tag, "employee") {
+class EmployeeTableDef(tag: Tag) extends Table[EmployeeEntity](tag, "employees") {
 
   def id = column[Long]("ID", O.PrimaryKey)
 

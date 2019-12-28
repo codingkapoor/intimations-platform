@@ -8,7 +8,7 @@ import com.codingkapoor.employee.api.model.Role.Role
 
 final case class OTPEntity(otp: Int, empId: Long, email: String, roles: List[Role], createdAt: LocalDateTime)
 
-class OTPTableDef(tag: Tag) extends Table[OTPEntity](tag, "otp") {
+class OTPTableDef(tag: Tag) extends Table[OTPEntity](tag, "otps") {
 
   def otp = column[Int]("OTP", O.PrimaryKey)
 

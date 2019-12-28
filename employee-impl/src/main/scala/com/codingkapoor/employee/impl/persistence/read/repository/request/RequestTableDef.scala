@@ -9,7 +9,7 @@ import com.codingkapoor.employee.impl.persistence.read.repository.intimation.Int
 
 case class RequestEntity(date: LocalDate, firstHalf: RequestType, secondHalf: RequestType, intimationId: Long, id: Long = 0L)
 
-class RequestTableDef(tag: Tag) extends Table[RequestEntity](tag, "request") {
+class RequestTableDef(tag: Tag) extends Table[RequestEntity](tag, "requests") {
 
   def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
 

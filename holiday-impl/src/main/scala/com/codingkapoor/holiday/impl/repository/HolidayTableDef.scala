@@ -5,7 +5,7 @@ import slick.jdbc.MySQLProfile.api._
 
 case class HolidayEntity(date: LocalDate, occasion: String)
 
-class HolidayTableDef(tag: Tag) extends Table[HolidayEntity](tag, "holiday") {
+class HolidayTableDef(tag: Tag) extends Table[HolidayEntity](tag, "holidays") {
 
   def date = column[LocalDate]("DATE", O.PrimaryKey)
 

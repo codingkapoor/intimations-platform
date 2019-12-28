@@ -7,7 +7,7 @@ import com.codingkapoor.employee.impl.persistence.read.repository.employee.Emplo
 
 final case class IntimationEntity(empId: Long, reason: String, latestRequestDate: LocalDate, lastModified: LocalDateTime, id: Long = 0L)
 
-class IntimationTableDef(tag: Tag) extends Table[IntimationEntity](tag, "intimation") {
+class IntimationTableDef(tag: Tag) extends Table[IntimationEntity](tag, "intimations") {
 
   def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
 
