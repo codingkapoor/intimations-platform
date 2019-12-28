@@ -1,14 +1,15 @@
 package com.codingkapoor.passwordless.impl.service
 
 import java.time.LocalDateTime
-import akka.Done
+
+import akka.{Done, NotUsed}
 import com.lightbend.lagom.scaladsl.api.ServiceCall
 import com.lightbend.lagom.scaladsl.api.transport.NotFound
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Await, Future}
 import scala.util.Random
 import scala.concurrent.duration._
-
 import com.codingkapoor.employee.api.EmployeeService
 import com.codingkapoor.passwordless.api.PasswordlessService
 import com.codingkapoor.passwordless.api.model.Tokens
@@ -18,16 +19,16 @@ class PasswordlessServiceImpl(employeeService: EmployeeService, mailOTPService: 
 
   import PasswordlessServiceImpl._
 
-  override def createOTP(): ServiceCall[Email, Done] = ServiceCall { email =>
+  override def createOTP(email: String): ServiceCall[NotUsed, Done] = ServiceCall { _ =>
     employeeService.getEmployees(Some(email)).invoke().map { res =>
       if (res.nonEmpty && res.head.isActive) {
         val emp = res.head
 
-        otpDao.getOTP(emp.contactInfo.email).flatMap { res =>
+        otpDao.getOTP(email).flatMap { res =>
           if (res.isDefined) Await.result(otpDao.deleteOTP(res.get.otp), 5.seconds)
 
           val otp = generateOTP
-          otpDao.createOTP(OTPEntity(otp, emp.id, emp.contactInfo.email, emp.roles, LocalDateTime.now())).map { _ =>
+          otpDao.createOTP(OTPEntity(otp, emp.id, email, emp.roles, LocalDateTime.now())).map { _ =>
             mailOTPService.sendOTP(email, otp)
           }
         }
@@ -37,13 +38,14 @@ class PasswordlessServiceImpl(employeeService: EmployeeService, mailOTPService: 
     }
   }
 
-  override def createTokens(): ServiceCall[OTP, Tokens] = ServiceCall { otp =>
+  // TODO: Web API**, RSA Keys, App Conf, Persistence, Validations
+  override def createTokens(email: String): ServiceCall[OTP, Tokens] = ServiceCall { otp =>
     // if the submitted otp is valid, create and reply jwt and refresh token
 
     Future.successful(Tokens(otp.toString, otp.toString))
   }
 
-  override def createJWT(): ServiceCall[Refresh, JWT] = ServiceCall { refresh =>
+  override def createJWT(email: String): ServiceCall[Refresh, JWT] = ServiceCall { refresh =>
     // if the submitted refresh token is valid, create and reply with a new jwt
     Future.successful(refresh)
   }

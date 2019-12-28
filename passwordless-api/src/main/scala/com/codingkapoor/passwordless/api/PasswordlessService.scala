@@ -1,32 +1,30 @@
 package com.codingkapoor.passwordless.api
 
-import akka.Done
+import akka.{Done, NotUsed}
 import com.codingkapoor.passwordless.api.model.Tokens
 import com.lightbend.lagom.scaladsl.api.{Descriptor, Service, ServiceCall}
 import com.lightbend.lagom.scaladsl.api.transport.Method
 
 trait PasswordlessService extends Service {
 
-  type Email = String
   type OTP = Long
   type Refresh = String
   type JWT = String
 
-  def createOTP(): ServiceCall[Email, Done]
+  def createOTP(email: String): ServiceCall[NotUsed, Done]
 
-  // TODO: Better accept both email id and otp to create tokens otherwise people can exchange otps to login
-  def createTokens(): ServiceCall[OTP, Tokens]
+  def createTokens(email: String): ServiceCall[OTP, Tokens]
 
-  def createJWT(): ServiceCall[Refresh, JWT]
+  def createJWT(email: String): ServiceCall[Refresh, JWT]
 
   override def descriptor: Descriptor = {
     import Service._
 
     named("passwordless")
       .withCalls(
-        restCall(Method.POST, "/api/passwordless/otp", createOTP _),
-        restCall(Method.POST, "/api/passwordless/tokens", createTokens _),
-        restCall(Method.POST, "/api/passwordless/jwt", createJWT _)
+        restCall(Method.POST, "/api/passwordless/employees/:email/otp", createOTP _),
+        restCall(Method.POST, "/api/passwordless/employees/:email/tokens", createTokens _),
+        restCall(Method.POST, "/api/passwordless/employees/:email/jwt", createJWT _)
       )
   }
 }
