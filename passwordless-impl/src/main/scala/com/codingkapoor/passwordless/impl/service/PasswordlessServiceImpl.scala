@@ -14,7 +14,7 @@ import scala.util.Random
 class PasswordlessServiceImpl(employeeService: EmployeeService, mailOTPService: MailOTPService) extends PasswordlessService {
   override def createOTP(): ServiceCall[Email, Done] = ServiceCall { email =>
     employeeService.getEmployees(Some(email)).invoke().map { res =>
-      if (res.nonEmpty) {
+      if (res.nonEmpty && res.head.isActive) {
         val otp = 100000 + Random.nextInt(999999)
         mailOTPService.sendOTP(email, otp)
 
