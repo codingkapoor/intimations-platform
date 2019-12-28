@@ -12,10 +12,12 @@ import scala.concurrent.Future
 import scala.util.Random
 
 class PasswordlessServiceImpl(employeeService: EmployeeService, mailOTPService: MailOTPService) extends PasswordlessService {
+  import PasswordlessServiceImpl._
+
   override def createOTP(): ServiceCall[Email, Done] = ServiceCall { email =>
     employeeService.getEmployees(Some(email)).invoke().map { res =>
       if (res.nonEmpty && res.head.isActive) {
-        val otp = 100000 + Random.nextInt(999999)
+        val otp = generateOTP
         mailOTPService.sendOTP(email, otp)
 
         Done
@@ -33,4 +35,8 @@ class PasswordlessServiceImpl(employeeService: EmployeeService, mailOTPService: 
     // if the submitted refresh token is valid, create and reply with a new jwt
     Future.successful(refresh)
   }
+}
+
+object PasswordlessServiceImpl {
+  private def generateOTP: Int =  100000 + Random.nextInt(999999)
 }
