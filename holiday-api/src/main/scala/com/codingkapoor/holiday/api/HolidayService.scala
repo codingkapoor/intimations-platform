@@ -3,6 +3,7 @@ package com.codingkapoor.holiday.api
 import java.time.LocalDate
 
 import akka.{Done, NotUsed}
+import com.codingkapoor.holiday.api.model.Holiday
 import com.lightbend.lagom.scaladsl.api.transport.Method
 import com.lightbend.lagom.scaladsl.api.{Descriptor, Service, ServiceCall}
 

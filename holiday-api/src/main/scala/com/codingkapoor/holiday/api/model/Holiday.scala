@@ -1,6 +1,7 @@
-package com.codingkapoor.holiday.api
+package com.codingkapoor.holiday.api.model
 
 import java.time.LocalDate
+
 import play.api.libs.json.{Format, Json}
 
 case class Holiday(date: LocalDate, occasion: String)
