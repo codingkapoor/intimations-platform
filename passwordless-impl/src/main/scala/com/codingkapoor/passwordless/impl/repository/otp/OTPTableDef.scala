@@ -6,13 +6,11 @@ import slick.jdbc.MySQLProfile.api._
 import com.codingkapoor.employee.api.model.Role
 import com.codingkapoor.employee.api.model.Role.Role
 
-final case class OTPEntity(otp: Int, empId: Long, email: String, roles: List[Role], createdAt: LocalDateTime, id: Long = 0L)
+final case class OTPEntity(otp: Int, empId: Long, email: String, roles: List[Role], createdAt: LocalDateTime)
 
-class OTPTableDef(tag: Tag) extends Table[OTPEntity](tag, "intimation") {
+class OTPTableDef(tag: Tag) extends Table[OTPEntity](tag, "otp") {
 
-  def id = column[Long]("ID", O.PrimaryKey, O.AutoInc)
-
-  def otp = column[Int]("OTP")
+  def otp = column[Int]("OTP", O.PrimaryKey)
 
   def empId = column[Long]("EMP_ID")
 
@@ -26,7 +24,7 @@ class OTPTableDef(tag: Tag) extends Table[OTPEntity](tag, "intimation") {
   def createdAt = column[LocalDateTime]("CREATED_AT")
 
   override def * =
-    (otp, empId, email, roles, createdAt, id).mapTo[OTPEntity]
+    (otp, empId, email, roles, createdAt).mapTo[OTPEntity]
 }
 
 object OTPTableDef {

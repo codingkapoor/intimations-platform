@@ -22,6 +22,5 @@ class HolidayDao(db: Database) {
     db.run(holidays.filter(h => h.date === date).delete)
   }
 
-  def createTable: Future[Unit] = db.run(holidays.schema.createIfNotExists)
-
+  private def createTable: Future[Unit] = db.run(holidays.schema.createIfNotExists)
 }
