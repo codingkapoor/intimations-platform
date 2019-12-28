@@ -1,10 +1,8 @@
 package com.codingkapoor.holiday.impl.repository
 
 import java.time.LocalDate
-
 import slick.jdbc.JdbcBackend.Database
 import slick.jdbc.MySQLProfile.api._
-
 import scala.concurrent.Future
 
 class HolidayDao(db: Database) {
