@@ -23,8 +23,9 @@ class EmployeeDao(db: Database) {
     employees.insertOrUpdate(employee).map(_ => Done)
   }
 
-  def getEmployees: Future[Seq[EmployeeEntity]] = {
-    db.run(employees.result)
+  def getEmployees(email: Option[String]): Future[Seq[EmployeeEntity]] = {
+    if (email.isDefined) db.run(employees.filter(_.email === email.get).result)
+    else db.run(employees.result)
   }
 
   def getEmployee(id: Long): Future[Option[EmployeeEntity]] = {

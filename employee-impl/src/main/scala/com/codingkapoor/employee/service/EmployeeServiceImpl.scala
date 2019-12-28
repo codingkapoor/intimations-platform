@@ -46,8 +46,8 @@ class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, em
     }
   }
 
-  override def getEmployees: ServiceCall[NotUsed, Seq[Employee]] = ServiceCall { _ =>
-    employeeRepository.getEmployees.map(_.map(convertEmployeeReadEntityToEmployee))
+  override def getEmployees(email: Option[String]): ServiceCall[NotUsed, Seq[Employee]] = ServiceCall { _ =>
+    employeeRepository.getEmployees(email).map(_.map(convertEmployeeReadEntityToEmployee))
   }
 
   override def getEmployee(id: Long): ServiceCall[NotUsed, Employee] = ServiceCall { _ =>

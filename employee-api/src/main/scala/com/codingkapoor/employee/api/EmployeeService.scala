@@ -21,7 +21,7 @@ trait EmployeeService extends Service with EmployeePathParamSerializer {
 
   def terminateEmployee(id: Long): ServiceCall[NotUsed, Done]
 
-  def getEmployees: ServiceCall[NotUsed, Seq[Employee]]
+  def getEmployees(email: Option[String]): ServiceCall[NotUsed, Seq[Employee]]
 
   def getEmployee(id: Long): ServiceCall[NotUsed, Employee]
 
@@ -46,7 +46,7 @@ trait EmployeeService extends Service with EmployeePathParamSerializer {
       .withCalls(
         restCall(Method.POST, "/api/employees", addEmployee _),
         restCall(Method.PUT, "/api/employees/:id", updateEmployee _),
-        restCall(Method.GET, "/api/employees", getEmployees _),
+        restCall(Method.GET, "/api/employees?email", getEmployees _),
         restCall(Method.GET, "/api/employees/intimations", getActiveIntimations _),
         restCall(Method.PUT, "/api/employees/:id/terminate", terminateEmployee _),
         restCall(Method.GET, "/api/employees/:id", getEmployee _),
