@@ -7,9 +7,11 @@ val mysql = "mysql" % "mysql-connector-java" % "8.0.17"
 val macwire = "com.softwaremill.macwire" %% "macros" % "2.3.0" % "provided"
 val playJsonDerivedCodecs = "org.julienrf" %% "play-json-derived-codecs" % "4.0.0"
 val scalaTest = "org.scalatest" %% "scalatest" % "3.0.4" % Test
+val nimbusJoseJwt = "com.nimbusds" % "nimbus-jose-jwt" % "6.0"
+val courier = "com.github.daddykotex" %% "courier" % "2.0.0"
 
 lazy val `intimations` = (project in file("."))
-  .aggregate(`employee-api`, `employee-impl`)
+  .aggregate(`employee-api`, `employee-impl`, `holiday-api`, `holiday-impl`, `audit`, `passwordless-api`, `passwordless-impl`)
 
 lazy val `employee-api` = (project in file("employee-api"))
   .settings(
@@ -69,6 +71,27 @@ lazy val `audit` = (project in file("audit"))
   )
   .settings(lagomForkedTestSettings)
   .dependsOn(`employee-api`)
+
+lazy val `passwordless-api` = (project in file("passwordless-api"))
+  .settings(
+    libraryDependencies ++= Seq(
+      lagomScaladslApi
+    )
+  )
+
+lazy val `passwordless-impl` = (project in file("passwordless-impl"))
+  .enablePlugins(LagomScala)
+  .settings(
+    libraryDependencies ++= Seq(
+      nimbusJoseJwt,
+      lagomScaladslTestKit,
+      macwire,
+      scalaTest,
+      courier
+    )
+  )
+  .settings(lagomForkedTestSettings)
+  .dependsOn(`passwordless-api`, `employee-api`)
 
 lagomServiceGatewayAddress in ThisBuild := "0.0.0.0"
 
