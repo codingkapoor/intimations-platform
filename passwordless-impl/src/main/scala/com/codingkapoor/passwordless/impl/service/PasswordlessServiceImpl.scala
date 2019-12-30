@@ -55,7 +55,7 @@ class PasswordlessServiceImpl(employeeService: EmployeeService, mailOTPService: 
         val empId = otpEntity.empId
         val roles = otpEntity.roles
 
-        if (LocalDateTime.now().isAfter(otpEntity.createdAt.plusMinutes(1)))
+        if (LocalDateTime.now().isAfter(otpEntity.createdAt.plusMinutes(config.getOptional[Long]("expiry.tokens.access").getOrElse(5))))
           otpDao.deleteOTP(email).map(throw BadRequest("OTP Expired"))
         else {
           val accessToken = createToken(empId.toString, roles, ACCESS).serialize
@@ -117,8 +117,8 @@ object PasswordlessServiceImpl {
       val now = LocalDateTime.now()
       val issuedAt = Date.from(now.atZone(ZoneId.systemDefault()).toInstant)
       val expiresAt = tokenType match {
-        case ACCESS => Date.from(now.plusMinutes(5).atZone(ZoneId.systemDefault()).toInstant)
-        case REFRESH => Date.from(now.plusMonths(12).atZone(ZoneId.systemDefault()).toInstant)
+        case ACCESS => Date.from(now.plusMinutes(config.getOptional[Long]("expiry.tokens.access").getOrElse(5)).atZone(ZoneId.systemDefault()).toInstant)
+        case REFRESH => Date.from(now.plusMonths(config.getOptional[Long]("expiry.tokens.refresh").getOrElse(12)).atZone(ZoneId.systemDefault()).toInstant)
         case _ => throw new Exception("Token type not recognized.")
       }
 
