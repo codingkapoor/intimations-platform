@@ -1,6 +1,6 @@
 package com.codingkapoor.passwordless.impl.service
 
-import java.time.LocalDateTime
+import java.time.{LocalDateTime, ZoneId}
 import java.util.{Date, UUID}
 
 import akka.{Done, NotUsed}
@@ -8,9 +8,8 @@ import com.lightbend.lagom.scaladsl.api.ServiceCall
 import com.lightbend.lagom.scaladsl.api.transport.{BadRequest, NotFound}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 import scala.util.Random
-import scala.concurrent.duration._
 import com.google.common.collect.ImmutableList
 import com.nimbusds.jose.JOSEException
 import com.nimbusds.jose.JWSHeader
@@ -28,11 +27,9 @@ import com.codingkapoor.passwordless.impl.repository.otp.{OTPDao, OTPEntity}
 import com.codingkapoor.passwordless.impl.repository.token.{RefreshTokenDao, RefreshTokenEntity}
 
 class PasswordlessServiceImpl(employeeService: EmployeeService, mailOTPService: MailOTPService, otpDao: OTPDao,
-                              refreshTokenDao: RefreshTokenDao, config: Configuration) extends PasswordlessService {
+                              refreshTokenDao: RefreshTokenDao, implicit val config: Configuration) extends PasswordlessService {
 
   import PasswordlessServiceImpl._
-
-  private val (accessRSAKey, refreshRSAKey) = getRSAKeys(config)
 
   override def createOTP(email: String): ServiceCall[NotUsed, Done] = ServiceCall { _ =>
     employeeService.getEmployees(Some(email)).invoke().map { res =>
@@ -51,7 +48,6 @@ class PasswordlessServiceImpl(employeeService: EmployeeService, mailOTPService: 
     }
   }
 
-  // TODO: Add expiry to access and refresh tokens
   override def createTokens(email: String): ServiceCall[OTP, Tokens] = ServiceCall { otp =>
     otpDao.getOTP(email).flatMap { res =>
       if (res.isDefined) {
@@ -59,12 +55,11 @@ class PasswordlessServiceImpl(employeeService: EmployeeService, mailOTPService: 
         val empId = otpEntity.empId
         val roles = otpEntity.roles
 
-        // TODO: Delete the entry from the db
         if (LocalDateTime.now().isAfter(otpEntity.createdAt.plusMinutes(1)))
-          throw BadRequest("OTP Expired")
+          otpDao.deleteOTP(email).map(throw BadRequest("OTP Expired"))
         else {
-          val accessToken = createToken(empId.toString, roles, accessRSAKey).serialize
-          val refreshToken = createToken(empId.toString, roles, refreshRSAKey).serialize
+          val accessToken = createToken(empId.toString, roles, ACCESS).serialize
+          val refreshToken = createToken(empId.toString, roles, REFRESH).serialize
 
           refreshTokenDao.deleteRefreshToken(empId).flatMap { _ =>
             refreshTokenDao.addRefreshToken(RefreshTokenEntity(refreshToken, empId, email, LocalDateTime.now())).flatMap { _ =>
@@ -93,28 +88,45 @@ class PasswordlessServiceImpl(employeeService: EmployeeService, mailOTPService: 
 }
 
 object PasswordlessServiceImpl {
+
+  private final val ACCESS = "ACCESS"
+  private final val REFRESH = "REFRESH"
+
   private def generateOTP: Int = 100000 + Random.nextInt(999999)
-
-  // TODO: See if can use pac4j to read jwk objects from the config file
-  private def getRSAKeys(config: Configuration) = {
-    val accessRSAKey = config.getOptional[String]("authenticator.signatures.RS256.access")
-    val refreshRSAKey = config.getOptional[String]("authenticator.signatures.RS256.refresh")
-
-    if (accessRSAKey.isEmpty || refreshRSAKey.isEmpty)
-      throw new Exception("JWT signature keys are missing from the configuration file.")
-
-    (RSAKey.parse(accessRSAKey.get), RSAKey.parse(refreshRSAKey.get))
-  }
 
   import collection.JavaConverters._
 
+  // TODO: See if can use pac4j to read jwk objects from the config file
+
   @throws[JOSEException]
-  private def createToken(subject: String, roles: List[Role], rsaJWK: RSAKey): SignedJWT = {
+  private def createToken(subject: String, roles: List[Role], tokenType: String)(implicit config: Configuration): SignedJWT = {
+    def getRSAKeys(tokenType: String)(implicit config: Configuration): RSAKey = {
+      val rsaKey = tokenType match {
+        case ACCESS => config.getOptional[String]("authenticator.signatures.RS256.access")
+        case REFRESH => config.getOptional[String]("authenticator.signatures.RS256.refresh")
+        case _ => throw new Exception("Token type not recognized.")
+      }
+
+      if (rsaKey.isEmpty)
+        throw new Exception("JWT signature keys are missing from the configuration file.")
+
+      RSAKey.parse(rsaKey.get)
+    }
+
     def createPayload(): JWTClaimsSet = {
+      val now = LocalDateTime.now()
+      val issuedAt = Date.from(now.atZone(ZoneId.systemDefault()).toInstant)
+      val expiresAt = tokenType match {
+        case ACCESS => Date.from(now.plusMinutes(5).atZone(ZoneId.systemDefault()).toInstant)
+        case REFRESH => Date.from(now.plusMonths(12).atZone(ZoneId.systemDefault()).toInstant)
+        case _ => throw new Exception("Token type not recognized.")
+      }
+
       val payload = new JWTClaimsSet.Builder()
         .subject(subject)
         .claim("roles", ImmutableList.copyOf(roles.map(_.toString).toIterable.asJava))
-        .issueTime(new Date)
+        .issueTime(issuedAt)
+        .expirationTime(expiresAt)
         .jwtID(UUID.randomUUID.toString)
         .build
 
@@ -125,7 +137,7 @@ object PasswordlessServiceImpl {
     val payload = createPayload()
 
     val token = new SignedJWT(header, payload)
-    token.sign(new RSASSASigner(rsaJWK))
+    token.sign(new RSASSASigner(getRSAKeys(tokenType)))
 
     token
   }
