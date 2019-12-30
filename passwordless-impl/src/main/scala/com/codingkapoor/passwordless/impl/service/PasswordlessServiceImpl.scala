@@ -39,6 +39,7 @@ class PasswordlessServiceImpl(employeeService: EmployeeService, mailOTPService: 
       if (res.nonEmpty && res.head.isActive) {
         val emp = res.head
 
+        // TODO: Delete DAO API is idempotent, so it can be directly without enquiring
         otpDao.getOTP(email).flatMap { res =>
           if (res.isDefined) Await.result(otpDao.deleteOTP(res.get.otp), 5.seconds)
 
@@ -53,17 +54,20 @@ class PasswordlessServiceImpl(employeeService: EmployeeService, mailOTPService: 
     }
   }
 
+  // TODO: Add expiry to access and refresh tokens
   override def createTokens(email: String): ServiceCall[OTP, Tokens] = ServiceCall { otp =>
     otpDao.getOTP(email).flatMap { res =>
       if (res.isDefined) {
         val otpEntity = res.get
 
+        // TODO: Delete the entry from the db
         if (LocalDateTime.now().isAfter(otpEntity.createdAt.plusMinutes(1)))
           throw BadRequest("OTP Expired")
         else {
           val accessToken = createToken(otpEntity.empId.toString, otpEntity.roles, accessRSAKey).serialize
           val refreshToken = createToken(otpEntity.empId.toString, otpEntity.roles, refreshRSAKey).serialize
 
+          // TODO: If there already is a refresh token entry, delete it first
           refreshTokenDao.addRefreshToken(RefreshTokenEntity(refreshToken, otpEntity.empId, otpEntity.email, LocalDateTime.now())).flatMap { _ =>
             otpDao.deleteOTP(otpEntity.otp).flatMap { _ =>
               Future.successful(Tokens(accessToken, refreshToken))
@@ -77,6 +81,13 @@ class PasswordlessServiceImpl(employeeService: EmployeeService, mailOTPService: 
 
   override def createJWT(email: String): ServiceCall[Refresh, JWT] = ServiceCall { refresh =>
     // if the submitted refresh token is valid, create and reply with a new jwt
+
+    // check if refresh token is present in refresh_tokens table against the provided email id
+    // if not found, reply with "Invalid Refresh Token" error response
+    // else validdate if refresh token has not already expired
+    // if expired then delete the refresh token entry from the table and reply with "Refresh Token Expired" error response
+    // else create a new signed access token and reply the same to the client, use the claims from the refresh token itself to create the access token
+
     Future.successful(refresh)
   }
 }
@@ -84,6 +95,7 @@ class PasswordlessServiceImpl(employeeService: EmployeeService, mailOTPService: 
 object PasswordlessServiceImpl {
   private def generateOTP: Int = 100000 + Random.nextInt(999999)
 
+  // TODO: See if can use pac4j to read jwk objects from the config file
   private def getRSAKeys(config: Configuration) = {
     val accessRSAKey = config.getOptional[String]("authenticator.signatures.RS256.access")
     val refreshRSAKey = config.getOptional[String]("authenticator.signatures.RS256.refresh")
