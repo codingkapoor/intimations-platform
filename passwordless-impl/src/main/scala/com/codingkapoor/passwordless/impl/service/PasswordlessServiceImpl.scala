@@ -8,15 +8,13 @@ import com.lightbend.lagom.scaladsl.api.ServiceCall
 import com.lightbend.lagom.scaladsl.api.transport.{BadRequest, NotFound}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 import scala.util.Random
 import com.google.common.collect.ImmutableList
 import com.nimbusds.jose.JOSEException
 import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jose.crypto.RSASSASigner
 import com.nimbusds.jose.jwk.RSAKey
-import com.nimbusds.jwt.JWTClaimsSet
-import com.nimbusds.jwt.SignedJWT
+import com.nimbusds.jwt.{JWTClaimsSet, JWTParser, SignedJWT}
 import com.nimbusds.jose.JWSAlgorithm.RS256
 import play.api.Configuration
 import com.codingkapoor.employee.api.EmployeeService
@@ -25,6 +23,8 @@ import com.codingkapoor.passwordless.api.PasswordlessService
 import com.codingkapoor.passwordless.api.model.Tokens
 import com.codingkapoor.passwordless.impl.repository.otp.{OTPDao, OTPEntity}
 import com.codingkapoor.passwordless.impl.repository.token.{RefreshTokenDao, RefreshTokenEntity}
+import net.minidev.json.JSONArray
+import play.api.libs.json.Json
 
 class PasswordlessServiceImpl(employeeService: EmployeeService, mailOTPService: MailOTPService, otpDao: OTPDao,
                               refreshTokenDao: RefreshTokenDao, implicit val config: Configuration) extends PasswordlessService {
@@ -55,13 +55,16 @@ class PasswordlessServiceImpl(employeeService: EmployeeService, mailOTPService: 
         val empId = otpEntity.empId
         val roles = otpEntity.roles
 
-        if (LocalDateTime.now().isAfter(otpEntity.createdAt.plusMinutes(config.getOptional[Long]("expiry.tokens.access").getOrElse(5))))
+        if (otp != otpEntity.otp)
+          throw BadRequest("Invalid OTP")
+
+        if (LocalDateTime.now().isAfter(otpEntity.createdAt.plusMinutes(config.getOptional[Long]("expiries.tokens.access").getOrElse(5))))
           otpDao.deleteOTP(email).map(throw BadRequest("OTP Expired"))
         else {
-          val accessToken = createToken(empId.toString, roles, ACCESS).serialize
-          val refreshToken = createToken(empId.toString, roles, REFRESH).serialize
+          val accessToken = createToken(empId, roles, ACCESS).serialize
+          val refreshToken = createToken(empId, roles, REFRESH).serialize
 
-          refreshTokenDao.deleteRefreshToken(empId).flatMap { _ =>
+          refreshTokenDao.deleteRefreshToken(email).flatMap { _ =>
             refreshTokenDao.addRefreshToken(RefreshTokenEntity(refreshToken, empId, email, LocalDateTime.now())).flatMap { _ =>
               otpDao.deleteOTP(email).map { _ =>
                 Tokens(accessToken, refreshToken)
@@ -75,15 +78,21 @@ class PasswordlessServiceImpl(employeeService: EmployeeService, mailOTPService: 
   }
 
   override def createJWT(email: String): ServiceCall[Refresh, JWT] = ServiceCall { refresh =>
-    // if the submitted refresh token is valid, create and reply with a new jwt
+    val payload = JWTParser.parse(refresh).getJWTClaimsSet
+    val subject = payload.getSubject.toLong
+    val roles = Json.parse(payload.getClaim("roles").asInstanceOf[JSONArray].toJSONString).as[List[Role]]
 
-    // check if refresh token is present in refresh_tokens table against the provided email id
-    // if not found, reply with "Invalid Refresh Token" error response
-    // else validdate if refresh token has not already expired
-    // if expired then delete the refresh token entry from the table and reply with "Refresh Token Expired" error response
-    // else create a new signed access token and reply the same to the client, use the claims from the refresh token itself to create the access token
+    refreshTokenDao.getRefreshToken(email).map { res =>
+      if (res.isDefined) {
+        if (refresh != res.get.refreshToken)
+          throw BadRequest("Invalid Refresh Token")
 
-    Future.successful(refresh)
+        if (payload.getExpirationTime.before(new Date()))
+          refreshTokenDao.deleteRefreshToken(email).map(throw BadRequest("Refresh Token Expired"))
+
+        createToken(subject, roles, ACCESS).serialize
+      } else throw BadRequest("Invalid Refresh Token")
+    }
   }
 }
 
@@ -99,7 +108,7 @@ object PasswordlessServiceImpl {
   // TODO: See if can use pac4j to read jwk objects from the config file
 
   @throws[JOSEException]
-  private def createToken(subject: String, roles: List[Role], tokenType: String)(implicit config: Configuration): SignedJWT = {
+  private def createToken(subject: Long, roles: List[Role], tokenType: String)(implicit config: Configuration): SignedJWT = {
     def getRSAKeys(tokenType: String)(implicit config: Configuration): RSAKey = {
       val rsaKey = tokenType match {
         case ACCESS => config.getOptional[String]("authenticator.signatures.RS256.access")
@@ -117,13 +126,13 @@ object PasswordlessServiceImpl {
       val now = LocalDateTime.now()
       val issuedAt = Date.from(now.atZone(ZoneId.systemDefault()).toInstant)
       val expiresAt = tokenType match {
-        case ACCESS => Date.from(now.plusMinutes(config.getOptional[Long]("expiry.tokens.access").getOrElse(5)).atZone(ZoneId.systemDefault()).toInstant)
-        case REFRESH => Date.from(now.plusMonths(config.getOptional[Long]("expiry.tokens.refresh").getOrElse(12)).atZone(ZoneId.systemDefault()).toInstant)
+        case ACCESS => Date.from(now.plusMinutes(config.getOptional[Long]("expiries.tokens.access").getOrElse(5)).atZone(ZoneId.systemDefault()).toInstant)
+        case REFRESH => Date.from(now.plusMonths(config.getOptional[Long]("expiries.tokens.refresh").getOrElse(12)).atZone(ZoneId.systemDefault()).toInstant)
         case _ => throw new Exception("Token type not recognized.")
       }
 
       val payload = new JWTClaimsSet.Builder()
-        .subject(subject)
+        .subject(subject.toString)
         .claim("roles", ImmutableList.copyOf(roles.map(_.toString).toIterable.asJava))
         .issueTime(issuedAt)
         .expirationTime(expiresAt)

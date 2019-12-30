@@ -4,6 +4,7 @@ import slick.jdbc.JdbcBackend.Database
 import slick.jdbc.MySQLProfile.api._
 import scala.concurrent.Future
 
+// TODO: Check if the db connections are managed
 class RefreshTokenDao(db: Database) {
 
   val refreshTokens = RefreshTokenTableDef.refreshTokens
@@ -20,6 +21,10 @@ class RefreshTokenDao(db: Database) {
 
   def deleteRefreshToken(empId: Long): Future[Int] = {
     db.run(refreshTokens.filter(_.empId === empId).delete)
+  }
+
+  def deleteRefreshToken(email: String): Future[Int] = {
+    db.run(refreshTokens.filter(_.email === email).delete)
   }
 
   private def createTable: Future[Unit] = db.run(refreshTokens.schema.createIfNotExists)
