@@ -39,10 +39,7 @@ class PasswordlessServiceImpl(employeeService: EmployeeService, mailOTPService: 
       if (res.nonEmpty && res.head.isActive) {
         val emp = res.head
 
-        // TODO: Delete DAO API is idempotent, so it can be directly without enquiring
-        otpDao.getOTP(email).flatMap { res =>
-          if (res.isDefined) Await.result(otpDao.deleteOTP(email), 5.seconds)
-
+        otpDao.deleteOTP(email).flatMap { _ =>
           val otp = generateOTP
           otpDao.createOTP(OTPEntity(otp, emp.id, email, emp.roles, LocalDateTime.now())).map { _ =>
             mailOTPService.sendOTP(email, otp)
@@ -59,18 +56,21 @@ class PasswordlessServiceImpl(employeeService: EmployeeService, mailOTPService: 
     otpDao.getOTP(email).flatMap { res =>
       if (res.isDefined) {
         val otpEntity = res.get
+        val empId = otpEntity.empId
+        val roles = otpEntity.roles
 
         // TODO: Delete the entry from the db
         if (LocalDateTime.now().isAfter(otpEntity.createdAt.plusMinutes(1)))
           throw BadRequest("OTP Expired")
         else {
-          val accessToken = createToken(otpEntity.empId.toString, otpEntity.roles, accessRSAKey).serialize
-          val refreshToken = createToken(otpEntity.empId.toString, otpEntity.roles, refreshRSAKey).serialize
+          val accessToken = createToken(empId.toString, roles, accessRSAKey).serialize
+          val refreshToken = createToken(empId.toString, roles, refreshRSAKey).serialize
 
-          // TODO: If there already is a refresh token entry, delete it first
-          refreshTokenDao.addRefreshToken(RefreshTokenEntity(refreshToken, otpEntity.empId, email, LocalDateTime.now())).flatMap { _ =>
-            otpDao.deleteOTP(email).flatMap { _ =>
-              Future.successful(Tokens(accessToken, refreshToken))
+          refreshTokenDao.deleteRefreshToken(empId).flatMap { _ =>
+            refreshTokenDao.addRefreshToken(RefreshTokenEntity(refreshToken, empId, email, LocalDateTime.now())).flatMap { _ =>
+              otpDao.deleteOTP(email).map { _ =>
+                Tokens(accessToken, refreshToken)
+              }
             }
           }
         }
