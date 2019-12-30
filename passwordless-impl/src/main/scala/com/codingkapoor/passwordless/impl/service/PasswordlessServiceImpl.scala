@@ -41,7 +41,7 @@ class PasswordlessServiceImpl(employeeService: EmployeeService, mailOTPService: 
 
         // TODO: Delete DAO API is idempotent, so it can be directly without enquiring
         otpDao.getOTP(email).flatMap { res =>
-          if (res.isDefined) Await.result(otpDao.deleteOTP(res.get.otp), 5.seconds)
+          if (res.isDefined) Await.result(otpDao.deleteOTP(email), 5.seconds)
 
           val otp = generateOTP
           otpDao.createOTP(OTPEntity(otp, emp.id, email, emp.roles, LocalDateTime.now())).map { _ =>
@@ -68,8 +68,8 @@ class PasswordlessServiceImpl(employeeService: EmployeeService, mailOTPService: 
           val refreshToken = createToken(otpEntity.empId.toString, otpEntity.roles, refreshRSAKey).serialize
 
           // TODO: If there already is a refresh token entry, delete it first
-          refreshTokenDao.addRefreshToken(RefreshTokenEntity(refreshToken, otpEntity.empId, otpEntity.email, LocalDateTime.now())).flatMap { _ =>
-            otpDao.deleteOTP(otpEntity.otp).flatMap { _ =>
+          refreshTokenDao.addRefreshToken(RefreshTokenEntity(refreshToken, otpEntity.empId, email, LocalDateTime.now())).flatMap { _ =>
+            otpDao.deleteOTP(email).flatMap { _ =>
               Future.successful(Tokens(accessToken, refreshToken))
             }
           }

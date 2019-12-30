@@ -18,8 +18,8 @@ class OTPDao(db: Database) {
     db.run(otps.filter(_.email === email).result.headOption)
   }
 
-  def deleteOTP(otp: Int): Future[Int] = {
-    db.run(otps.filter(_.otp === otp).delete)
+  def deleteOTP(email: String): Future[Int] = {
+    db.run(otps.filter(_.email === email).delete)
   }
 
   private def createTable: Future[Unit] = db.run(otps.schema.createIfNotExists)
