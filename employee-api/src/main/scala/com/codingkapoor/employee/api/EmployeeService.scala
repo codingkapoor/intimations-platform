@@ -1,13 +1,13 @@
 package com.codingkapoor.employee.api
 
 import java.time.LocalDate
-
 import akka.{Done, NotUsed}
 import com.lightbend.lagom.scaladsl.api.broker.Topic
 import com.lightbend.lagom.scaladsl.api.broker.kafka.{KafkaProperties, PartitionKeyStrategy}
 import com.lightbend.lagom.scaladsl.api.transport.Method
 import com.lightbend.lagom.scaladsl.api.{Descriptor, Service, ServiceCall}
-import com.codingkapoor.employee.api.model.{ActiveIntimation, Employee, EmployeeInfo, EmployeeKafkaEvent, InactiveIntimation, IntimationReq, Leaves}
+
+import com.codingkapoor.employee.api.model.{ActiveIntimation, Employee, EmployeeInfo, EmployeeKafkaEvent, InactiveIntimation, IntimationReq}
 
 object EmployeeService {
   val TOPIC_NAME = "employee"
@@ -21,7 +21,7 @@ trait EmployeeService extends Service with EmployeePathParamSerializer {
 
   def terminateEmployee(id: Long): ServiceCall[NotUsed, Done]
 
-  def getEmployees: ServiceCall[NotUsed, Seq[Employee]]
+  def getEmployees(email: Option[String]): ServiceCall[NotUsed, Seq[Employee]]
 
   def getEmployee(id: Long): ServiceCall[NotUsed, Employee]
 
@@ -46,7 +46,7 @@ trait EmployeeService extends Service with EmployeePathParamSerializer {
       .withCalls(
         restCall(Method.POST, "/api/employees", addEmployee _),
         restCall(Method.PUT, "/api/employees/:id", updateEmployee _),
-        restCall(Method.GET, "/api/employees", getEmployees _),
+        restCall(Method.GET, "/api/employees?email", getEmployees _),
         restCall(Method.GET, "/api/employees/intimations", getActiveIntimations _),
         restCall(Method.PUT, "/api/employees/:id/terminate", terminateEmployee _),
         restCall(Method.GET, "/api/employees/:id", getEmployee _),

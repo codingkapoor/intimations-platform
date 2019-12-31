@@ -1,9 +1,10 @@
 package com.codingkapoor.employee.api.model
 
 import java.time.{LocalDate, LocalDateTime}
-
 import play.api.libs.json.{Format, Json}
+
 import com.codingkapoor.employee.api.model.RequestType.RequestType
+import com.codingkapoor.employee.api.model.Role.Role
 
 case class ContactInfo(phone: String, email: String)
 
@@ -23,13 +24,22 @@ object Leaves {
   implicit val format: Format[Leaves] = Json.using[Json.WithDefaultValues].format[Leaves]
 }
 
+object Role extends Enumeration {
+  type Role = Value
+  val Employee, Admin = Value
+
+  implicit val format: Format[Role.Value] = Json.formatEnum(this)
+}
+
 case class Employee(id: Long, name: String, gender: String, doj: LocalDate, designation: String, pfn: String,
-                    isActive: Boolean = true, contactInfo: ContactInfo, location: Location = Location(), leaves: Leaves = Leaves())
+                    isActive: Boolean = true, contactInfo: ContactInfo, location: Location = Location(), leaves: Leaves = Leaves(), roles: List[Role])
 
 object Employee {
   implicit val format: Format[Employee] = Json.using[Json.WithDefaultValues].format[Employee]
 }
 
+// TODO: Employee terminated could always be re-hired
+// TODO: Uupdate employee roles
 case class EmployeeInfo(designation: Option[String], contactInfo: Option[ContactInfo], location: Option[Location], leaves: Option[Leaves])
 
 object EmployeeInfo {
