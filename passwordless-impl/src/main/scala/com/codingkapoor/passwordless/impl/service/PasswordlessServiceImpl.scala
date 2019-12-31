@@ -3,6 +3,7 @@ package com.codingkapoor.passwordless.impl.service
 import java.time.{LocalDateTime, ZoneId}
 import java.util.{Date, UUID}
 
+import akka.stream.scaladsl.Flow
 import akka.{Done, NotUsed}
 import com.lightbend.lagom.scaladsl.api.ServiceCall
 import com.lightbend.lagom.scaladsl.api.transport.{BadRequest, NotFound}
@@ -18,18 +19,41 @@ import com.nimbusds.jwt.{JWTClaimsSet, JWTParser, SignedJWT}
 import com.nimbusds.jose.JWSAlgorithm.RS256
 import play.api.Configuration
 import com.codingkapoor.employee.api.EmployeeService
+import com.codingkapoor.employee.api.model.{EmployeeDeletedKafkaEvent, EmployeeKafkaEvent, EmployeeTerminatedKafkaEvent}
 import com.codingkapoor.employee.api.model.Role.Role
 import com.codingkapoor.passwordless.api.PasswordlessService
 import com.codingkapoor.passwordless.api.model.Tokens
 import com.codingkapoor.passwordless.impl.repository.otp.{OTPDao, OTPEntity}
 import com.codingkapoor.passwordless.impl.repository.token.{RefreshTokenDao, RefreshTokenEntity}
 import net.minidev.json.JSONArray
+import org.slf4j.LoggerFactory
 import play.api.libs.json.Json
 
 class PasswordlessServiceImpl(employeeService: EmployeeService, mailOTPService: MailOTPService, otpDao: OTPDao,
                               refreshTokenDao: RefreshTokenDao, implicit val config: Configuration) extends PasswordlessService {
 
   import PasswordlessServiceImpl._
+
+  private val logger = LoggerFactory.getLogger(classOf[PasswordlessServiceImpl])
+
+  employeeService
+    .employeeTopic
+    .subscribe
+    .atLeastOnce(
+      Flow[EmployeeKafkaEvent].map { ke =>
+        if (ke.isInstanceOf[EmployeeTerminatedKafkaEvent]) {
+          val empId = ke.id
+          otpDao.deleteOTP(empId).flatMap(_ => refreshTokenDao.deleteRefreshToken(empId))
+          logger.info(s"EmployeeTerminatedKafkaEvent kafka event received. Deleted both OTPs and Refresh Tokens that belonged to empId = ${ke.id}, if any.")
+        }
+        if (ke.isInstanceOf[EmployeeDeletedKafkaEvent]) {
+          val empId = ke.id
+          otpDao.deleteOTP(empId).flatMap(_ => refreshTokenDao.deleteRefreshToken(empId))
+          logger.info(s"EmployeeDeletedKafkaEvent kafka event received. Deleted both OTPs and Refresh Tokens that belonged to empId = ${ke.id}, if any.")
+        }
+        Done
+      }
+    )
 
   override def createOTP(email: String): ServiceCall[NotUsed, Done] = ServiceCall { _ =>
     employeeService.getEmployees(Some(email)).invoke().map { res =>

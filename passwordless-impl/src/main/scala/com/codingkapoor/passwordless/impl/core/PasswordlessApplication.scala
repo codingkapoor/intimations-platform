@@ -8,6 +8,7 @@ import com.codingkapoor.passwordless.api.PasswordlessService
 import com.codingkapoor.passwordless.impl.repository.otp.OTPDao
 import com.codingkapoor.passwordless.impl.repository.token.RefreshTokenDao
 import com.codingkapoor.passwordless.impl.service.{MailOTPService, PasswordlessServiceImpl}
+import com.lightbend.lagom.scaladsl.broker.kafka.LagomKafkaClientComponents
 import com.lightbend.lagom.scaladsl.persistence.slick.SlickPersistenceComponents
 import com.lightbend.lagom.scaladsl.playjson.JsonSerializerRegistry
 import play.api.db.HikariCPComponents
@@ -16,6 +17,7 @@ abstract class PasswordlessApplication(context: LagomApplicationContext)
   extends LagomApplication(context)
     with SlickPersistenceComponents
     with HikariCPComponents
+    with LagomKafkaClientComponents
     with AhcWSComponents {
   override lazy val lagomServer: LagomServer = serverFor[PasswordlessService](wire[PasswordlessServiceImpl])
   override lazy val jsonSerializerRegistry: JsonSerializerRegistry = PasswordlessSerializerRegistry
