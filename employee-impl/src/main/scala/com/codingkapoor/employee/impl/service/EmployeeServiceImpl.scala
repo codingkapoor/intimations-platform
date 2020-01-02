@@ -5,11 +5,12 @@ import java.time.LocalDate
 import akka.{Done, NotUsed}
 import com.lightbend.lagom.scaladsl.api.ServiceCall
 import com.lightbend.lagom.scaladsl.api.broker.Topic
-import com.lightbend.lagom.scaladsl.api.transport.{BadRequest, NotFound}
+import com.lightbend.lagom.scaladsl.api.transport.{BadRequest, Forbidden, NotFound}
 import com.lightbend.lagom.scaladsl.broker.TopicProducer
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.InvalidCommandException
 import com.lightbend.lagom.scaladsl.persistence.{EventStreamElement, PersistentEntityRegistry}
 import org.slf4j.LoggerFactory
+import org.pac4j.core.authorization.authorizer.RequireAnyRoleAuthorizer.requireAnyRole
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.codingkapoor.employee.api
@@ -21,6 +22,7 @@ import com.codingkapoor.employee.impl.persistence.read.repository.request.{Reque
 import com.codingkapoor.employee.impl.persistence.write._
 import com.lightbend.lagom.scaladsl.server.ServerServiceCall
 import org.pac4j.core.config.Config
+import org.pac4j.core.profile.CommonProfile
 import org.pac4j.lagom.scaladsl.SecuredService
 
 class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityRegistry: PersistentEntityRegistry, employeeRepository: EmployeeDao,
@@ -50,12 +52,21 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
     }
   }
 
-  // TODO: Validate: 1. Received token has to be access token and not refresh token
-  // TODO: 2. If no token received, drop the request with an error response
+  // TODO: passwordless service also uses this api. This creates the chicken-egg problem which can only be solved if passwordless service
+  //  maintains and updates it's own employee table with the help of kafka events
+
+  //  override def getEmployees(email: Option[String]): ServiceCall[NotUsed, Seq[Employee]] = {
+  //    authorize(requireAnyRole[CommonProfile]("Admin"), (profile: CommonProfile) =>
+  //      ServerServiceCall { _: NotUsed =>
+  //        if (profile.getAttribute("type") == "Refresh")
+  //          throw Forbidden("Access token expected")
+  //        employeeRepository.getEmployees(email).map(_.map(convertEmployeeReadEntityToEmployee))
+  //      }
+  //    )
+  //  }
   override def getEmployees(email: Option[String]): ServiceCall[NotUsed, Seq[Employee]] = {
-    authenticate { profile =>
-      ServerServiceCall { _ =>
-        println(s"sk: $profile")
+    authenticate { _ =>
+      ServerServiceCall { _: NotUsed =>
         employeeRepository.getEmployees(email).map(_.map(convertEmployeeReadEntityToEmployee))
       }
     }
