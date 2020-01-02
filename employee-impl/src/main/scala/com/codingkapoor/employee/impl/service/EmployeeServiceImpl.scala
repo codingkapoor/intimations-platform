@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory
 import org.pac4j.core.authorization.authorizer.RequireAnyRoleAuthorizer.requireAnyRole
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 import com.codingkapoor.employee.api
 import com.codingkapoor.employee.api.model._
 import com.codingkapoor.employee.api.EmployeeService
@@ -25,12 +26,14 @@ import org.pac4j.core.config.Config
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.lagom.scaladsl.SecuredService
 
+import scala.concurrent.Await
+
 class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityRegistry: PersistentEntityRegistry, employeeRepository: EmployeeDao,
                           intimationRepository: IntimationDao, requestRepository: RequestDao) extends EmployeeService with SecuredService {
 
   import EmployeeServiceImpl._
 
-  private val log = LoggerFactory.getLogger(classOf[EmployeeServiceImpl])
+  private val logger = LoggerFactory.getLogger(classOf[EmployeeServiceImpl])
 
   private def entityRef(id: Long) = persistentEntityRegistry.refFor[EmployeePersistenceEntity](id.toString)
 
@@ -54,7 +57,6 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
 
   // TODO: passwordless service also uses this api. This creates the chicken-egg problem which can only be solved if passwordless service
   //  maintains and updates it's own employee table with the help of kafka events
-
   //  override def getEmployees(email: Option[String]): ServiceCall[NotUsed, Seq[Employee]] = {
   //    authorize(requireAnyRole[CommonProfile]("Admin"), (profile: CommonProfile) =>
   //      ServerServiceCall { _: NotUsed =>
@@ -72,17 +74,35 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
     }
   }
 
-  override def getEmployee(id: Long): ServiceCall[NotUsed, Employee] = ServiceCall { _ =>
-    employeeRepository.getEmployee(id).map { e =>
-      if (e.isDefined) convertEmployeeReadEntityToEmployee(e.get)
-      else {
-        val msg = s"No employee found with id = $id."
-        log.error(msg)
+  override def getEmployee(id: Long): ServiceCall[NotUsed, Employee] =
+    authorize(requireAnyRole[CommonProfile](Role.Employee.toString, Role.Admin.toString), (profile: CommonProfile) =>
+      ServerServiceCall { _: NotUsed =>
+        validateTokenType(profile)
 
-        throw NotFound(msg)
+        val isAdmin = Await.result(employeeRepository.getEmployee(profile.getId.toLong).map { e =>
+          if (e.isDefined) e.get.roles.contains(Role.Admin)
+          else {
+            logger.error("No employee found to whom the access token supposedly belongs to")
+            throw Forbidden("Authorization failed")
+          }
+        }, 5.seconds)
+
+        if (profile.getId != id.toString && !isAdmin) {
+          logger.error("Employees can access their own data only unless they have admin role")
+          throw Forbidden("Authorization failed")
+        }
+
+        employeeRepository.getEmployee(id).map { e =>
+          if (e.isDefined) convertEmployeeReadEntityToEmployee(e.get)
+          else {
+            val msg = s"No employee found with id = $id."
+            logger.error(msg)
+
+            throw NotFound(msg)
+          }
+        }
       }
-    }
-  }
+    )
 
   override def deleteEmployee(id: Long): ServiceCall[NotUsed, Done] = ServiceCall { _ =>
     entityRef(id).ask(DeleteEmployee(id)).recover {
@@ -132,6 +152,11 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
 }
 
 object EmployeeServiceImpl {
+
+  private def validateTokenType(profile: CommonProfile): Unit = {
+    if (profile.getAttribute("type") == "Refresh")
+      throw Forbidden("Access token expected")
+  }
 
   private def convertPersistentEntityEventToKafkaEvent(eventStreamElement: EventStreamElement[EmployeeEvent]): EmployeeKafkaEvent = {
     eventStreamElement.event match {
