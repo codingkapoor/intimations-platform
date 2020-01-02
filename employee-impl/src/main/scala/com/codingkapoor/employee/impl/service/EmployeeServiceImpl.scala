@@ -1,6 +1,7 @@
 package com.codingkapoor.employee.impl.service
 
 import java.time.LocalDate
+
 import akka.{Done, NotUsed}
 import com.lightbend.lagom.scaladsl.api.ServiceCall
 import com.lightbend.lagom.scaladsl.api.broker.Topic
@@ -9,18 +10,21 @@ import com.lightbend.lagom.scaladsl.broker.TopicProducer
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.InvalidCommandException
 import com.lightbend.lagom.scaladsl.persistence.{EventStreamElement, PersistentEntityRegistry}
 import org.slf4j.LoggerFactory
-import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import com.codingkapoor.employee.api
 import com.codingkapoor.employee.api.model._
 import com.codingkapoor.employee.api.EmployeeService
-import com.codingkapoor.employee.impl.persistence.read.repository.employee.{EmployeeEntity, EmployeeDao}
-import com.codingkapoor.employee.impl.persistence.read.repository.intimation.{IntimationEntity, IntimationDao}
-import com.codingkapoor.employee.impl.persistence.read.repository.request.{RequestEntity, RequestDao}
+import com.codingkapoor.employee.impl.persistence.read.repository.employee.{EmployeeDao, EmployeeEntity}
+import com.codingkapoor.employee.impl.persistence.read.repository.intimation.{IntimationDao, IntimationEntity}
+import com.codingkapoor.employee.impl.persistence.read.repository.request.{RequestDao, RequestEntity}
 import com.codingkapoor.employee.impl.persistence.write._
+import com.lightbend.lagom.scaladsl.server.ServerServiceCall
+import org.pac4j.core.config.Config
+import org.pac4j.lagom.scaladsl.SecuredService
 
-class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, employeeRepository: EmployeeDao,
-                          intimationRepository: IntimationDao, requestRepository: RequestDao) extends EmployeeService {
+class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityRegistry: PersistentEntityRegistry, employeeRepository: EmployeeDao,
+                          intimationRepository: IntimationDao, requestRepository: RequestDao) extends EmployeeService with SecuredService {
 
   import EmployeeServiceImpl._
 
@@ -46,8 +50,15 @@ class EmployeeServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, em
     }
   }
 
-  override def getEmployees(email: Option[String]): ServiceCall[NotUsed, Seq[Employee]] = ServiceCall { _ =>
-    employeeRepository.getEmployees(email).map(_.map(convertEmployeeReadEntityToEmployee))
+  // TODO: Validate: 1. Received token has to be access token and not refresh token
+  // TODO: 2. If no token received, drop the request with an error response
+  override def getEmployees(email: Option[String]): ServiceCall[NotUsed, Seq[Employee]] = {
+    authenticate { profile =>
+      ServerServiceCall { _ =>
+        println(s"sk: $profile")
+        employeeRepository.getEmployees(email).map(_.map(convertEmployeeReadEntityToEmployee))
+      }
+    }
   }
 
   override def getEmployee(id: Long): ServiceCall[NotUsed, Employee] = ServiceCall { _ =>
