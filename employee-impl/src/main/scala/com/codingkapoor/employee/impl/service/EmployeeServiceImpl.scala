@@ -9,12 +9,11 @@ import com.lightbend.lagom.scaladsl.api.transport.{BadRequest, Forbidden, NotFou
 import com.lightbend.lagom.scaladsl.broker.TopicProducer
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.InvalidCommandException
 import com.lightbend.lagom.scaladsl.persistence.{EventStreamElement, PersistentEntityRegistry}
-import org.slf4j.LoggerFactory
+import org.slf4j.{Logger, LoggerFactory}
 import org.pac4j.core.authorization.authorizer.RequireAnyRoleAuthorizer.requireAnyRole
 import org.pac4j.core.authorization.authorizer.RequireAllRolesAuthorizer.requireAllRoles
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
 import com.codingkapoor.employee.api
 import com.codingkapoor.employee.api.model._
 import com.codingkapoor.employee.api.EmployeeService
@@ -27,14 +26,12 @@ import org.pac4j.core.config.Config
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.lagom.scaladsl.SecuredService
 
-import scala.concurrent.Await
-
-class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityRegistry: PersistentEntityRegistry, employeeRepository: EmployeeDao,
-                          intimationRepository: IntimationDao, requestRepository: RequestDao) extends EmployeeService with SecuredService {
+class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityRegistry: PersistentEntityRegistry, override val employeeDao: EmployeeDao,
+                          intimationDao: IntimationDao, requestDao: RequestDao) extends EmployeeService with SecuredService with AuthValidator {
 
   import EmployeeServiceImpl._
 
-  private val logger = LoggerFactory.getLogger(classOf[EmployeeServiceImpl])
+  override val logger = LoggerFactory.getLogger(classOf[EmployeeServiceImpl])
 
   private def entityRef(id: Long) = persistentEntityRegistry.refFor[EmployeePersistenceEntity](id.toString)
 
@@ -42,19 +39,7 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
     authorize(requireAllRoles[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
       ServerServiceCall { employee: Employee =>
         validateTokenType(profile)
-
-        val isAdmin = Await.result(employeeRepository.getEmployee(profile.getId.toLong).map { e =>
-          if (e.isDefined) e.get.roles.contains(Role.Admin)
-          else {
-            logger.error("No employee found to whom the access token supposedly belongs to")
-            throw Forbidden("Authorization failed")
-          }
-        }, 5.seconds)
-
-        if (!isAdmin) {
-          logger.error("Admin privileges required")
-          throw Forbidden("Authorization failed")
-        }
+        validateIfProfileBelongsToAdmin(profile)
 
         entityRef(employee.id).ask(AddEmployee(employee)).recover {
           case e: InvalidCommandException => throw BadRequest(e.getMessage)
@@ -66,19 +51,7 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
     authorize(requireAllRoles[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
       ServerServiceCall { employeeInfo: EmployeeInfo =>
         validateTokenType(profile)
-
-        val isAdmin = Await.result(employeeRepository.getEmployee(profile.getId.toLong).map { e =>
-          if (e.isDefined) e.get.roles.contains(Role.Admin)
-          else {
-            logger.error("No employee found to whom the access token supposedly belongs to")
-            throw Forbidden("Authorization failed")
-          }
-        }, 5.seconds)
-
-        if (!isAdmin) {
-          logger.error("Admin privileges required")
-          throw Forbidden("Authorization failed")
-        }
+        validateIfProfileBelongsToAdmin(profile)
 
         entityRef(id).ask(UpdateEmployee(employeeInfo)).recover {
           case e: InvalidCommandException => throw BadRequest(e.getMessage)
@@ -90,19 +63,7 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
     authorize(requireAllRoles[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
       ServerServiceCall { _: NotUsed =>
         validateTokenType(profile)
-
-        val isAdmin = Await.result(employeeRepository.getEmployee(profile.getId.toLong).map { e =>
-          if (e.isDefined) e.get.roles.contains(Role.Admin)
-          else {
-            logger.error("No employee found to whom the access token supposedly belongs to")
-            throw Forbidden("Authorization failed")
-          }
-        }, 5.seconds)
-
-        if (!isAdmin) {
-          logger.error("Admin privileges required")
-          throw Forbidden("Authorization failed")
-        }
+        validateIfProfileBelongsToAdmin(profile)
 
         entityRef(id).ask(TerminateEmployee(id)).recover {
           case e: InvalidCommandException => throw BadRequest(e.getMessage)
@@ -110,7 +71,6 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
       }
     )
 
-  // TODO: Admin Only
   // TODO: passwordless service also uses this api. This creates the chicken-egg problem which can only be solved if passwordless service
   //  maintains and updates it's own employee table with the help of kafka events
   //  override def getEmployees(email: Option[String]): ServiceCall[NotUsed, Seq[Employee]] = {
@@ -125,7 +85,7 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
   override def getEmployees(email: Option[String]): ServiceCall[NotUsed, Seq[Employee]] = {
     authenticate { _ =>
       ServerServiceCall { _: NotUsed =>
-        employeeRepository.getEmployees(email).map(_.map(convertEmployeeReadEntityToEmployee))
+        employeeDao.getEmployees(email).map(_.map(convertEmployeeReadEntityToEmployee))
       }
     }
   }
@@ -134,21 +94,9 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
     authorize(requireAnyRole[CommonProfile](Role.Employee.toString, Role.Admin.toString), (profile: CommonProfile) =>
       ServerServiceCall { _: NotUsed =>
         validateTokenType(profile)
+        validateIfProfileBelongsToIndividualEmployeeOrAdmin(profile, id)
 
-        val isAdmin = Await.result(employeeRepository.getEmployee(profile.getId.toLong).map { e =>
-          if (e.isDefined) e.get.roles.contains(Role.Admin)
-          else {
-            logger.error("No employee found to whom the provided access token supposedly belongs to")
-            throw Forbidden("Authorization failed")
-          }
-        }, 5.seconds)
-
-        if (profile.getId != id.toString && !isAdmin) {
-          logger.error("Employees can access their own data only unless they have admin role")
-          throw Forbidden("Authorization failed")
-        }
-
-        employeeRepository.getEmployee(id).map { e =>
+        employeeDao.getEmployee(id).map { e =>
           if (e.isDefined) convertEmployeeReadEntityToEmployee(e.get)
           else {
             val msg = s"No employee found with id = $id."
@@ -164,19 +112,7 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
     authorize(requireAllRoles[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
       ServerServiceCall { _: NotUsed =>
         validateTokenType(profile)
-
-        val isAdmin = Await.result(employeeRepository.getEmployee(profile.getId.toLong).map { e =>
-          if (e.isDefined) e.get.roles.contains(Role.Admin)
-          else {
-            logger.error("No employee found to whom the access token supposedly belongs to")
-            throw Forbidden("Authorization failed")
-          }
-        }, 5.seconds)
-
-        if (!isAdmin) {
-          logger.error("Admin privileges required")
-          throw Forbidden("Authorization failed")
-        }
+        validateIfProfileBelongsToAdmin(profile)
 
         entityRef(id).ask(DeleteEmployee(id)).recover {
           case e: InvalidCommandException => throw BadRequest(e.message)
@@ -188,19 +124,7 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
     authorize(requireAllRoles[CommonProfile](Role.Employee.toString), (profile: CommonProfile) =>
       ServerServiceCall { intimationReq: IntimationReq =>
         validateTokenType(profile)
-
-        val isEmployee = Await.result(employeeRepository.getEmployee(profile.getId.toLong).map { e =>
-          if (e.isDefined) e.get.roles.contains(Role.Employee)
-          else {
-            logger.error("No employee found to whom the access token supposedly belongs to")
-            throw Forbidden("Authorization failed")
-          }
-        }, 5.seconds)
-
-        if (profile.getId != empId.toString || !isEmployee) {
-          logger.error("Employees can access their own data only provided they have employee privileges")
-          throw Forbidden("Authorization failed")
-        }
+        validateIfProfileBelongsToIndividualEmployee(profile, empId)
 
         if (intimationReq.reason.length > 0)
           entityRef(empId).ask(CreateIntimation(empId, intimationReq)).recover {
@@ -215,19 +139,7 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
     authorize(requireAllRoles[CommonProfile](Role.Employee.toString), (profile: CommonProfile) =>
       ServerServiceCall { intimationReq: IntimationReq =>
         validateTokenType(profile)
-
-        val isEmployee = Await.result(employeeRepository.getEmployee(profile.getId.toLong).map { e =>
-          if (e.isDefined) e.get.roles.contains(Role.Employee)
-          else {
-            logger.error("No employee found to whom the access token supposedly belongs to")
-            throw Forbidden("Authorization failed")
-          }
-        }, 5.seconds)
-
-        if (profile.getId != empId.toString || !isEmployee) {
-          logger.error("Employees can access their own data only provided they have employee privileges")
-          throw Forbidden("Authorization failed")
-        }
+        validateIfProfileBelongsToIndividualEmployee(profile, empId)
 
         if (intimationReq.reason.length > 0)
           entityRef(empId).ask(UpdateIntimation(empId, intimationReq)).recover {
@@ -242,19 +154,7 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
     authorize(requireAllRoles[CommonProfile](Role.Employee.toString), (profile: CommonProfile) =>
       ServerServiceCall { _: NotUsed =>
         validateTokenType(profile)
-
-        val isEmployee = Await.result(employeeRepository.getEmployee(profile.getId.toLong).map { e =>
-          if (e.isDefined) e.get.roles.contains(Role.Employee)
-          else {
-            logger.error("No employee found to whom the access token supposedly belongs to")
-            throw Forbidden("Authorization failed")
-          }
-        }, 5.seconds)
-
-        if (profile.getId != empId.toString || !isEmployee) {
-          logger.error("Employees can access their own data only provided they have employee privileges")
-          throw Forbidden("Authorization failed")
-        }
+        validateIfProfileBelongsToIndividualEmployee(profile, empId)
 
         entityRef(empId).ask(CancelIntimation(empId)).recover {
           case e: InvalidCommandException => throw BadRequest(e.message)
@@ -266,21 +166,9 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
     authorize(requireAnyRole[CommonProfile](Role.Employee.toString, Role.Admin.toString), (profile: CommonProfile) =>
       ServerServiceCall { _: NotUsed =>
         validateTokenType(profile)
+        validateIfProfileBelongsToIndividualEmployeeOrAdmin(profile, empId)
 
-        val isAdmin = Await.result(employeeRepository.getEmployee(profile.getId.toLong).map { e =>
-          if (e.isDefined) e.get.roles.contains(Role.Admin)
-          else {
-            logger.error("No employee found to whom the provided access token supposedly belongs to")
-            throw Forbidden("Authorization failed")
-          }
-        }, 5.seconds)
-
-        if (profile.getId != empId.toString && !isAdmin) {
-          logger.error("Employees can access their own data only unless they have admin role")
-          throw Forbidden("Authorization failed")
-        }
-
-        intimationRepository.getInactiveIntimations(empId, start, end).map(convertToInactiveIntimations)
+        intimationDao.getInactiveIntimations(empId, start, end).map(convertToInactiveIntimations)
       }
     )
 
@@ -288,21 +176,9 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
     authorize(requireAnyRole[CommonProfile](Role.Employee.toString, Role.Admin.toString), (profile: CommonProfile) =>
       ServerServiceCall { _: NotUsed =>
         validateTokenType(profile)
+        validateIfProfileBelongsToAnyEmployeeOrAdmin(profile)
 
-        val isEmployeeOrAdmin = Await.result(employeeRepository.getEmployee(profile.getId.toLong).map { e =>
-          if (e.isDefined) e.get.roles.contains(Role.Admin) || e.get.roles.contains(Role.Employee)
-          else {
-            logger.error("No employee found to whom the provided access token supposedly belongs to")
-            throw Forbidden("Authorization failed")
-          }
-        }, 5.seconds)
-
-        if (!isEmployeeOrAdmin) {
-          logger.error("Admin/Employee privilege required")
-          throw Forbidden("Authorization failed")
-        }
-
-        intimationRepository.getActiveIntimations.map(convertToActiveIntimations)
+        intimationDao.getActiveIntimations.map(convertToActiveIntimations)
       }
     )
 
@@ -312,15 +188,9 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
         .map(event => (convertPersistentEntityEventToKafkaEvent(event), event.offset))
     }
   }
-
 }
 
 object EmployeeServiceImpl {
-
-  private def validateTokenType(profile: CommonProfile): Unit = {
-    if (profile.getAttribute("type") == "Refresh")
-      throw Forbidden("Access token expected")
-  }
 
   private def convertPersistentEntityEventToKafkaEvent(eventStreamElement: EventStreamElement[EmployeeEvent]): EmployeeKafkaEvent = {
     eventStreamElement.event match {
