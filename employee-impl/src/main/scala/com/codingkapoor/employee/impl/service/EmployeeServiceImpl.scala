@@ -197,7 +197,7 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
         }, 5.seconds)
 
         if (profile.getId != empId.toString || !isEmployee) {
-          logger.error("Employees can access their own data only unless they have admin role provided they have employee privileges")
+          logger.error("Employees can access their own data only provided they have employee privileges")
           throw Forbidden("Authorization failed")
         }
 
@@ -210,15 +210,32 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
       }
     )
 
-  // TODO: Employee Only
-  override def updateIntimation(empId: Long): ServiceCall[IntimationReq, Done] = ServiceCall { intimationReq =>
-    if (intimationReq.reason.length > 0)
-      entityRef(empId).ask(UpdateIntimation(empId, intimationReq)).recover {
-        case e: InvalidCommandException => throw BadRequest(e.message)
+  override def updateIntimation(empId: Long): ServiceCall[IntimationReq, Done] =
+    authorize(requireAnyRole[CommonProfile](Role.Employee.toString), (profile: CommonProfile) =>
+      ServerServiceCall { intimationReq: IntimationReq =>
+        validateTokenType(profile)
+
+        val isEmployee = Await.result(employeeRepository.getEmployee(profile.getId.toLong).map { e =>
+          if (e.isDefined) e.get.roles.contains(Role.Employee)
+          else {
+            logger.error("No employee found to whom the access token supposedly belongs to")
+            throw Forbidden("Authorization failed")
+          }
+        }, 5.seconds)
+
+        if (profile.getId != empId.toString || !isEmployee) {
+          logger.error("Employees can access their own data only provided they have employee privileges")
+          throw Forbidden("Authorization failed")
+        }
+
+        if (intimationReq.reason.length > 0)
+          entityRef(empId).ask(UpdateIntimation(empId, intimationReq)).recover {
+            case e: InvalidCommandException => throw BadRequest(e.message)
+          }
+        else
+          throw BadRequest("Please provide a valid reason.")
       }
-    else
-      throw BadRequest("Please provide a valid reason.")
-  }
+    )
 
   // TODO: Employee Only
   override def cancelIntimation(empId: Long): ServiceCall[NotUsed, Done] = ServiceCall { _ =>
