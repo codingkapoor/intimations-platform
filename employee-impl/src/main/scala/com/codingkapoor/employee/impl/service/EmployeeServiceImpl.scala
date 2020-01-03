@@ -11,6 +11,7 @@ import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.InvalidCommandE
 import com.lightbend.lagom.scaladsl.persistence.{EventStreamElement, PersistentEntityRegistry}
 import org.slf4j.LoggerFactory
 import org.pac4j.core.authorization.authorizer.RequireAnyRoleAuthorizer.requireAnyRole
+import org.pac4j.core.authorization.authorizer.RequireAllRolesAuthorizer.requireAllRoles
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -38,7 +39,7 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
   private def entityRef(id: Long) = persistentEntityRegistry.refFor[EmployeePersistenceEntity](id.toString)
 
   override def addEmployee(): ServiceCall[Employee, Done] =
-    authorize(requireAnyRole[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
+    authorize(requireAllRoles[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
       ServerServiceCall { employee: Employee =>
         validateTokenType(profile)
 
@@ -62,7 +63,7 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
     )
 
   override def updateEmployee(id: Long): ServiceCall[EmployeeInfo, Employee] =
-    authorize(requireAnyRole[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
+    authorize(requireAllRoles[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
       ServerServiceCall { employeeInfo: EmployeeInfo =>
         validateTokenType(profile)
 
@@ -86,7 +87,7 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
     )
 
   override def terminateEmployee(id: Long): ServiceCall[NotUsed, Done] =
-    authorize(requireAnyRole[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
+    authorize(requireAllRoles[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
       ServerServiceCall { _: NotUsed =>
         validateTokenType(profile)
 
@@ -160,7 +161,7 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
     )
 
   override def deleteEmployee(id: Long): ServiceCall[NotUsed, Done] =
-    authorize(requireAnyRole[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
+    authorize(requireAllRoles[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
       ServerServiceCall { _: NotUsed =>
         validateTokenType(profile)
 
@@ -184,7 +185,7 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
     )
 
   override def createIntimation(empId: Long): ServiceCall[IntimationReq, Done] =
-    authorize(requireAnyRole[CommonProfile](Role.Employee.toString), (profile: CommonProfile) =>
+    authorize(requireAllRoles[CommonProfile](Role.Employee.toString), (profile: CommonProfile) =>
       ServerServiceCall { intimationReq: IntimationReq =>
         validateTokenType(profile)
 
@@ -211,7 +212,7 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
     )
 
   override def updateIntimation(empId: Long): ServiceCall[IntimationReq, Done] =
-    authorize(requireAnyRole[CommonProfile](Role.Employee.toString), (profile: CommonProfile) =>
+    authorize(requireAllRoles[CommonProfile](Role.Employee.toString), (profile: CommonProfile) =>
       ServerServiceCall { intimationReq: IntimationReq =>
         validateTokenType(profile)
 
@@ -238,7 +239,7 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
     )
 
   override def cancelIntimation(empId: Long): ServiceCall[NotUsed, Done] =
-    authorize(requireAnyRole[CommonProfile](Role.Employee.toString), (profile: CommonProfile) =>
+    authorize(requireAllRoles[CommonProfile](Role.Employee.toString), (profile: CommonProfile) =>
       ServerServiceCall { _: NotUsed =>
         validateTokenType(profile)
 
@@ -254,21 +255,56 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
           logger.error("Employees can access their own data only provided they have employee privileges")
           throw Forbidden("Authorization failed")
         }
+
         entityRef(empId).ask(CancelIntimation(empId)).recover {
           case e: InvalidCommandException => throw BadRequest(e.message)
         }
       }
     )
 
-  // TODO: Employee, Admin
-  override def getInactiveIntimations(empId: Long, start: LocalDate, end: LocalDate): ServiceCall[NotUsed, List[InactiveIntimation]] = ServiceCall { _ =>
-    intimationRepository.getInactiveIntimations(empId, start, end).map(convertToInactiveIntimations)
-  }
+  override def getInactiveIntimations(empId: Long, start: LocalDate, end: LocalDate): ServiceCall[NotUsed, List[InactiveIntimation]] =
+    authorize(requireAnyRole[CommonProfile](Role.Employee.toString, Role.Admin.toString), (profile: CommonProfile) =>
+      ServerServiceCall { _: NotUsed =>
+        validateTokenType(profile)
 
-  // TODO: Employee, Admin
-  override def getActiveIntimations: ServiceCall[NotUsed, List[ActiveIntimation]] = ServiceCall { _ =>
-    intimationRepository.getActiveIntimations.map(convertToActiveIntimations)
-  }
+        val isAdmin = Await.result(employeeRepository.getEmployee(profile.getId.toLong).map { e =>
+          if (e.isDefined) e.get.roles.contains(Role.Admin)
+          else {
+            logger.error("No employee found to whom the provided access token supposedly belongs to")
+            throw Forbidden("Authorization failed")
+          }
+        }, 5.seconds)
+
+        if (profile.getId != empId.toString && !isAdmin) {
+          logger.error("Employees can access their own data only unless they have admin role")
+          throw Forbidden("Authorization failed")
+        }
+
+        intimationRepository.getInactiveIntimations(empId, start, end).map(convertToInactiveIntimations)
+      }
+    )
+
+  override def getActiveIntimations: ServiceCall[NotUsed, List[ActiveIntimation]] =
+    authorize(requireAnyRole[CommonProfile](Role.Employee.toString, Role.Admin.toString), (profile: CommonProfile) =>
+      ServerServiceCall { _: NotUsed =>
+        validateTokenType(profile)
+
+        val isEmployeeOrAdmin = Await.result(employeeRepository.getEmployee(profile.getId.toLong).map { e =>
+          if (e.isDefined) e.get.roles.contains(Role.Admin) || e.get.roles.contains(Role.Employee)
+          else {
+            logger.error("No employee found to whom the provided access token supposedly belongs to")
+            throw Forbidden("Authorization failed")
+          }
+        }, 5.seconds)
+
+        if (!isEmployeeOrAdmin) {
+          logger.error("Admin/Employee privilege required")
+          throw Forbidden("Authorization failed")
+        }
+
+        intimationRepository.getActiveIntimations.map(convertToActiveIntimations)
+      }
+    )
 
   override def employeeTopic: Topic[EmployeeKafkaEvent] = {
     TopicProducer.singleStreamWithOffset { fromOffset =>
