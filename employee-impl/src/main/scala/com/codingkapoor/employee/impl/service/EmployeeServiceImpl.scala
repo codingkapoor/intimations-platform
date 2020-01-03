@@ -65,7 +65,7 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
         }, 5.seconds)
 
         if (!isAdmin) {
-          logger.error("Delete employee API requires admin privileges")
+          logger.error("Admin privileges required")
           throw Forbidden("Authorization failed")
         }
 
@@ -139,7 +139,7 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
         }, 5.seconds)
 
         if (!isAdmin) {
-          logger.error("Delete employee API requires admin privileges")
+          logger.error("Admin privileges required")
           throw Forbidden("Authorization failed")
         }
 
