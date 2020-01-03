@@ -37,12 +37,29 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
 
   private def entityRef(id: Long) = persistentEntityRegistry.refFor[EmployeePersistenceEntity](id.toString)
 
-  // TODO: Admin Only
-  override def addEmployee(): ServiceCall[Employee, Done] = ServiceCall { employee =>
-    entityRef(employee.id).ask(AddEmployee(employee)).recover {
-      case e: InvalidCommandException => throw BadRequest(e.getMessage)
-    }
-  }
+  override def addEmployee(): ServiceCall[Employee, Done] =
+    authorize(requireAnyRole[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
+      ServerServiceCall { employee: Employee =>
+        validateTokenType(profile)
+
+        val isAdmin = Await.result(employeeRepository.getEmployee(profile.getId.toLong).map { e =>
+          if (e.isDefined) e.get.roles.contains(Role.Admin)
+          else {
+            logger.error("No employee found to whom the access token supposedly belongs to")
+            throw Forbidden("Authorization failed")
+          }
+        }, 5.seconds)
+
+        if (!isAdmin) {
+          logger.error("Admin privileges required")
+          throw Forbidden("Authorization failed")
+        }
+
+        entityRef(employee.id).ask(AddEmployee(employee)).recover {
+          case e: InvalidCommandException => throw BadRequest(e.getMessage)
+        }
+      }
+    )
 
   override def updateEmployee(id: Long): ServiceCall[EmployeeInfo, Employee] =
     authorize(requireAnyRole[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
