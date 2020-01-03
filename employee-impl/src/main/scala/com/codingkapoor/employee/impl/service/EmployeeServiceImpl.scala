@@ -5,11 +5,11 @@ import java.time.LocalDate
 import akka.{Done, NotUsed}
 import com.lightbend.lagom.scaladsl.api.ServiceCall
 import com.lightbend.lagom.scaladsl.api.broker.Topic
-import com.lightbend.lagom.scaladsl.api.transport.{BadRequest, Forbidden, NotFound}
+import com.lightbend.lagom.scaladsl.api.transport.{BadRequest, NotFound}
 import com.lightbend.lagom.scaladsl.broker.TopicProducer
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.InvalidCommandException
 import com.lightbend.lagom.scaladsl.persistence.{EventStreamElement, PersistentEntityRegistry}
-import org.slf4j.{Logger, LoggerFactory}
+import org.slf4j.LoggerFactory
 import org.pac4j.core.authorization.authorizer.RequireAnyRoleAuthorizer.requireAnyRole
 import org.pac4j.core.authorization.authorizer.RequireAllRolesAuthorizer.requireAllRoles
 
