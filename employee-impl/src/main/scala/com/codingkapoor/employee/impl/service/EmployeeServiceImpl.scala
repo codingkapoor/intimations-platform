@@ -44,12 +44,29 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
     }
   }
 
-  // TODO: Admin Only
-  override def updateEmployee(id: Long): ServiceCall[EmployeeInfo, Employee] = ServiceCall { employeeInfo =>
-    entityRef(id).ask(UpdateEmployee(employeeInfo)).recover {
-      case e: InvalidCommandException => throw BadRequest(e.getMessage)
-    }
-  }
+  override def updateEmployee(id: Long): ServiceCall[EmployeeInfo, Employee] =
+    authorize(requireAnyRole[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
+      ServerServiceCall { employeeInfo: EmployeeInfo =>
+        validateTokenType(profile)
+
+        val isAdmin = Await.result(employeeRepository.getEmployee(profile.getId.toLong).map { e =>
+          if (e.isDefined) e.get.roles.contains(Role.Admin)
+          else {
+            logger.error("No employee found to whom the access token supposedly belongs to")
+            throw Forbidden("Authorization failed")
+          }
+        }, 5.seconds)
+
+        if (!isAdmin) {
+          logger.error("Admin privileges required")
+          throw Forbidden("Authorization failed")
+        }
+
+        entityRef(id).ask(UpdateEmployee(employeeInfo)).recover {
+          case e: InvalidCommandException => throw BadRequest(e.getMessage)
+        }
+      }
+    )
 
   override def terminateEmployee(id: Long): ServiceCall[NotUsed, Done] =
     authorize(requireAnyRole[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
