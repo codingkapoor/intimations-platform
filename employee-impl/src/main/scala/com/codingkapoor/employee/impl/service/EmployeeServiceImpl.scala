@@ -37,24 +37,28 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
 
   private def entityRef(id: Long) = persistentEntityRegistry.refFor[EmployeePersistenceEntity](id.toString)
 
+  // TODO: Admin Only
   override def addEmployee(): ServiceCall[Employee, Done] = ServiceCall { employee =>
     entityRef(employee.id).ask(AddEmployee(employee)).recover {
       case e: InvalidCommandException => throw BadRequest(e.getMessage)
     }
   }
 
+  // TODO: Admin Only
   override def updateEmployee(id: Long): ServiceCall[EmployeeInfo, Employee] = ServiceCall { employeeInfo =>
     entityRef(id).ask(UpdateEmployee(employeeInfo)).recover {
       case e: InvalidCommandException => throw BadRequest(e.getMessage)
     }
   }
 
+  // TODO: Admin Only
   override def terminateEmployee(id: Long): ServiceCall[NotUsed, Done] = { _ =>
     entityRef(id).ask(TerminateEmployee(id)).recover {
       case e: InvalidCommandException => throw BadRequest(e.getMessage)
     }
   }
 
+  // TODO: Admin Only
   // TODO: passwordless service also uses this api. This creates the chicken-egg problem which can only be solved if passwordless service
   //  maintains and updates it's own employee table with the help of kafka events
   //  override def getEmployees(email: Option[String]): ServiceCall[NotUsed, Seq[Employee]] = {
@@ -104,12 +108,31 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
       }
     )
 
-  override def deleteEmployee(id: Long): ServiceCall[NotUsed, Done] = ServiceCall { _ =>
-    entityRef(id).ask(DeleteEmployee(id)).recover {
-      case e: InvalidCommandException => throw BadRequest(e.message)
-    }
-  }
+  override def deleteEmployee(id: Long): ServiceCall[NotUsed, Done] =
+    authorize(requireAnyRole[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
+      ServerServiceCall { _: NotUsed =>
+        validateTokenType(profile)
 
+        val isAdmin = Await.result(employeeRepository.getEmployee(profile.getId.toLong).map { e =>
+          if (e.isDefined) e.get.roles.contains(Role.Admin)
+          else {
+            logger.error("No employee found to whom the access token supposedly belongs to")
+            throw Forbidden("Authorization failed")
+          }
+        }, 5.seconds)
+
+        if (!isAdmin) {
+          logger.error("Delete employee API requires admin privileges")
+          throw Forbidden("Authorization failed")
+        }
+
+        entityRef(id).ask(DeleteEmployee(id)).recover {
+          case e: InvalidCommandException => throw BadRequest(e.message)
+        }
+      }
+    )
+
+  // TODO: Employee Only
   override def createIntimation(empId: Long): ServiceCall[IntimationReq, Done] = ServiceCall { intimationReq =>
     if (intimationReq.reason.length > 0)
       entityRef(empId).ask(CreateIntimation(empId, intimationReq)).recover {
@@ -119,6 +142,7 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
       throw BadRequest("Please provide a valid reason.")
   }
 
+  // TODO: Employee Only
   override def updateIntimation(empId: Long): ServiceCall[IntimationReq, Done] = ServiceCall { intimationReq =>
     if (intimationReq.reason.length > 0)
       entityRef(empId).ask(UpdateIntimation(empId, intimationReq)).recover {
@@ -128,16 +152,19 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
       throw BadRequest("Please provide a valid reason.")
   }
 
+  // TODO: Employee Only
   override def cancelIntimation(empId: Long): ServiceCall[NotUsed, Done] = ServiceCall { _ =>
     entityRef(empId).ask(CancelIntimation(empId)).recover {
       case e: InvalidCommandException => throw BadRequest(e.message)
     }
   }
 
+  // TODO: Employee, Admin
   override def getInactiveIntimations(empId: Long, start: LocalDate, end: LocalDate): ServiceCall[NotUsed, List[InactiveIntimation]] = ServiceCall { _ =>
     intimationRepository.getInactiveIntimations(empId, start, end).map(convertToInactiveIntimations)
   }
 
+  // TODO: Employee, Admin
   override def getActiveIntimations: ServiceCall[NotUsed, List[ActiveIntimation]] = ServiceCall { _ =>
     intimationRepository.getActiveIntimations.map(convertToActiveIntimations)
   }
