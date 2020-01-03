@@ -237,12 +237,28 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
       }
     )
 
-  // TODO: Employee Only
-  override def cancelIntimation(empId: Long): ServiceCall[NotUsed, Done] = ServiceCall { _ =>
-    entityRef(empId).ask(CancelIntimation(empId)).recover {
-      case e: InvalidCommandException => throw BadRequest(e.message)
-    }
-  }
+  override def cancelIntimation(empId: Long): ServiceCall[NotUsed, Done] =
+    authorize(requireAnyRole[CommonProfile](Role.Employee.toString), (profile: CommonProfile) =>
+      ServerServiceCall { _: NotUsed =>
+        validateTokenType(profile)
+
+        val isEmployee = Await.result(employeeRepository.getEmployee(profile.getId.toLong).map { e =>
+          if (e.isDefined) e.get.roles.contains(Role.Employee)
+          else {
+            logger.error("No employee found to whom the access token supposedly belongs to")
+            throw Forbidden("Authorization failed")
+          }
+        }, 5.seconds)
+
+        if (profile.getId != empId.toString || !isEmployee) {
+          logger.error("Employees can access their own data only provided they have employee privileges")
+          throw Forbidden("Authorization failed")
+        }
+        entityRef(empId).ask(CancelIntimation(empId)).recover {
+          case e: InvalidCommandException => throw BadRequest(e.message)
+        }
+      }
+    )
 
   // TODO: Employee, Admin
   override def getInactiveIntimations(empId: Long, start: LocalDate, end: LocalDate): ServiceCall[NotUsed, List[InactiveIntimation]] = ServiceCall { _ =>
