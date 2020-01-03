@@ -51,12 +51,29 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
     }
   }
 
-  // TODO: Admin Only
-  override def terminateEmployee(id: Long): ServiceCall[NotUsed, Done] = { _ =>
-    entityRef(id).ask(TerminateEmployee(id)).recover {
-      case e: InvalidCommandException => throw BadRequest(e.getMessage)
-    }
-  }
+  override def terminateEmployee(id: Long): ServiceCall[NotUsed, Done] =
+    authorize(requireAnyRole[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
+      ServerServiceCall { _: NotUsed =>
+        validateTokenType(profile)
+
+        val isAdmin = Await.result(employeeRepository.getEmployee(profile.getId.toLong).map { e =>
+          if (e.isDefined) e.get.roles.contains(Role.Admin)
+          else {
+            logger.error("No employee found to whom the access token supposedly belongs to")
+            throw Forbidden("Authorization failed")
+          }
+        }, 5.seconds)
+
+        if (!isAdmin) {
+          logger.error("Delete employee API requires admin privileges")
+          throw Forbidden("Authorization failed")
+        }
+
+        entityRef(id).ask(TerminateEmployee(id)).recover {
+          case e: InvalidCommandException => throw BadRequest(e.getMessage)
+        }
+      }
+    )
 
   // TODO: Admin Only
   // TODO: passwordless service also uses this api. This creates the chicken-egg problem which can only be solved if passwordless service
