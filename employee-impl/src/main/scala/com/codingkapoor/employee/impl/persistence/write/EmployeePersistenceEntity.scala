@@ -143,9 +143,14 @@ class EmployeePersistenceEntity extends PersistentEntity {
         )(_ => ctx.reply(Done))
 
     }.onCommand[DeleteEmployee, Done] {
-      case (DeleteEmployee(id), ctx, state) =>
+      case (DeleteEmployee(id), ctx, state@Some(e)) =>
         log.info(s"EmployeePersistenceEntity at state = $state received DeleteEmployee command.")
-        ctx.thenPersist(EmployeeDeleted(id))(_ => ctx.reply(Done))
+
+        val msg = s"Employees (id = ${e.id}) with admin privileges can't be deleted. Admin privileges must be revoked first."
+        if (e.roles.contains(Role.Admin)) {
+          ctx.invalidCommand(msg)
+          ctx.done
+        } else ctx.thenPersist(EmployeeDeleted(id))(_ => ctx.reply(Done))
 
     }.onCommand[CreateIntimation, Done] {
       case (CreateIntimation(empId, intimationReq), ctx, state) =>
