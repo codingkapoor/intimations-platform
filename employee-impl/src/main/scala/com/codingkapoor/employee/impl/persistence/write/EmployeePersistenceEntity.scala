@@ -14,7 +14,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
   private val dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
 
-  private def already5(date: LocalDate) = LocalDateTime.now().isAfter(LocalDateTime.parse(date.toString + " 05:00", dtf))
+  private def already5(date: LocalDate) = LocalDateTime.now().isAfter(LocalDateTime.parse(date.toString + " 17:00", dtf))
 
   override type Command = EmployeeCommand[_]
   override type Event = EmployeeEvent
@@ -170,7 +170,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
           ctx.thenPersist(IntimationCreated(empId, intimationReq.reason, LocalDateTime.now(), intimationReq.requests))(_ => ctx.reply(Done))
 
         else {
-          val msg = s"System only supports single active intimation at a given time. Cancel an active intimation first so as to create a new intimation."
+          val msg = s"Only single active intimation at a given time is supported. Cancel an active intimation first so as to create a new intimation."
           ctx.invalidCommand(msg)
 
           logger.info(s"InvalidCommandException: $msg")
