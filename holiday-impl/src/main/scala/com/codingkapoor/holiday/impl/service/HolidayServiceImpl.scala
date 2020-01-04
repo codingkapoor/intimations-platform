@@ -42,6 +42,7 @@ class HolidayServiceImpl(override val securityConfig: Config, holidayDao: Holida
           logger.error(s"Start date $start must come before end date $end")
           throw BadRequest("Start date must come before end date")
         }
+
         holidayDao.getHolidays(start, end).map(_.map(convertHolidayEntityToHoliday))
       }
     )
