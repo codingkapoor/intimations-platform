@@ -2,11 +2,11 @@ package com.codingkapoor.employee.impl.persistence.write
 
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, LocalDateTime}
+
 import akka.Done
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
 import org.slf4j.LoggerFactory
-
-import com.codingkapoor.employee.api.model.{Employee, Intimation}
+import com.codingkapoor.employee.api.model.{Employee, Intimation, Role}
 
 class EmployeePersistenceEntity extends PersistentEntity {
 
@@ -133,7 +133,12 @@ class EmployeePersistenceEntity extends PersistentEntity {
     }.onCommand[TerminateEmployee, Done] {
       case (TerminateEmployee(_), ctx, state@Some(e)) =>
         log.info(s"EmployeePersistenceEntity at state = $state received TerminateEmployee command.")
-        ctx.thenPersist(
+
+        val msg = s"Employees (id = ${e.id}) with admin privileges can't be terminated. Admin privileges must be revoked first."
+        if (e.roles.contains(Role.Admin)) {
+          ctx.invalidCommand(msg)
+          ctx.done
+        } else ctx.thenPersist(
           EmployeeTerminated(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, isActive = false, e.contactInfo, e.location, e.leaves, e.roles)
         )(_ => ctx.reply(Done))
 
