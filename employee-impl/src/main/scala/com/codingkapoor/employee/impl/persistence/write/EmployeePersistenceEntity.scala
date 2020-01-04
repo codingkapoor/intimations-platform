@@ -12,9 +12,13 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
   private val logger = LoggerFactory.getLogger(classOf[EmployeePersistenceEntity])
 
-  private val dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+  private def isWeekend(date: LocalDate) = date.getDayOfWeek.toString == "SATURDAY" || date.getDayOfWeek.toString == "SUNDAY"
 
-  private def already5(date: LocalDate) = LocalDateTime.now().isAfter(LocalDateTime.parse(date.toString + " 17:00", dtf))
+  private def already5(date: LocalDate): Boolean = {
+    def dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+
+    LocalDateTime.now().isAfter(LocalDateTime.parse(date.toString + " 17:00", dtf))
+  }
 
   override type Command = EmployeeCommand[_]
   override type Event = EmployeeEvent
@@ -160,16 +164,23 @@ class EmployeePersistenceEntity extends PersistentEntity {
         lazy val latestRequestDate = intimations.head.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
 
         if (intimationReq.requests.exists(_.date.isBefore(LocalDate.now())) || intimationReq.requests.exists(r => already5(r.date))) {
-          val msg = s"Intimation can't be created for dates in the past."
+          val msg = s"Intimation can't be created for dates in the past"
           ctx.invalidCommand(msg)
 
           logger.info(s"InvalidCommandException: $msg")
           ctx.done
 
-        } else if (intimations.isEmpty || latestRequestDate.isBefore(LocalDate.now()) || already5(latestRequestDate))
+        } else if (intimationReq.requests.exists(r => isWeekend(r.date))) {
+          val msg = s"Intimation can't be created for weekends"
+          ctx.invalidCommand(msg)
+
+          logger.info(s"InvalidCommandException: $msg")
+          ctx.done
+
+        } else if (intimations.isEmpty || latestRequestDate.isBefore(LocalDate.now()) || already5(latestRequestDate)) {
           ctx.thenPersist(IntimationCreated(empId, intimationReq.reason, LocalDateTime.now(), intimationReq.requests))(_ => ctx.reply(Done))
 
-        else {
+        } else {
           val msg = s"Only single active intimation at a given time is supported. Cancel an active intimation first so as to create a new intimation."
           ctx.invalidCommand(msg)
 
