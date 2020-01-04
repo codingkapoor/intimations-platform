@@ -5,6 +5,7 @@ import com.softwaremill.macwire.wire
 import play.api.libs.ws.ahc.AhcWSComponents
 import com.codingkapoor.employee.api.EmployeeService
 import com.codingkapoor.passwordless.api.PasswordlessService
+import com.codingkapoor.passwordless.impl.repository.employee.EmployeeDao
 import com.codingkapoor.passwordless.impl.repository.otp.OTPDao
 import com.codingkapoor.passwordless.impl.repository.token.RefreshTokenDao
 import com.codingkapoor.passwordless.impl.service.{MailOTPService, PasswordlessServiceImpl}
@@ -27,4 +28,5 @@ abstract class PasswordlessApplication(context: LagomApplicationContext)
 
   lazy val otpDao: OTPDao = wire[OTPDao]
   lazy val refreshTokenDao: RefreshTokenDao = wire[RefreshTokenDao]
+  lazy val employeeDao: EmployeeDao = wire[EmployeeDao]
 }
