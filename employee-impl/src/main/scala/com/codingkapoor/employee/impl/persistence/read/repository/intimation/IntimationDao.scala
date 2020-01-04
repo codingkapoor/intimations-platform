@@ -34,7 +34,7 @@ class IntimationDao(db: Database) {
     db.run(
       intimations
         .join(requests).on(_.id === _.intimationId)
-        .filter { case (i, r) => i.empId === empId && r.date >= start && r.date <= end }
+        .filter { case (i, r) => i.empId === empId && r.date >= start && r.date <= end && i.latestRequestDate < LocalDate.now() }
         .result
     )
   }
