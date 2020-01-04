@@ -26,5 +26,6 @@ trait PasswordlessService extends Service {
         restCall(Method.POST, "/api/passwordless/employees/:email/tokens", createTokens _),
         restCall(Method.POST, "/api/passwordless/employees/:email/jwt", createJWT _)
       )
+      .withAutoAcl(true)
   }
 }
