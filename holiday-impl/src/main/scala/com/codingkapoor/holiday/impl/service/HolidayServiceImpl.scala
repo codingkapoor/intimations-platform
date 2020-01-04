@@ -11,12 +11,14 @@ import com.codingkapoor.holiday.api.HolidayService
 import com.codingkapoor.holiday.api.model.Holiday
 import com.codingkapoor.holiday.impl.repository.{HolidayDao, HolidayEntity}
 import com.lightbend.lagom.scaladsl.api.transport.BadRequest
+import org.pac4j.core.config.Config
+import org.pac4j.lagom.scaladsl.SecuredService
 
-class HolidayServiceImpl(holidayDao: HolidayDao) extends HolidayService {
+class HolidayServiceImpl(override val securityConfig: Config, holidayDao: HolidayDao) extends HolidayService with SecuredService {
 
   import HolidayServiceImpl._
 
-  private val log = LoggerFactory.getLogger(classOf[HolidayServiceImpl])
+  private val logger = LoggerFactory.getLogger(classOf[HolidayServiceImpl])
 
   override def addHoliday(): ServiceCall[Holiday, Done] = ServiceCall { holiday =>
     holidayDao.addHoliday(HolidayEntity(holiday.date, holiday.occasion)).map(_ => Done)

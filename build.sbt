@@ -61,7 +61,10 @@ lazy val `holiday-impl` = (project in file("holiday-impl"))
       lagomScaladslTestKit,
       mysql,
       macwire,
-      scalaTest
+      scalaTest,
+      pac4jHttp,
+      pac4jJwt,
+      lagomPac4j
     )
   )
   .settings(lagomForkedTestSettings)
