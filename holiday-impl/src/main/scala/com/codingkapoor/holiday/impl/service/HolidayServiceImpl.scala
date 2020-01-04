@@ -14,6 +14,7 @@ import com.codingkapoor.holiday.impl.repository.{HolidayDao, HolidayEntity}
 import com.lightbend.lagom.scaladsl.api.transport.{BadRequest, Forbidden}
 import com.lightbend.lagom.scaladsl.server.ServerServiceCall
 import org.pac4j.core.authorization.authorizer.RequireAnyRoleAuthorizer.requireAnyRole
+import org.pac4j.core.authorization.authorizer.RequireAllRolesAuthorizer.requireAllRoles
 import org.pac4j.core.config.Config
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.lagom.scaladsl.SecuredService
@@ -25,7 +26,7 @@ class HolidayServiceImpl(override val securityConfig: Config, holidayDao: Holida
   private val logger = LoggerFactory.getLogger(classOf[HolidayServiceImpl])
 
   override def addHoliday(): ServiceCall[Holiday, Done] =
-    authorize(requireAnyRole[CommonProfile](Role.Employee.toString, Role.Admin.toString), (profile: CommonProfile) =>
+    authorize(requireAllRoles[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
       ServerServiceCall { holiday =>
         validateTokenType(profile)
 
@@ -48,7 +49,7 @@ class HolidayServiceImpl(override val securityConfig: Config, holidayDao: Holida
     )
 
   override def deleteHoliday(date: LocalDate): ServiceCall[NotUsed, Done] =
-    authorize(requireAnyRole[CommonProfile](Role.Employee.toString, Role.Admin.toString), (profile: CommonProfile) =>
+    authorize(requireAllRoles[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
       ServerServiceCall { _ =>
         validateTokenType(profile)
 
