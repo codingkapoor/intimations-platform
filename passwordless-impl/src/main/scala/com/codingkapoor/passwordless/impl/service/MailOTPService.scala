@@ -1,10 +1,13 @@
 package com.codingkapoor.passwordless.impl.service
 
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
 import courier.Defaults._
 import courier._
 import org.slf4j.{Logger, LoggerFactory}
 import play.api.Configuration
+
 import scala.util.{Failure, Success}
 
 class MailOTPService(config: Configuration) {
@@ -20,12 +23,12 @@ class MailOTPService(config: Configuration) {
         .as(mail.sender, mail.password)
         .startTls(true)()
 
-    // TODO: Expiry string has to be made readable
+    val expiriesAt = LocalDateTime.now().plusMinutes(config.getOptional[Long]("expiries.otp").getOrElse(5)).format(formatter)
     val envelope =
       Envelope.from(mail.sender.addr)
         .to(receiver.addr)
         .subject(SUBJECT.format(otp))
-        .content(Text(BODY.format(otp, LocalDateTime.now())))
+        .content(Text(BODY.format(otp, expiriesAt)))
 
     mailer(envelope).onComplete {
       case Success(_) => log.info("OTP sent successfully.")
@@ -35,7 +38,9 @@ class MailOTPService(config: Configuration) {
 }
 
 object MailOTPService {
-  val log: Logger = LoggerFactory.getLogger(classOf[MailOTPService])
+  val log = LoggerFactory.getLogger(classOf[MailOTPService])
+
+  val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
   final val SUBJECT = "%s is your OTP for login"
   final val BODY =

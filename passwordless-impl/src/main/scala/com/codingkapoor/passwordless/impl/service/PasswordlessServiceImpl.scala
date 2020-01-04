@@ -64,7 +64,7 @@ class PasswordlessServiceImpl(override val employeeService: EmployeeService, ove
         if (otp != otpEntity.otp)
           throw BadRequest("Invalid OTP")
 
-        if (LocalDateTime.now().isAfter(otpEntity.createdAt.plusMinutes(config.getOptional[Long]("expiries.tokens.access").getOrElse(5))))
+        if (LocalDateTime.now().isAfter(otpEntity.createdAt.plusMinutes(config.getOptional[Long]("expiries.otp").getOrElse(5))))
           otpDao.deleteOTP(email).map(throw BadRequest("OTP Expired"))
         else {
           val accessToken = createToken(empId, roles, ACCESS).serialize
