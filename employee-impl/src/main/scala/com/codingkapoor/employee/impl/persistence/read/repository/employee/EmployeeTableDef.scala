@@ -21,7 +21,7 @@ class EmployeeTableDef(tag: Tag) extends Table[EmployeeEntity](tag, "employees")
 
   def designation = column[String]("DESIGNATION")
 
-  def pfn = column[String]("PFN", O.Unique, O.Length(64, varying = true))
+  def pfn = column[String]("PFN", O.Length(64, varying = true))
 
   def isActive = column[Boolean]("IS_ACTIVE")
 

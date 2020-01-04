@@ -38,9 +38,8 @@ object Employee {
   implicit val format: Format[Employee] = Json.using[Json.WithDefaultValues].format[Employee]
 }
 
-// TODO: Employee terminated could always be re-hired
-// TODO: Allow employee roles to be updated
-case class EmployeeInfo(designation: Option[String], contactInfo: Option[ContactInfo], location: Option[Location], leaves: Option[Leaves])
+case class EmployeeInfo(designation: Option[String], contactInfo: Option[ContactInfo], location: Option[Location],
+                        leaves: Option[Leaves], roles: Option[List[Role]])
 
 object EmployeeInfo {
   implicit val format: Format[EmployeeInfo] = Json.format[EmployeeInfo]

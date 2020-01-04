@@ -72,24 +72,15 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
       }
     )
 
-  // TODO: passwordless service also uses this api. This creates the chicken-egg problem which can only be solved if passwordless service
-  //  maintains and updates it's own employee table with the help of kafka events
-  //  override def getEmployees(email: Option[String]): ServiceCall[NotUsed, Seq[Employee]] = {
-  //    authorize(requireAnyRole[CommonProfile]("Admin"), (profile: CommonProfile) =>
-  //      ServerServiceCall { _: NotUsed =>
-  //        if (profile.getAttribute("type") == "Refresh")
-  //          throw Forbidden("Access token expected")
-  //        employeeRepository.getEmployees(email).map(_.map(convertEmployeeReadEntityToEmployee))
-  //      }
-  //    )
-  //  }
-  override def getEmployees(email: Option[String]): ServiceCall[NotUsed, Seq[Employee]] = {
-    authenticate { _ =>
+  override def getEmployees(email: Option[String]): ServiceCall[NotUsed, Seq[Employee]] =
+    authorize(requireAllRoles[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
       ServerServiceCall { _: NotUsed =>
+        validateTokenType(profile)
+        validateIfProfileBelongsToAdmin(profile)
+
         employeeDao.getEmployees(email).map(_.map(convertEmployeeReadEntityToEmployee))
       }
-    }
-  }
+    )
 
   override def getEmployee(id: Long): ServiceCall[NotUsed, Employee] =
     authorize(requireAnyRole[CommonProfile](Role.Employee.toString, Role.Admin.toString), (profile: CommonProfile) =>

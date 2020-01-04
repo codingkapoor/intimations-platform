@@ -122,11 +122,12 @@ class EmployeePersistenceEntity extends PersistentEntity {
         val contactInfo = employeeInfo.contactInfo.getOrElse(e.contactInfo)
         val location = employeeInfo.location.getOrElse(e.location)
         val leaves = employeeInfo.leaves.getOrElse(e.leaves)
+        val roles = employeeInfo.roles.getOrElse(e.roles)
 
-        val employee = Employee(e.id, e.name, e.gender, e.doj, designation, e.pfn, e.isActive, contactInfo, location, leaves, e.roles)
+        val employee = Employee(e.id, e.name, e.gender, e.doj, designation, e.pfn, e.isActive, contactInfo, location, leaves, roles)
 
         ctx.thenPersist(
-          EmployeeUpdated(e.id, e.name, e.gender, e.doj, designation, e.pfn, e.isActive, contactInfo, location, leaves, e.roles)
+          EmployeeUpdated(e.id, e.name, e.gender, e.doj, designation, e.pfn, e.isActive, contactInfo, location, leaves, roles)
         )(_ => ctx.reply(employee))
 
     }.onCommand[TerminateEmployee, Done] {
