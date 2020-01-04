@@ -68,7 +68,7 @@ lazy val `holiday-impl` = (project in file("holiday-impl"))
     )
   )
   .settings(lagomForkedTestSettings)
-  .dependsOn(`holiday-api`)
+  .dependsOn(`holiday-api`, `employee-api`)
 
 lazy val `audit` = (project in file("audit"))
   .enablePlugins(LagomScala)
