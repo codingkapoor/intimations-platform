@@ -3,12 +3,17 @@ version in ThisBuild := "1.0-SNAPSHOT"
 
 scalaVersion in ThisBuild := "2.12.8"
 
+val pac4jVersion = "3.6.1"
+
 val mysql = "mysql" % "mysql-connector-java" % "8.0.17"
 val macwire = "com.softwaremill.macwire" %% "macros" % "2.3.0" % "provided"
 val playJsonDerivedCodecs = "org.julienrf" %% "play-json-derived-codecs" % "4.0.0"
 val scalaTest = "org.scalatest" %% "scalatest" % "3.0.4" % Test
 val nimbusJoseJwt = "com.nimbusds" % "nimbus-jose-jwt" % "6.0"
 val courier = "com.github.daddykotex" %% "courier" % "2.0.0"
+val lagomPac4j = "org.pac4j" %% "lagom-pac4j" % "2.0.0"
+val pac4jHttp = "org.pac4j" % "pac4j-http" % pac4jVersion
+val pac4jJwt = "org.pac4j" % "pac4j-jwt" % pac4jVersion
 
 lazy val `intimations` = (project in file("."))
   .aggregate(`employee-api`, `employee-impl`, `holiday-api`, `holiday-impl`, `audit`, `passwordless-api`, `passwordless-impl`)
@@ -31,7 +36,10 @@ lazy val `employee-impl` = (project in file("employee-impl"))
       lagomScaladslTestKit,
       mysql,
       macwire,
-      scalaTest
+      scalaTest,
+      pac4jHttp,
+      pac4jJwt,
+      lagomPac4j
     )
   )
   .settings(lagomForkedTestSettings)
@@ -53,11 +61,14 @@ lazy val `holiday-impl` = (project in file("holiday-impl"))
       lagomScaladslTestKit,
       mysql,
       macwire,
-      scalaTest
+      scalaTest,
+      pac4jHttp,
+      pac4jJwt,
+      lagomPac4j
     )
   )
   .settings(lagomForkedTestSettings)
-  .dependsOn(`holiday-api`)
+  .dependsOn(`holiday-api`, `employee-api`)
 
 lazy val `audit` = (project in file("audit"))
   .enablePlugins(LagomScala)

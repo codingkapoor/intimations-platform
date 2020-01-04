@@ -39,7 +39,7 @@ object Employee {
 }
 
 // TODO: Employee terminated could always be re-hired
-// TODO: Uupdate employee roles
+// TODO: Allow employee roles to be updated
 case class EmployeeInfo(designation: Option[String], contactInfo: Option[ContactInfo], location: Option[Location], leaves: Option[Leaves])
 
 object EmployeeInfo {

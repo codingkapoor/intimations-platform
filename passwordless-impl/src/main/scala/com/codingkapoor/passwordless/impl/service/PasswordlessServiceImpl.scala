@@ -122,8 +122,8 @@ class PasswordlessServiceImpl(employeeService: EmployeeService, mailOTPService: 
 
 object PasswordlessServiceImpl {
 
-  private final val ACCESS = "ACCESS"
-  private final val REFRESH = "REFRESH"
+  private final val ACCESS = "Access"
+  private final val REFRESH = "Refresh"
 
   private def generateOTP: Int = 100000 + Random.nextInt(999999)
 
@@ -158,6 +158,7 @@ object PasswordlessServiceImpl {
       val payload = new JWTClaimsSet.Builder()
         .subject(subject.toString)
         .claim("roles", ImmutableList.copyOf(roles.map(_.toString).toIterable.asJava))
+        .claim("type", tokenType)
         .issueTime(issuedAt)
         .expirationTime(expiresAt)
         .jwtID(UUID.randomUUID.toString)
