@@ -10,7 +10,7 @@ import com.codingkapoor.employee.api.model.{Employee, Intimation, Role}
 
 class EmployeePersistenceEntity extends PersistentEntity {
 
-  private val log = LoggerFactory.getLogger(classOf[EmployeePersistenceEntity])
+  private val logger = LoggerFactory.getLogger(classOf[EmployeePersistenceEntity])
 
   private val dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
 
@@ -31,7 +31,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
     Actions()
       .onCommand[AddEmployee, Done] {
         case (AddEmployee(e), ctx, state) =>
-          log.info(s"EmployeePersistenceEntity at state = $state received AddEmployee command.")
+          logger.info(s"EmployeePersistenceEntity at state = $state received AddEmployee command.")
 
           ctx.thenPersist(
             EmployeeAdded(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, e.leaves, e.roles)
@@ -39,62 +39,62 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
       }.onCommand[UpdateEmployee, Employee] {
       case (UpdateEmployee(_), ctx, state@Some(e)) =>
-        log.info(s"EmployeePersistenceEntity at state = $state received UpdateEmployee command.")
+        logger.info(s"EmployeePersistenceEntity at state = $state received UpdateEmployee command.")
 
         val msg = s"No employee found with id = ${e.id}."
         ctx.invalidCommand(msg)
 
-        log.info(s"InvalidCommandException: $msg")
+        logger.info(s"InvalidCommandException: $msg")
         ctx.done
 
     }.onCommand[TerminateEmployee, Done] {
       case (TerminateEmployee(id), ctx, state) =>
-        log.info(s"EmployeePersistenceEntity at state = $state received TerminateEmployee command.")
+        logger.info(s"EmployeePersistenceEntity at state = $state received TerminateEmployee command.")
 
         val msg = s"No employee found with id = $id."
         ctx.invalidCommand(msg)
 
-        log.info(s"InvalidCommandException: $msg")
+        logger.info(s"InvalidCommandException: $msg")
         ctx.done
 
     }.onCommand[DeleteEmployee, Done] {
       case (DeleteEmployee(id), ctx, state) =>
-        log.info(s"EmployeePersistenceEntity at state = $state received DeleteEmployee command.")
+        logger.info(s"EmployeePersistenceEntity at state = $state received DeleteEmployee command.")
 
         val msg = s"No employee found with id = $id."
         ctx.invalidCommand(msg)
 
-        log.info(s"InvalidCommandException: $msg")
+        logger.info(s"InvalidCommandException: $msg")
         ctx.done
 
     }.onCommand[CreateIntimation, Done] {
       case (CreateIntimation(empId, _), ctx, state) =>
-        log.info(s"EmployeePersistenceEntity at state = $state received CreateIntimation command.")
+        logger.info(s"EmployeePersistenceEntity at state = $state received CreateIntimation command.")
 
         val msg = s"No employee found with id = $empId."
         ctx.invalidCommand(msg)
 
-        log.info(s"InvalidCommandException: $msg")
+        logger.info(s"InvalidCommandException: $msg")
         ctx.done
 
     }.onCommand[UpdateIntimation, Done] {
       case (UpdateIntimation(empId, _), ctx, state) =>
-        log.info(s"EmployeePersistenceEntity at state = $state received UpdateIntimation command.")
+        logger.info(s"EmployeePersistenceEntity at state = $state received UpdateIntimation command.")
 
         val msg = s"No employee found with id = $empId."
         ctx.invalidCommand(msg)
 
-        log.info(s"InvalidCommandException: $msg")
+        logger.info(s"InvalidCommandException: $msg")
         ctx.done
 
     }.onCommand[CancelIntimation, Done] {
       case (CancelIntimation(empId), ctx, state) =>
-        log.info(s"EmployeePersistenceEntity at state = $state received CancelIntimation command.")
+        logger.info(s"EmployeePersistenceEntity at state = $state received CancelIntimation command.")
 
         val msg = s"No employee found with id = $empId."
         ctx.invalidCommand(msg)
 
-        log.info(s"InvalidCommandException: $msg")
+        logger.info(s"InvalidCommandException: $msg")
         ctx.done
 
     }.onEvent {
@@ -106,17 +106,17 @@ class EmployeePersistenceEntity extends PersistentEntity {
     Actions()
       .onCommand[AddEmployee, Done] {
         case (AddEmployee(e), ctx, state) =>
-          log.info(s"EmployeePersistenceEntity at state = $state received AddEmployee command.")
+          logger.info(s"EmployeePersistenceEntity at state = $state received AddEmployee command.")
 
           val msg = s"Employee with id = ${e.id} already exists."
           ctx.invalidCommand(msg)
 
-          log.info(s"InvalidCommandException: $msg")
+          logger.info(s"InvalidCommandException: $msg")
           ctx.done
 
       }.onCommand[UpdateEmployee, Employee] {
       case (UpdateEmployee(employeeInfo), ctx, state@Some(e)) =>
-        log.info(s"EmployeePersistenceEntity at state = $state received UpdateEmployee command.")
+        logger.info(s"EmployeePersistenceEntity at state = $state received UpdateEmployee command.")
 
         val designation = employeeInfo.designation.getOrElse(e.designation)
         val contactInfo = employeeInfo.contactInfo.getOrElse(e.contactInfo)
@@ -132,7 +132,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
     }.onCommand[TerminateEmployee, Done] {
       case (TerminateEmployee(_), ctx, state@Some(e)) =>
-        log.info(s"EmployeePersistenceEntity at state = $state received TerminateEmployee command.")
+        logger.info(s"EmployeePersistenceEntity at state = $state received TerminateEmployee command.")
 
         val msg = s"Employees (id = ${e.id}) with admin privileges can't be terminated. Admin privileges must be revoked first."
         if (e.roles.contains(Role.Admin)) {
@@ -144,7 +144,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
     }.onCommand[DeleteEmployee, Done] {
       case (DeleteEmployee(id), ctx, state@Some(e)) =>
-        log.info(s"EmployeePersistenceEntity at state = $state received DeleteEmployee command.")
+        logger.info(s"EmployeePersistenceEntity at state = $state received DeleteEmployee command.")
 
         val msg = s"Employees (id = ${e.id}) with admin privileges can't be deleted. Admin privileges must be revoked first."
         if (e.roles.contains(Role.Admin)) {
@@ -154,7 +154,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
     }.onCommand[CreateIntimation, Done] {
       case (CreateIntimation(empId, intimationReq), ctx, state) =>
-        log.info(s"EmployeePersistenceEntity at state = $state received CreateIntimation command.")
+        logger.info(s"EmployeePersistenceEntity at state = $state received CreateIntimation command.")
 
         val intimations = state.get.intimations
         lazy val latestRequestDate = intimations.head.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
@@ -163,7 +163,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
           val msg = s"Intimation can't be created for dates in the past."
           ctx.invalidCommand(msg)
 
-          log.info(s"InvalidCommandException: $msg")
+          logger.info(s"InvalidCommandException: $msg")
           ctx.done
 
         } else if (intimations.isEmpty || latestRequestDate.isBefore(LocalDate.now()) || already5(latestRequestDate))
@@ -173,13 +173,13 @@ class EmployeePersistenceEntity extends PersistentEntity {
           val msg = s"System only supports single active intimation at a given time. Cancel an active intimation first so as to create a new intimation."
           ctx.invalidCommand(msg)
 
-          log.info(s"InvalidCommandException: $msg")
+          logger.info(s"InvalidCommandException: $msg")
           ctx.done
         }
 
     }.onCommand[UpdateIntimation, Done] {
       case (UpdateIntimation(empId, intimationReq), ctx, state) =>
-        log.info(s"EmployeePersistenceEntity at state = $state received UpdateIntimation command.")
+        logger.info(s"EmployeePersistenceEntity at state = $state received UpdateIntimation command.")
 
         val intimations = state.get.intimations
         lazy val requests1 = intimations.head.requests
@@ -194,21 +194,21 @@ class EmployeePersistenceEntity extends PersistentEntity {
           val msg = s"No intimations found."
           ctx.invalidCommand(msg)
 
-          log.info(s"InvalidCommandException: $msg")
+          logger.info(s"InvalidCommandException: $msg")
           ctx.done
 
         } else if (latestRequestDate.isBefore(LocalDate.now()) || already5(latestRequestDate)) {
           val msg = s"No active intimations found to update."
           ctx.invalidCommand(msg)
 
-          log.info(s"InvalidCommandException: $msg")
+          logger.info(s"InvalidCommandException: $msg")
           ctx.done
 
         } else if (!(requestsAlreadyConsumed equals newRequestAlreadyConsumed)) {
           val msg = s"Dates in past can't be modified."
           ctx.invalidCommand(msg)
 
-          log.info(s"InvalidCommandException: $msg")
+          logger.info(s"InvalidCommandException: $msg")
           ctx.done
 
         } else {
@@ -218,7 +218,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
     }.onCommand[CancelIntimation, Done] {
       case (CancelIntimation(empId), ctx, state) =>
-        log.info(s"EmployeePersistenceEntity at state = $state received CancelIntimation command.")
+        logger.info(s"EmployeePersistenceEntity at state = $state received CancelIntimation command.")
 
         val intimations = state.get.intimations
         lazy val requests = intimations.head.requests
@@ -230,7 +230,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
           val msg = s"No intimations found."
           ctx.invalidCommand(msg)
 
-          log.info(s"InvalidCommandException: $msg")
+          logger.info(s"InvalidCommandException: $msg")
           ctx.done
 
         } else if (latestRequestDate.isBefore(LocalDate.now()) || already5(latestRequestDate))
