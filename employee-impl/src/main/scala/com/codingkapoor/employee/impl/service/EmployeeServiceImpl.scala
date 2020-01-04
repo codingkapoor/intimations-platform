@@ -21,6 +21,7 @@ import com.codingkapoor.employee.impl.persistence.read.repository.employee.{Empl
 import com.codingkapoor.employee.impl.persistence.read.repository.intimation.{IntimationDao, IntimationEntity}
 import com.codingkapoor.employee.impl.persistence.read.repository.request.{RequestDao, RequestEntity}
 import com.codingkapoor.employee.impl.persistence.write._
+import com.codingkapoor.employee.impl.util.AuthValidator
 import com.lightbend.lagom.scaladsl.server.ServerServiceCall
 import org.pac4j.core.config.Config
 import org.pac4j.core.profile.CommonProfile

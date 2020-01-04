@@ -1,4 +1,4 @@
-package com.codingkapoor.employee.impl.service
+package com.codingkapoor.employee.impl.util
 
 import com.codingkapoor.employee.api.model.Role
 import com.codingkapoor.employee.impl.persistence.read.repository.employee.EmployeeDao
@@ -6,9 +6,9 @@ import com.lightbend.lagom.scaladsl.api.transport.Forbidden
 import org.pac4j.core.profile.CommonProfile
 import org.slf4j.Logger
 
-import scala.concurrent.duration._
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
 trait AuthValidator {
   def employeeDao: EmployeeDao
