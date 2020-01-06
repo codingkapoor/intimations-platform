@@ -2,7 +2,7 @@
   <img width="400" height="400" src="https://github.com/codingkapoor/intimations-platform/blob/master/logo.png">
 </p>
 
-# intimations-platform
+# Intimations Platform
 Platform for Intimations.
 
 *Mobile App: [intimations](https://github.com/codingkapoor/intimations), Web console: [intimations-console](https://github.com/codingkapoor/intimations-console)*
