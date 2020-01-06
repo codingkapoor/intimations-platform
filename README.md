@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="400" height="400" src="https://github.com/codingkapoor/intimations-platform/blob/master/logo.png">
+  <img width="300" height="300" src="https://github.com/codingkapoor/intimations-platform/blob/master/logo.png">
 </p>
 
 # Intimations Platform
