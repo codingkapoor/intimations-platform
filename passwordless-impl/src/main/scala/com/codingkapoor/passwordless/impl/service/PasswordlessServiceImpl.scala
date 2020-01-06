@@ -107,7 +107,7 @@ object PasswordlessServiceImpl {
   private final val ACCESS = "Access"
   private final val REFRESH = "Refresh"
 
-  private def generateOTP: Int = 100000 + Random.nextInt(999999)
+  private def generateOTP: Int = 100000 + Random.nextInt(899999)
 
   import collection.JavaConverters._
 
