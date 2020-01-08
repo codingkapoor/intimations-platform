@@ -19,6 +19,8 @@ import org.pac4j.core.config.Config
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.lagom.scaladsl.SecuredService
 
+import scala.concurrent.Future
+
 class HolidayServiceImpl(override val securityConfig: Config, holidayDao: HolidayDao) extends HolidayService with SecuredService {
 
   import HolidayServiceImpl._
@@ -27,16 +29,16 @@ class HolidayServiceImpl(override val securityConfig: Config, holidayDao: Holida
 
   override def addHoliday(): ServiceCall[Holiday, Done] =
     authorize(requireAllRoles[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
-      ServerServiceCall { holiday =>
+      ServerServiceCall { holiday: Holiday =>
         validateTokenType(profile)
 
-        holidayDao.addHoliday(HolidayEntity(holiday.date, holiday.occasion)).map(_ => Done)
+        holidayDao.addHoliday(HolidayEntity(holiday.date, holiday.occasion)).map(_ => Done.done())
       }
     )
 
   override def getHolidays(start: LocalDate, end: LocalDate): ServiceCall[NotUsed, Seq[Holiday]] =
     authorize(requireAnyRole[CommonProfile](Role.Employee.toString, Role.Admin.toString), (profile: CommonProfile) =>
-      ServerServiceCall { _ =>
+      ServerServiceCall { _: NotUsed =>
         validateTokenType(profile)
 
         if (start.isAfter(end)) {
@@ -50,10 +52,10 @@ class HolidayServiceImpl(override val securityConfig: Config, holidayDao: Holida
 
   override def deleteHoliday(date: LocalDate): ServiceCall[NotUsed, Done] =
     authorize(requireAllRoles[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
-      ServerServiceCall { _ =>
+      ServerServiceCall { _: NotUsed =>
         validateTokenType(profile)
 
-        holidayDao.deleteHoliday(date).map(_ => Done)
+        holidayDao.deleteHoliday(date).map(_ => Done.done())
       }
     )
 }
