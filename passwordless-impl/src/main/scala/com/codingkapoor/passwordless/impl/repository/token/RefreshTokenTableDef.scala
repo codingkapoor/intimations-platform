@@ -1,9 +1,10 @@
 package com.codingkapoor.passwordless.impl.repository.token
 
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
+
 import slick.jdbc.MySQLProfile.api._
 
-final case class RefreshTokenEntity(refreshToken: String, empId: Long, email: String, createdAt: LocalDateTime)
+final case class RefreshTokenEntity(refreshToken: String, empId: Long, email: String, createdAt: ZonedDateTime)
 
 class RefreshTokenTableDef(tag: Tag) extends Table[RefreshTokenEntity](tag, "refresh_tokens") {
 
@@ -13,7 +14,7 @@ class RefreshTokenTableDef(tag: Tag) extends Table[RefreshTokenEntity](tag, "ref
 
   def empId = column[Long]("EMP_ID")
 
-  def createdAt = column[LocalDateTime]("CREATED_AT")
+  def createdAt = column[ZonedDateTime]("CREATED_AT")
 
   override def * =
     (refreshToken, empId, email, createdAt).mapTo[RefreshTokenEntity]

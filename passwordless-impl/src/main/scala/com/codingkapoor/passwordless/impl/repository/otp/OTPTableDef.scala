@@ -1,12 +1,12 @@
 package com.codingkapoor.passwordless.impl.repository.otp
 
-import java.time.LocalDateTime
-import slick.jdbc.MySQLProfile.api._
+import java.time.ZonedDateTime
 
+import slick.jdbc.MySQLProfile.api._
 import com.codingkapoor.employee.api.model.Role
 import com.codingkapoor.employee.api.model.Role.Role
 
-final case class OTPEntity(otp: Int, empId: Long, email: String, roles: List[Role], createdAt: LocalDateTime)
+final case class OTPEntity(otp: Int, empId: Long, email: String, roles: List[Role], createdAt: ZonedDateTime)
 
 class OTPTableDef(tag: Tag) extends Table[OTPEntity](tag, "otps") {
 
@@ -21,7 +21,7 @@ class OTPTableDef(tag: Tag) extends Table[OTPEntity](tag, "otps") {
 
   def roles = column[List[Role]]("ROLES")
 
-  def createdAt = column[LocalDateTime]("CREATED_AT")
+  def createdAt = column[ZonedDateTime]("CREATED_AT")
 
   override def * =
     (otp, empId, email, roles, createdAt).mapTo[OTPEntity]

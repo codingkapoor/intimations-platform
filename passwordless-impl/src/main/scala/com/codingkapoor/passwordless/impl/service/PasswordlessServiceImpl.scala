@@ -1,9 +1,8 @@
 package com.codingkapoor.passwordless.impl.service
 
-import java.time.{LocalDateTime, ZoneId}
+import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.{Date, UUID}
 
-import akka.stream.scaladsl.Flow
 import akka.{Done, NotUsed}
 import com.lightbend.lagom.scaladsl.api.ServiceCall
 import com.lightbend.lagom.scaladsl.api.transport.{BadRequest, NotFound}
@@ -22,7 +21,7 @@ import com.codingkapoor.employee.api.EmployeeService
 import com.codingkapoor.employee.api.model.Role.Role
 import com.codingkapoor.passwordless.api.PasswordlessService
 import com.codingkapoor.passwordless.api.model.Tokens
-import com.codingkapoor.passwordless.impl.repository.employee.{EmployeeDao, EmployeeEntity}
+import com.codingkapoor.passwordless.impl.repository.employee.EmployeeDao
 import com.codingkapoor.passwordless.impl.repository.otp.{OTPDao, OTPEntity}
 import com.codingkapoor.passwordless.impl.repository.token.{RefreshTokenDao, RefreshTokenEntity}
 import net.minidev.json.JSONArray
@@ -44,7 +43,7 @@ class PasswordlessServiceImpl(override val employeeService: EmployeeService, ove
 
         otpDao.deleteOTP(email).flatMap { _ =>
           val otp = generateOTP
-          otpDao.createOTP(OTPEntity(otp, emp.id, email, emp.roles, LocalDateTime.now())).map { _ =>
+          otpDao.createOTP(OTPEntity(otp, emp.id, email, emp.roles, ZonedDateTime.now(ZoneOffset.UTC))).map { _ =>
             mailOTPService.sendOTP(email, otp)
           }
         }
@@ -64,14 +63,14 @@ class PasswordlessServiceImpl(override val employeeService: EmployeeService, ove
         if (otp != otpEntity.otp)
           throw BadRequest("Invalid OTP")
 
-        if (LocalDateTime.now().isAfter(otpEntity.createdAt.plusMinutes(config.getOptional[Long]("expiries.otp").getOrElse(5))))
+        if (ZonedDateTime.now(ZoneOffset.UTC).isAfter(otpEntity.createdAt.plusMinutes(config.getOptional[Long]("expiries.otp").getOrElse(5))))
           otpDao.deleteOTP(email).map(throw BadRequest("OTP Expired"))
         else {
           val accessToken = createToken(empId, roles, ACCESS).serialize
           val refreshToken = createToken(empId, roles, REFRESH).serialize
 
           refreshTokenDao.deleteRefreshToken(email).flatMap { _ =>
-            refreshTokenDao.addRefreshToken(RefreshTokenEntity(refreshToken, empId, email, LocalDateTime.now())).flatMap { _ =>
+            refreshTokenDao.addRefreshToken(RefreshTokenEntity(refreshToken, empId, email, ZonedDateTime.now(ZoneOffset.UTC))).flatMap { _ =>
               otpDao.deleteOTP(email).map { _ =>
                 Tokens(accessToken, refreshToken)
               }
@@ -111,8 +110,6 @@ object PasswordlessServiceImpl {
 
   import collection.JavaConverters._
 
-  // TODO: See if can use pac4j to read jwk objects from the config file
-
   @throws[JOSEException]
   private def createToken(subject: Long, roles: List[Role], tokenType: String)(implicit config: Configuration): SignedJWT = {
     def getRSAKeys(tokenType: String)(implicit config: Configuration): RSAKey = {
@@ -129,11 +126,13 @@ object PasswordlessServiceImpl {
     }
 
     def createPayload(): JWTClaimsSet = {
-      val now = LocalDateTime.now()
-      val issuedAt = Date.from(now.atZone(ZoneId.systemDefault()).toInstant)
+      val now = ZonedDateTime.now(ZoneOffset.UTC)
+      val issuedAt = Date.from(now.toInstant)
       val expiresAt = tokenType match {
-        case ACCESS => Date.from(now.plusMinutes(config.getOptional[Long]("expiries.tokens.access").getOrElse(5)).atZone(ZoneId.systemDefault()).toInstant)
-        case REFRESH => Date.from(now.plusMonths(config.getOptional[Long]("expiries.tokens.refresh").getOrElse(12)).atZone(ZoneId.systemDefault()).toInstant)
+        case ACCESS =>
+          Date.from(now.plusMinutes(config.getOptional[Long]("expiries.tokens.access").getOrElse(5)).toInstant)
+        case REFRESH =>
+          Date.from(now.plusMonths(config.getOptional[Long]("expiries.tokens.refresh").getOrElse(12)).toInstant)
         case _ => throw new Exception("Token type not recognized.")
       }
 
