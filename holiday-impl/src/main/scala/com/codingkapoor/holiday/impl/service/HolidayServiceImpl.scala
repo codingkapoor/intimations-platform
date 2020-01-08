@@ -19,8 +19,6 @@ import org.pac4j.core.config.Config
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.lagom.scaladsl.SecuredService
 
-import scala.concurrent.Future
-
 class HolidayServiceImpl(override val securityConfig: Config, holidayDao: HolidayDao) extends HolidayService with SecuredService {
 
   import HolidayServiceImpl._
