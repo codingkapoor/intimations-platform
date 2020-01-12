@@ -6,8 +6,9 @@ import com.codingkapoor.employee.api.model.Role
 import com.codingkapoor.employee.api.model.Role.Role
 import slick.jdbc.MySQLProfile.api._
 
-case class EmployeeEntity(id: Long, name: String, gender: String, doj: LocalDate, designation: String, pfn: String, isActive: Boolean,
-                          phone: String, email: String, city: String, state: String, country: String, earnedLeaves: Int, sickLeaves: Int, roles: List[Role])
+case class EmployeeEntity(id: Long, name: String, gender: String, doj: LocalDate, designation: String, pfn: String,
+                          isActive: Boolean, phone: String, email: String, city: String, state: String, country: String,
+                          earnedLeaves: Double, sickLeaves: Double, extraLeaves: Double, roles: List[Role])
 
 class EmployeeTableDef(tag: Tag) extends Table[EmployeeEntity](tag, "employees") {
 
@@ -35,9 +36,11 @@ class EmployeeTableDef(tag: Tag) extends Table[EmployeeEntity](tag, "employees")
 
   def country = column[String]("COUNTRY")
 
-  def earnedLeaves = column[Int]("EARNED_LEAVES")
+  def earnedLeaves = column[Double]("EARNED_LEAVES")
 
-  def sickLeaves = column[Int]("SICK_LEAVES")
+  def sickLeaves = column[Double]("SICK_LEAVES")
+
+  def extraLeaves = column[Double]("EXTRA_LEAVES")
 
   implicit val rolesColumnType =
     MappedColumnType.base[List[Role], String]({ r => r.map(_.toString).mkString(",") }, { s => s.split(",").map(r => Role.withName(r)).toList })
@@ -45,7 +48,7 @@ class EmployeeTableDef(tag: Tag) extends Table[EmployeeEntity](tag, "employees")
   def roles = column[List[Role]]("ROLES")
 
   override def * =
-    (id, name, gender, doj, designation, pfn, isActive, phone, email, city, state, country, earnedLeaves, sickLeaves, roles).mapTo[EmployeeEntity]
+    (id, name, gender, doj, designation, pfn, isActive, phone, email, city, state, country, earnedLeaves, sickLeaves, extraLeaves, roles).mapTo[EmployeeEntity]
 }
 
 object EmployeeTableDef {

@@ -18,7 +18,7 @@ object Location {
   implicit val format: Format[Location] = Json.using[Json.WithDefaultValues].format[Location]
 }
 
-case class Leaves(earned: Int = 0, sick: Int = 0)
+case class Leaves(earned: Double = 0.0, sick: Double = 0.0, extra: Double = 0.0)
 
 object Leaves {
   implicit val format: Format[Leaves] = Json.using[Json.WithDefaultValues].format[Leaves]
