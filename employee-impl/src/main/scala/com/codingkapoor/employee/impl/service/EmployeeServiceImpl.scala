@@ -194,7 +194,7 @@ object EmployeeServiceImpl {
       case EmployeeUpdated(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles) =>
         EmployeeUpdatedKafkaEvent(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles)
 
-      case EmployeeTerminated(id, _, _, _, _, _, _, _, _, _, _) =>
+      case EmployeeTerminated(id) =>
         EmployeeTerminatedKafkaEvent(id)
 
       case EmployeeDeleted(id) =>
@@ -208,6 +208,9 @@ object EmployeeServiceImpl {
 
       case IntimationCancelled(empId, reason, lastModified, requests) =>
         IntimationCancelledKafkaEvent(empId, reason, lastModified, requests)
+
+      case LastLeavesSaved(empId, earned, sick, extra) =>
+        LastLeavesSavedKafkaEvent(empId, earned, sick, extra)
     }
   }
 

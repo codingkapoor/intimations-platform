@@ -61,13 +61,7 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
     log.info(s"EmployeeEventProcessor received EmployeeTerminated event.")
 
     val terminated = eventStreamElement.event
-
-    val employee =
-      EmployeeEntity(terminated.id, terminated.name, terminated.gender, terminated.doj, terminated.designation, terminated.pfn,
-        terminated.isActive, terminated.contactInfo.phone, terminated.contactInfo.email, terminated.location.city,
-        terminated.location.state, terminated.location.country, terminated.leaves.earned, terminated.leaves.sick, terminated.leaves.extra, terminated.roles)
-
-    employeeRepository.terminateEmployee(employee)
+    employeeRepository.terminateEmployee(terminated.id)
   }
 
   private def processEmployeeDeleted(eventStreamElement: EventStreamElement[EmployeeDeleted]): DBIO[Done] = {

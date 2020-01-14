@@ -5,7 +5,8 @@ import slick.jdbc.JdbcBackend.Database
 import slick.jdbc.MySQLProfile.api._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
 
 class EmployeeDao(db: Database) {
 
@@ -19,8 +20,11 @@ class EmployeeDao(db: Database) {
     employees.insertOrUpdate(employee).map(_ => Done)
   }
 
-  def terminateEmployee(employee: EmployeeEntity): DBIO[Done] = {
-    employees.insertOrUpdate(employee).map(_ => Done)
+  def terminateEmployee(id: Long): DBIO[Done] = {
+    val res = Await.result(getEmployee(id), 5.seconds)
+
+    if (res.isDefined) employees.insertOrUpdate(res.get.copy(isActive = false)).map(_ => Done)
+    else throw new Exception(s"Employee not found with id $id")
   }
 
   def getEmployees(email: Option[String]): Future[Seq[EmployeeEntity]] = {

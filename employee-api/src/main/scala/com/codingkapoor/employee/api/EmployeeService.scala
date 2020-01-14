@@ -45,9 +45,9 @@ trait EmployeeService extends Service with EmployeePathParamSerializer {
     named("employee")
       .withCalls(
         restCall(Method.POST, "/api/employees", addEmployee _),
+        restCall(Method.GET, "/api/employees/intimations", getActiveIntimations _),
         restCall(Method.PUT, "/api/employees/:id", updateEmployee _),
         restCall(Method.GET, "/api/employees?email", getEmployees _),
-        restCall(Method.GET, "/api/employees/intimations", getActiveIntimations _),
         restCall(Method.PUT, "/api/employees/:id/terminate", terminateEmployee _),
         restCall(Method.GET, "/api/employees/:id", getEmployee _),
         restCall(Method.DELETE, "/api/employees/:id", deleteEmployee _),
