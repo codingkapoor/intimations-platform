@@ -308,9 +308,9 @@ object EmployeePersistenceEntity {
     if (sick >= applied)
       Leaves(earned = earned, sick = sick - applied)
     else {
-      if (earned >= (applied - sick)) {
+      if (earned >= (applied - sick))
         Leaves(earned = earned - (applied - sick))
-      } else
+      else
         Leaves(extra = extra + applied - (earned + sick))
     }
   }
