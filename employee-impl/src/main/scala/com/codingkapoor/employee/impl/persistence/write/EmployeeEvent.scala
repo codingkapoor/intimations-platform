@@ -29,8 +29,7 @@ object EmployeeUpdated {
   implicit val format: Format[EmployeeUpdated] = Json.format[EmployeeUpdated]
 }
 
-case class EmployeeTerminated(id: Long, name: String, gender: String, doj: LocalDate, designation: String, pfn: String, isActive: Boolean,
-                              contactInfo: ContactInfo, location: Location, leaves: Leaves, roles: List[Role]) extends EmployeeEvent
+case class EmployeeTerminated(id: Long) extends EmployeeEvent
 
 object EmployeeTerminated {
   implicit val format: Format[EmployeeTerminated] = Json.format[EmployeeTerminated]
@@ -58,4 +57,10 @@ case class IntimationCancelled(empId: Long, reason: String, lastModified: LocalD
 
 object IntimationCancelled {
   implicit val format: Format[IntimationCancelled] = Json.format[IntimationCancelled]
+}
+
+case class LastLeavesSaved(empId: Long, earned: Double = 0.0, sick: Double = 0.0, extra: Double = 0.0) extends EmployeeEvent
+
+object LastLeavesSaved {
+  implicit val format: Format[LastLeavesSaved] = Json.format[LastLeavesSaved]
 }

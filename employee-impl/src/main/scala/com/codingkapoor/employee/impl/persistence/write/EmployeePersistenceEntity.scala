@@ -6,19 +6,13 @@ import java.time.{LocalDate, LocalDateTime}
 import akka.Done
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
 import org.slf4j.LoggerFactory
-import com.codingkapoor.employee.api.model.{Employee, Intimation, Role}
+import com.codingkapoor.employee.api.model.{Employee, Intimation, Leaves, Request, RequestType, Role}
 
 class EmployeePersistenceEntity extends PersistentEntity {
 
   private val logger = LoggerFactory.getLogger(classOf[EmployeePersistenceEntity])
 
-  private def isWeekend(date: LocalDate) = date.getDayOfWeek.toString == "SATURDAY" || date.getDayOfWeek.toString == "SUNDAY"
-
-  private def already5(date: LocalDate): Boolean = {
-    def dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
-
-    LocalDateTime.now().isAfter(LocalDateTime.parse(date.toString + " 17:00", dtf))
-  }
+  import EmployeePersistenceEntity._
 
   override type Command = EmployeeCommand[_]
   override type Event = EmployeeEvent
@@ -103,7 +97,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
     }.onEvent {
       case (EmployeeAdded(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles), _) =>
-        Some(EmployeeState(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles, Nil))
+        Some(EmployeeState(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles, Nil, Leaves()))
     }
 
   private val employeeAdded: Actions =
@@ -142,9 +136,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
         if (e.roles.contains(Role.Admin)) {
           ctx.invalidCommand(msg)
           ctx.done
-        } else ctx.thenPersist(
-          EmployeeTerminated(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, isActive = false, e.contactInfo, e.location, e.leaves, e.roles)
-        )(_ => ctx.reply(Done))
+        } else ctx.thenPersist(EmployeeTerminated(e.id))(_ => ctx.reply(Done))
 
     }.onCommand[DeleteEmployee, Done] {
       case (DeleteEmployee(id), ctx, state@Some(e)) =>
@@ -157,7 +149,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
         } else ctx.thenPersist(EmployeeDeleted(id))(_ => ctx.reply(Done))
 
     }.onCommand[CreateIntimation, Done] {
-      case (CreateIntimation(empId, intimationReq), ctx, state) =>
+      case (CreateIntimation(empId, intimationReq), ctx, state@Some(e)) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received CreateIntimation command.")
 
         val intimations = state.get.intimations
@@ -178,7 +170,12 @@ class EmployeePersistenceEntity extends PersistentEntity {
           ctx.done
 
         } else if (intimations.isEmpty || latestRequestDate.isBefore(LocalDate.now()) || already5(latestRequestDate)) {
-          ctx.thenPersist(IntimationCreated(empId, intimationReq.reason, LocalDateTime.now(), intimationReq.requests))(_ => ctx.reply(Done))
+          ctx.thenPersistAll(
+            IntimationCreated(empId, intimationReq.reason, LocalDateTime.now(), intimationReq.requests),
+            LastLeavesSaved(empId, e.leaves.earned, e.leaves.sick, e.leaves.extra),
+            EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location,
+              getNewLeaves(intimationReq.requests, lastLeaves = Leaves(e.leaves.earned, e.leaves.sick, e.leaves.extra)), e.roles)
+          )(() => ctx.reply(Done))
 
         } else {
           val msg = s"Only single active intimation at a given time is supported. Cancel an active intimation first so as to create a new intimation."
@@ -189,7 +186,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
         }
 
     }.onCommand[UpdateIntimation, Done] {
-      case (UpdateIntimation(empId, intimationReq), ctx, state) =>
+      case (UpdateIntimation(empId, intimationReq), ctx, state@Some(e)) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received UpdateIntimation command.")
 
         val intimations = state.get.intimations
@@ -224,11 +221,15 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         } else {
           val newRequests = requestsAlreadyConsumed ++ requests2
-          ctx.thenPersist(IntimationUpdated(empId, intimationReq.reason, LocalDateTime.now(), newRequests))(_ => ctx.reply(Done))
+          ctx.thenPersistAll(
+            IntimationUpdated(empId, intimationReq.reason, LocalDateTime.now(), newRequests),
+            EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location,
+              getNewLeaves(intimationReq.requests, lastLeaves = Leaves(e.lastLeaves.earned, e.lastLeaves.sick, e.lastLeaves.extra)), e.roles)
+          )(() => ctx.reply(Done))
         }
 
     }.onCommand[CancelIntimation, Done] {
-      case (CancelIntimation(empId), ctx, state) =>
+      case (CancelIntimation(empId), ctx, state@Some(e)) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received CancelIntimation command.")
 
         val intimations = state.get.intimations
@@ -249,30 +250,69 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         else {
           val requestsAlreadyConsumed = requests.filter(r => r.date.isBefore(LocalDate.now()) || already5(r.date))
-          ctx.thenPersist(IntimationCancelled(empId, reason, LocalDateTime.now(), requestsAlreadyConsumed))(_ => ctx.reply(Done))
+          ctx.thenPersistAll(
+            IntimationCancelled(empId, reason, LocalDateTime.now(), requestsAlreadyConsumed),
+            EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location,
+              getNewLeaves(requestsAlreadyConsumed, lastLeaves = Leaves(e.lastLeaves.earned, e.lastLeaves.sick, e.lastLeaves.extra)), e.roles)
+          )(() => ctx.reply(Done))
         }
 
     }.onEvent {
-      case (EmployeeUpdated(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles), state) =>
-        Some(EmployeeState(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles, state.get.intimations))
+      case (EmployeeUpdated(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles), Some(e)) =>
+        Some(EmployeeState(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles, e.intimations, e.lastLeaves))
 
-      case (EmployeeTerminated(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles), state) =>
-        Some(EmployeeState(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles, state.get.intimations))
+      case (EmployeeTerminated(_), Some(e)) =>
+        Some(e.copy(isActive = false))
 
       case (EmployeeDeleted(_), _) =>
         None
 
       case (IntimationCreated(_, reason, lastModified, requests), Some(e)) =>
         val intimations = Intimation(reason, lastModified, requests) :: e.intimations
-        Some(EmployeeState(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, e.leaves, e.roles, intimations))
+        Some(e.copy(intimations = intimations))
 
       case (IntimationUpdated(_, reason, lastModified, requests), Some(e)) =>
         val intimations = Intimation(reason, lastModified, requests) :: e.intimations.tail
-        Some(EmployeeState(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, e.leaves, e.roles, intimations))
+        Some(e.copy(intimations = intimations))
 
       case (IntimationCancelled(_, reason, lastModified, requests), Some(e)) =>
         val intimations = if (requests.isEmpty) e.intimations.tail else Intimation(reason, lastModified, requests) :: e.intimations.tail
-        Some(EmployeeState(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, e.leaves, e.roles, intimations))
+        Some(e.copy(intimations = intimations))
 
+      case (LastLeavesSaved(_, earned, sick, extra), Some(e)) =>
+        Some(e.copy(lastLeaves = Leaves(earned, sick, extra)))
     }
+}
+
+object EmployeePersistenceEntity {
+  private def isWeekend(date: LocalDate) = date.getDayOfWeek.toString == "SATURDAY" || date.getDayOfWeek.toString == "SUNDAY"
+
+  private def already5(date: LocalDate): Boolean = {
+    def dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+
+    LocalDateTime.now().isAfter(LocalDateTime.parse(date.toString + " 17:00", dtf))
+  }
+
+  private def getNewLeaves(requests: Set[Request], lastLeaves: Leaves): Leaves = {
+    def getTotalNumOfLeavesApplied(requests: Set[Request]): Double = {
+      (requests.count(r => r.firstHalf == RequestType.Leave) * 0.5) +
+        (requests.count(r => r.secondHalf == RequestType.Leave) * 0.5)
+    }
+
+    val earned = lastLeaves.earned
+    val sick = lastLeaves.sick
+    val extra = lastLeaves.extra
+
+    val applied = getTotalNumOfLeavesApplied(requests)
+
+    if (sick >= applied)
+      Leaves(earned = earned, sick = sick - applied)
+    else {
+      if (earned >= (applied - sick))
+        Leaves(earned = earned - (applied - sick))
+      else
+        Leaves(extra = extra + applied - (earned + sick))
+    }
+  }
+
 }

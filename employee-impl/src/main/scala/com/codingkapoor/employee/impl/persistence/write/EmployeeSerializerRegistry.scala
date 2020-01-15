@@ -20,6 +20,7 @@ object EmployeeSerializerRegistry extends JsonSerializerRegistry {
     JsonSerializer[UpdateIntimation],
     JsonSerializer[IntimationUpdated],
     JsonSerializer[CancelIntimation],
-    JsonSerializer[IntimationCancelled]
+    JsonSerializer[IntimationCancelled],
+    JsonSerializer[LastLeavesSaved]
   )
 }

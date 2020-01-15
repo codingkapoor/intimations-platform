@@ -37,8 +37,9 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
     val added = eventStreamElement.event
 
     val employee =
-      EmployeeEntity(added.id, added.name, added.gender, added.doj, added.designation, added.pfn, added.isActive, added.contactInfo.phone,
-        added.contactInfo.email, added.location.city, added.location.state, added.location.country, added.leaves.earned, added.leaves.sick, added.roles)
+      EmployeeEntity(added.id, added.name, added.gender, added.doj, added.designation, added.pfn, added.isActive,
+        added.contactInfo.phone, added.contactInfo.email, added.location.city, added.location.state, added.location.country,
+        added.leaves.earned, added.leaves.sick, added.leaves.extra, added.roles)
 
     employeeRepository.addEmployee(employee)
   }
@@ -49,8 +50,9 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
     val updated = eventStreamElement.event
 
     val employee =
-      EmployeeEntity(updated.id, updated.name, updated.gender, updated.doj, updated.designation, updated.pfn, updated.isActive, updated.contactInfo.phone,
-        updated.contactInfo.email, updated.location.city, updated.location.state, updated.location.country, updated.leaves.earned, updated.leaves.sick, updated.roles)
+      EmployeeEntity(updated.id, updated.name, updated.gender, updated.doj, updated.designation, updated.pfn, updated.isActive,
+        updated.contactInfo.phone, updated.contactInfo.email, updated.location.city, updated.location.state, updated.location.country,
+        updated.leaves.earned, updated.leaves.sick, updated.leaves.extra, updated.roles)
 
     employeeRepository.updateEmployee(employee)
   }
@@ -59,13 +61,7 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
     log.info(s"EmployeeEventProcessor received EmployeeTerminated event.")
 
     val terminated = eventStreamElement.event
-
-    val employee =
-      EmployeeEntity(terminated.id, terminated.name, terminated.gender, terminated.doj, terminated.designation, terminated.pfn,
-        terminated.isActive, terminated.contactInfo.phone, terminated.contactInfo.email, terminated.location.city,
-        terminated.location.state, terminated.location.country, terminated.leaves.earned, terminated.leaves.sick, terminated.roles)
-
-    employeeRepository.terminateEmployee(employee)
+    employeeRepository.terminateEmployee(terminated.id)
   }
 
   private def processEmployeeDeleted(eventStreamElement: EventStreamElement[EmployeeDeleted]): DBIO[Done] = {

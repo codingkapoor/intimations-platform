@@ -57,3 +57,9 @@ case class IntimationCancelledKafkaEvent(id: Long, reason: String, lastModified:
 object IntimationCancelledKafkaEvent {
   implicit val format: Format[IntimationCancelledKafkaEvent] = Json.format[IntimationCancelledKafkaEvent]
 }
+
+case class LastLeavesSavedKafkaEvent(id: Long, earned: Double, sick: Double, extra: Double) extends EmployeeKafkaEvent
+
+object LastLeavesSavedKafkaEvent {
+  implicit val format: Format[LastLeavesSavedKafkaEvent] = Json.format[LastLeavesSavedKafkaEvent]
+}
