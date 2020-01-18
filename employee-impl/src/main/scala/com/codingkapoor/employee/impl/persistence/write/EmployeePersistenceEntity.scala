@@ -126,14 +126,29 @@ class EmployeePersistenceEntity extends PersistentEntity {
         val designation = employeeInfo.designation.getOrElse(e.designation)
         val contactInfo = employeeInfo.contactInfo.getOrElse(e.contactInfo)
         val location = employeeInfo.location.getOrElse(e.location)
-        val leaves = employeeInfo.leaves.getOrElse(e.leaves)
         val roles = employeeInfo.roles.getOrElse(e.roles)
 
-        val employee = Employee(e.id, e.name, e.gender, e.doj, designation, e.pfn, e.isActive, contactInfo, location, leaves, roles)
+        if (e.intimations.nonEmpty && employeeInfo.leaves.isDefined && employeeInfo.leaves.get != e.leaves) {
+          val leaves = employeeInfo.leaves.get
 
-        ctx.thenPersist(
-          EmployeeUpdated(e.id, e.name, e.gender, e.doj, designation, e.pfn, e.isActive, contactInfo, location, leaves, roles)
-        )(_ => ctx.reply(employee))
+          lazy val latestRequestDate = e.intimations.head.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
+          if (latestRequestDate.isAfter(LocalDate.now())) {
+            val balanced = balanceExtra(leaves.earned, leaves.sick, e.lastLeaves.extra)
+            val newLeaves = getNewLeaves(e.intimations.head.requests, balanced)
+
+            ctx.thenPersistAll(
+              LastLeavesSaved(e.id, balanced.earned, balanced.sick, balanced.extra),
+              EmployeeUpdated(e.id, e.name, e.gender, e.doj, designation, e.pfn, e.isActive, contactInfo, location, newLeaves, roles)
+            )(() => ctx.reply(Employee(e.id, e.name, e.gender, e.doj, designation, e.pfn, e.isActive, contactInfo, location, newLeaves, roles)))
+          } else {
+            val balanced = balanceExtra(leaves.earned, leaves.sick, e.leaves.extra)
+
+            ctx.thenPersistAll(EmployeeUpdated(e.id, e.name, e.gender, e.doj, designation, e.pfn, e.isActive, contactInfo, location, balanced, roles))(() =>
+              ctx.reply(Employee(e.id, e.name, e.gender, e.doj, designation, e.pfn, e.isActive, contactInfo, location, balanced, roles)))
+          }
+        } else
+          ctx.thenPersist(EmployeeUpdated(e.id, e.name, e.gender, e.doj, designation, e.pfn, e.isActive, contactInfo, location, employeeInfo.leaves.getOrElse(e.leaves), roles))(_ =>
+            ctx.reply(Employee(e.id, e.name, e.gender, e.doj, designation, e.pfn, e.isActive, contactInfo, location, employeeInfo.leaves.getOrElse(e.leaves), roles)))
 
     }.onCommand[TerminateEmployee, Done] {
       case (TerminateEmployee(_), ctx, state@Some(e)) =>
@@ -345,6 +360,17 @@ object EmployeePersistenceEntity {
         Leaves(earned = earned - (applied - sick))
       else
         Leaves(extra = extra + applied - (earned + sick))
+    }
+  }
+
+  private def balanceExtra(earned: Double, sick: Double, due: Double): Leaves = {
+    if (sick >= due)
+      Leaves(earned = earned, sick = sick - due)
+    else {
+      if (earned >= (due - sick))
+        Leaves(earned = earned - (due - sick))
+      else
+        Leaves(extra = due - (earned + sick))
     }
   }
 
