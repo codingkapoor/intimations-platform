@@ -120,12 +120,9 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
         validateTokenType(profile)
         validateIfProfileBelongsToIndividualEmployee(profile, empId)
 
-        if (intimationReq.reason.length > 0)
-          entityRef(empId).ask(CreateIntimation(empId, intimationReq)).recover {
-            case e: InvalidCommandException => throw BadRequest(e.message)
-          }
-        else
-          throw BadRequest("Please provide a valid reason.")
+        entityRef(empId).ask(CreateIntimation(empId, intimationReq)).recover {
+          case e: InvalidCommandException => throw BadRequest(e.message)
+        }
       }
     )
 
@@ -135,12 +132,9 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
         validateTokenType(profile)
         validateIfProfileBelongsToIndividualEmployee(profile, empId)
 
-        if (intimationReq.reason.length > 0)
-          entityRef(empId).ask(UpdateIntimation(empId, intimationReq)).recover {
-            case e: InvalidCommandException => throw BadRequest(e.message)
-          }
-        else
-          throw BadRequest("Please provide a valid reason.")
+        entityRef(empId).ask(UpdateIntimation(empId, intimationReq)).recover {
+          case e: InvalidCommandException => throw BadRequest(e.message)
+        }
       }
     )
 
