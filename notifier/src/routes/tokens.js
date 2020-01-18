@@ -3,6 +3,7 @@ import pool from '../database';
 import lowercaseKeys from 'lowercase-keys';
 
 import { db } from '../config';
+import { jwtMiddleware } from '../jwt/middleware';
 
 let router = express.Router();
 let savedPushTokens = [];
@@ -31,13 +32,13 @@ const removeToken = (req) => {
   });
 }
 
-router.post('/register/:id', (req, res) => {
+router.post('/register/:id', jwtMiddleware.hasRole('Employee'), (req, res) => {
   saveToken(req);
   console.log(`Received push token, ${req.body.token}`);
   res.send(`Received push token, ${req.body.token}`);
 });
 
-router.post('/deregister/:id', (req, res) => {
+router.post('/deregister/:id', jwtMiddleware.hasRole('Employee'), (req, res) => {
   removeToken(req);
   console.log(`Received employee to deregister , ${req.params.id}`);
   res.send(`Received employee to deregister, ${req.params.id}`);
