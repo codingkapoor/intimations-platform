@@ -28,14 +28,10 @@ trait EmployeeKafkaEventHandler {
       Flow[EmployeeKafkaEvent].map { ke =>
         ke match {
           case added: EmployeeAddedKafkaEvent =>
-            employeeDao.addEmployee(EmployeeEntity(added.id, added.name, added.gender, added.doj, added.designation, added.pfn,
-              added.isActive, added.contactInfo.phone, added.contactInfo.email, added.location.city, added.location.state,
-              added.location.country, added.leaves.earned, added.leaves.sick, added.leaves.extra, added.roles))
+            employeeDao.addEmployee(EmployeeEntity(added.id, added.name, added.isActive, added.contactInfo.email, added.roles))
 
           case updated: EmployeeUpdatedKafkaEvent =>
-            employeeDao.updateEmployee(EmployeeEntity(updated.id, updated.name, updated.gender, updated.doj, updated.designation, updated.pfn,
-              updated.isActive, updated.contactInfo.phone, updated.contactInfo.email, updated.location.city, updated.location.state,
-              updated.location.country, updated.leaves.earned, updated.leaves.sick, updated.leaves.extra, updated.roles))
+            employeeDao.updateEmployee(EmployeeEntity(updated.id, updated.name, updated.isActive, updated.contactInfo.email, updated.roles))
 
           case terminated: EmployeeTerminatedKafkaEvent =>
             val empId = terminated.id
