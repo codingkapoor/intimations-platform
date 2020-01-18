@@ -4,7 +4,8 @@ import * as kafkaStreams from './src/handlers/kafkaEventStreamHandler';
 
 import indexRouter from './src/routes/index';
 import tokenRouter from './src/routes/tokens';
-import { kafkaConfig } from './src/config'
+import { kafkaConfig } from './src/config';
+import { jwtMiddleware } from './src/jwt/middleware';
 
 const Consumer = kafka.Consumer;
 const client = new kafka.KafkaClient(kafkaConfig.interface + ":" + kafkaConfig.port);
@@ -22,7 +23,7 @@ app.use(express.json());
 
 // Routes
 app.use('/', indexRouter);
-app.use('/token', tokenRouter);
+app.use('/token', jwtMiddleware.verify, tokenRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -33,9 +34,9 @@ app.use(function (req, res, next) {
 // error handler
 app.use(function (err, req, res, next) {
     res.status(err.status || 500);
-    res.render('error', {
+    res.json({
         message: err.message,
-        error: (app.get('env') === 'development') ? err : {}
+        error: err
     });
 });
 
