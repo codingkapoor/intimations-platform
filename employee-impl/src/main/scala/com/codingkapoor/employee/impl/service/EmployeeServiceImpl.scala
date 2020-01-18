@@ -56,7 +56,7 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
 
         if (profile.getId == id.toString && employeeInfo.roles.isDefined && !employeeInfo.roles.get.contains(Role.Admin))
           throw BadRequest("Admins can't revoke their own admin privileges")
-        else entityRef(id).ask(UpdateEmployee(employeeInfo)).recover {
+        else entityRef(id).ask(UpdateEmployee(id, employeeInfo)).recover {
           case e: InvalidCommandException => throw BadRequest(e.getMessage)
         }
       }

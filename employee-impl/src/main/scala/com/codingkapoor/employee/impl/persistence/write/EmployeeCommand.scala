@@ -13,7 +13,7 @@ object AddEmployee {
   implicit val format: Format[AddEmployee] = Json.format[AddEmployee]
 }
 
-case class UpdateEmployee(employeeInfo: EmployeeInfo) extends EmployeeCommand[Employee]
+case class UpdateEmployee(id: Long, employeeInfo: EmployeeInfo) extends EmployeeCommand[Employee]
 
 object UpdateEmployee {
   implicit val format: Format[UpdateEmployee] = Json.format[UpdateEmployee]

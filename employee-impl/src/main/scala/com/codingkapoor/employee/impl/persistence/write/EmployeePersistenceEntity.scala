@@ -6,7 +6,7 @@ import java.time.{LocalDate, LocalDateTime}
 import akka.Done
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
 import org.slf4j.LoggerFactory
-import com.codingkapoor.employee.api.model.{Employee, Intimation, Leaves, Request, RequestType, Role}
+import com.codingkapoor.employee.api.model.{Employee, EmployeeInfo, Intimation, Leaves, Request, RequestType, Role}
 
 class EmployeePersistenceEntity extends PersistentEntity {
 
@@ -36,10 +36,10 @@ class EmployeePersistenceEntity extends PersistentEntity {
           )(_ => ctx.reply(Done))
 
       }.onCommand[UpdateEmployee, Employee] {
-      case (UpdateEmployee(_), ctx, state@Some(e)) =>
+      case (UpdateEmployee(id, _), ctx, state) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received UpdateEmployee command.")
 
-        val msg = s"No employee found with id = ${e.id}."
+        val msg = s"No employee found with id = $id."
 
         ctx.invalidCommand(msg)
         logger.error(s"InvalidCommandException: $msg")
@@ -120,7 +120,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
           ctx.done
 
       }.onCommand[UpdateEmployee, Employee] {
-      case (UpdateEmployee(employeeInfo), ctx, state@Some(e)) =>
+      case (UpdateEmployee(id, employeeInfo), ctx, state@Some(e)) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received UpdateEmployee command.")
 
         val designation = employeeInfo.designation.getOrElse(e.designation)
