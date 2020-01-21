@@ -38,7 +38,7 @@ router.post('/register/:id', jwtMiddleware.hasRole('Employee'), (req, res) => {
   res.send(`Received push token, ${req.body.token}`);
 });
 
-router.post('/deregister/:id', jwtMiddleware.hasRole('Employee'), (req, res) => {
+router.delete('/deregister/:id', jwtMiddleware.hasRole('Employee'), (req, res) => {
   removeToken(req);
   console.log(`Received employee to deregister , ${req.params.id}`);
   res.send(`Received employee to deregister, ${req.params.id}`);

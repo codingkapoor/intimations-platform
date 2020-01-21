@@ -23,7 +23,7 @@ app.use(express.json());
 
 // Routes
 app.use('/', indexRouter);
-app.use('/token', jwtMiddleware.verify, tokenRouter);
+app.use('/api/notifier', jwtMiddleware.verify, tokenRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
