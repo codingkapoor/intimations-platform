@@ -68,7 +68,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         ctx.done
 
-    }.onCommand[CreateIntimation, Done] {
+    }.onCommand[CreateIntimation, Leaves] {
       case (CreateIntimation(empId, _), ctx, state) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received CreateIntimation command.")
 
@@ -79,7 +79,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         ctx.done
 
-    }.onCommand[UpdateIntimation, Done] {
+    }.onCommand[UpdateIntimation, Leaves] {
       case (UpdateIntimation(empId, _), ctx, state) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received UpdateIntimation command.")
 
@@ -90,7 +90,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         ctx.done
 
-    }.onCommand[CancelIntimation, Done] {
+    }.onCommand[CancelIntimation, Leaves] {
       case (CancelIntimation(empId), ctx, state) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received CancelIntimation command.")
 
@@ -176,7 +176,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
           ctx.done
         } else ctx.thenPersist(EmployeeDeleted(id))(_ => ctx.reply(Done))
 
-    }.onCommand[CreateIntimation, Done] {
+    }.onCommand[CreateIntimation, Leaves] {
       case (CreateIntimation(empId, intimationReq), ctx, state@Some(e)) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received CreateIntimation command.")
 
@@ -190,6 +190,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
           logger.error(s"InvalidCommandException: $msg")
 
           ctx.done
+
         } else if (intimationReq.requests.exists(_.date.isBefore(LocalDate.now())) || intimationReq.requests.exists(r => already5(r.date))) {
           val msg = s"Intimation can't be created for dates in the past"
 
@@ -207,12 +208,13 @@ class EmployeePersistenceEntity extends PersistentEntity {
           ctx.done
 
         } else if (intimations.isEmpty || latestRequestDate.isBefore(LocalDate.now()) || already5(latestRequestDate)) {
+          val newLeaves = getNewLeaves(intimationReq.requests, lastLeaves = Leaves(e.leaves.earned, e.leaves.sick, e.leaves.extra))
+
           ctx.thenPersistAll(
             IntimationCreated(empId, intimationReq.reason, LocalDateTime.now(), intimationReq.requests),
             LastLeavesSaved(empId, e.leaves.earned, e.leaves.sick, e.leaves.extra),
-            EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location,
-              getNewLeaves(intimationReq.requests, lastLeaves = Leaves(e.leaves.earned, e.leaves.sick, e.leaves.extra)), e.roles)
-          )(() => ctx.reply(Done))
+            EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, newLeaves, e.roles)
+          )(() => ctx.reply(newLeaves))
 
         } else {
           val msg = s"Only single active intimation at a given time is supported. Cancel an active intimation first so as to create a new intimation."
@@ -223,7 +225,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
           ctx.done
         }
 
-    }.onCommand[UpdateIntimation, Done] {
+    }.onCommand[UpdateIntimation, Leaves] {
       case (UpdateIntimation(empId, intimationReq), ctx, state@Some(e)) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received UpdateIntimation command.")
 
@@ -268,14 +270,15 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         } else {
           val newRequests = requestsAlreadyConsumed ++ requests2
+          val newLeaves = getNewLeaves(intimationReq.requests, lastLeaves = Leaves(e.lastLeaves.earned, e.lastLeaves.sick, e.lastLeaves.extra))
+
           ctx.thenPersistAll(
             IntimationUpdated(empId, intimationReq.reason, LocalDateTime.now(), newRequests),
-            EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location,
-              getNewLeaves(intimationReq.requests, lastLeaves = Leaves(e.lastLeaves.earned, e.lastLeaves.sick, e.lastLeaves.extra)), e.roles)
-          )(() => ctx.reply(Done))
+            EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, newLeaves, e.roles)
+          )(() => ctx.reply(newLeaves))
         }
 
-    }.onCommand[CancelIntimation, Done] {
+    }.onCommand[CancelIntimation, Leaves] {
       case (CancelIntimation(empId), ctx, state@Some(e)) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received CancelIntimation command.")
 
@@ -298,11 +301,12 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         else {
           val requestsAlreadyConsumed = requests.filter(r => r.date.isBefore(LocalDate.now()) || already5(r.date))
+          val newLeaves = getNewLeaves(requestsAlreadyConsumed, lastLeaves = Leaves(e.lastLeaves.earned, e.lastLeaves.sick, e.lastLeaves.extra))
+
           ctx.thenPersistAll(
             IntimationCancelled(empId, reason, LocalDateTime.now(), requestsAlreadyConsumed),
-            EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location,
-              getNewLeaves(requestsAlreadyConsumed, lastLeaves = Leaves(e.lastLeaves.earned, e.lastLeaves.sick, e.lastLeaves.extra)), e.roles)
-          )(() => ctx.reply(Done))
+            EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, newLeaves, e.roles)
+          )(() => ctx.reply(newLeaves))
         }
 
     }.onEvent {
