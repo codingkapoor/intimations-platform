@@ -114,7 +114,7 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
       }
     )
 
-  override def createIntimation(empId: Long): ServiceCall[IntimationReq, Done] =
+  override def createIntimation(empId: Long): ServiceCall[IntimationReq, Leaves] =
     authorize(requireAllRoles[CommonProfile](Role.Employee.toString), (profile: CommonProfile) =>
       ServerServiceCall { intimationReq: IntimationReq =>
         validateTokenType(profile)
@@ -126,7 +126,7 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
       }
     )
 
-  override def updateIntimation(empId: Long): ServiceCall[IntimationReq, Done] =
+  override def updateIntimation(empId: Long): ServiceCall[IntimationReq, Leaves] =
     authorize(requireAllRoles[CommonProfile](Role.Employee.toString), (profile: CommonProfile) =>
       ServerServiceCall { intimationReq: IntimationReq =>
         validateTokenType(profile)
@@ -138,7 +138,7 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
       }
     )
 
-  override def cancelIntimation(empId: Long): ServiceCall[NotUsed, Done] =
+  override def cancelIntimation(empId: Long): ServiceCall[NotUsed, Leaves] =
     authorize(requireAllRoles[CommonProfile](Role.Employee.toString), (profile: CommonProfile) =>
       ServerServiceCall { _: NotUsed =>
         validateTokenType(profile)

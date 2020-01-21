@@ -1,13 +1,13 @@
 package com.codingkapoor.employee.api
 
 import java.time.LocalDate
+
 import akka.{Done, NotUsed}
 import com.lightbend.lagom.scaladsl.api.broker.Topic
 import com.lightbend.lagom.scaladsl.api.broker.kafka.{KafkaProperties, PartitionKeyStrategy}
 import com.lightbend.lagom.scaladsl.api.transport.Method
 import com.lightbend.lagom.scaladsl.api.{Descriptor, Service, ServiceCall}
-
-import com.codingkapoor.employee.api.model.{ActiveIntimation, Employee, EmployeeInfo, EmployeeKafkaEvent, InactiveIntimation, IntimationReq}
+import com.codingkapoor.employee.api.model.{ActiveIntimation, Employee, EmployeeInfo, EmployeeKafkaEvent, InactiveIntimation, IntimationReq, Leaves}
 
 object EmployeeService {
   val TOPIC_NAME = "employee"
@@ -27,11 +27,11 @@ trait EmployeeService extends Service with EmployeePathParamSerializer {
 
   def deleteEmployee(id: Long): ServiceCall[NotUsed, Done]
 
-  def createIntimation(empId: Long): ServiceCall[IntimationReq, Done]
+  def createIntimation(empId: Long): ServiceCall[IntimationReq, Leaves]
 
-  def updateIntimation(empId: Long): ServiceCall[IntimationReq, Done]
+  def updateIntimation(empId: Long): ServiceCall[IntimationReq, Leaves]
 
-  def cancelIntimation(empId: Long): ServiceCall[NotUsed, Done]
+  def cancelIntimation(empId: Long): ServiceCall[NotUsed, Leaves]
 
   def getInactiveIntimations(empId: Long, start: LocalDate, end: LocalDate): ServiceCall[NotUsed, List[InactiveIntimation]]
 
