@@ -13,7 +13,8 @@ export const handlePushTokens = (message, notificationData, savedPushTokens) => 
             sound: 'default',
             title: message.title,
             body: message.content,
-            data: notificationData
+            data: notificationData,
+            channelId: 'push-notifications'
         })
     }
     let chunks = expo.chunkPushNotifications(notifications);
