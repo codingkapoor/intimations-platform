@@ -1,11 +1,11 @@
-<p align="center">
-  <img width="300" height="300" src="https://github.com/codingkapoor/intimations-platform/blob/master/logo.png">
-</p>
-
 # Intimations Platform
 Platform for Intimations.
 
 *Mobile App: [intimations](https://github.com/codingkapoor/intimations), Web console: [intimations-console](https://github.com/codingkapoor/intimations-console)*
+
+<p align="center">
+  <img width="200" height="200" src="https://github.com/codingkapoor/intimations-platform/blob/master/logo.png">
+</p>
 
 ## Scope
 1. Maintains list of all the employees.
