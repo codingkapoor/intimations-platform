@@ -6,7 +6,7 @@ import com.codingkapoor.employee.impl.persistence.read.repository.employee.Emplo
 import com.codingkapoor.employee.impl.persistence.read.repository.intimation.IntimationDao
 import com.codingkapoor.employee.impl.persistence.read.repository.request.RequestDao
 import com.codingkapoor.employee.impl.persistence.write.{EmployeePersistenceEntity, EmployeeSerializerRegistry}
-import com.codingkapoor.employee.impl.service.EmployeeServiceImpl
+import com.codingkapoor.employee.impl.service.{CreditScheduler, EmployeeServiceImpl}
 import com.lightbend.lagom.scaladsl.broker.kafka.LagomKafkaComponents
 import com.lightbend.lagom.scaladsl.persistence.cassandra.WriteSideCassandraPersistenceComponents
 import com.lightbend.lagom.scaladsl.persistence.slick.ReadSideSlickPersistenceComponents
@@ -20,6 +20,7 @@ import org.pac4j.lagom.jwt.JwtAuthenticatorHelper
 import org.pac4j.core.context.WebContext
 import org.pac4j.core.profile.CommonProfile
 import java.util
+
 import org.pac4j.core.config.Config
 
 abstract class EmployeeApplication(context: LagomApplicationContext)
@@ -36,6 +37,8 @@ abstract class EmployeeApplication(context: LagomApplicationContext)
   lazy val employeeRepository = wire[EmployeeDao]
   lazy val intimationRepository = wire[IntimationDao]
   lazy val requestRepository = wire[RequestDao]
+
+  wire[CreditScheduler]
 
   persistentEntityRegistry.register(wire[EmployeePersistenceEntity])
   readSide.register(wire[EmployeeEventProcessor])

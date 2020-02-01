@@ -48,3 +48,9 @@ case class CancelIntimation(empId: Long) extends EmployeeCommand[Leaves]
 object CancelIntimation {
   implicit val format: Format[CancelIntimation] = Json.format[CancelIntimation]
 }
+
+case class Credit(empId: Long) extends EmployeeCommand[Done]
+
+object Credit {
+  implicit val format: Format[Credit] = Json.format[Credit]
+}

@@ -27,7 +27,7 @@ class EmployeeDao(db: Database) {
     else throw new Exception(s"Employee not found with id $id")
   }
 
-  def getEmployees(email: Option[String]): Future[Seq[EmployeeEntity]] = {
+  def getEmployees(email: Option[String] = None): Future[Seq[EmployeeEntity]] = {
     if (email.isDefined) db.run(employees.filter(_.email === email.get).result)
     else db.run(employees.result)
   }

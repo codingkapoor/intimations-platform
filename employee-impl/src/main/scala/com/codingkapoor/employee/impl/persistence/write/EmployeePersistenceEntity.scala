@@ -6,7 +6,7 @@ import java.time.{LocalDate, LocalDateTime}
 import akka.Done
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
 import org.slf4j.LoggerFactory
-import com.codingkapoor.employee.api.model.{Employee, EmployeeInfo, Intimation, Leaves, Request, RequestType, Role}
+import com.codingkapoor.employee.api.model.{Employee, Intimation, Leaves, Request, RequestType, Role}
 
 class EmployeePersistenceEntity extends PersistentEntity {
 
@@ -93,6 +93,17 @@ class EmployeePersistenceEntity extends PersistentEntity {
     }.onCommand[CancelIntimation, Leaves] {
       case (CancelIntimation(empId), ctx, state) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received CancelIntimation command.")
+
+        val msg = s"No employee found with id = $empId."
+
+        ctx.invalidCommand(msg)
+        logger.error(s"InvalidCommandException: $msg")
+
+        ctx.done
+
+    }.onCommand[Credit, Done] {
+      case (Credit(empId), ctx, state) =>
+        logger.info(s"EmployeePersistenceEntity at state = $state received Credit command.")
 
         val msg = s"No employee found with id = $empId."
 
@@ -308,6 +319,12 @@ class EmployeePersistenceEntity extends PersistentEntity {
             EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, newLeaves, e.roles)
           )(() => ctx.reply(newLeaves))
         }
+
+    }.onCommand[Credit, Done] {
+      case (Credit(empId), ctx, state) =>
+        logger.info(s"EmployeePersistenceEntity at state = $state received ${Credit(empId)} command.")
+
+        ctx.done
 
     }.onEvent {
       case (EmployeeUpdated(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles), Some(e)) =>
