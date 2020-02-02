@@ -7,7 +7,7 @@ import akka.actor.ActorSystem
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.codingkapoor.employee.impl.persistence.read.repository.employee.EmployeeDao
-import com.codingkapoor.employee.impl.persistence.write.{Credit, EmployeePersistenceEntity}
+import com.codingkapoor.employee.impl.persistence.write.{CreditLeaves, EmployeePersistenceEntity}
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntityRegistry
 
 class CreditScheduler(system: ActorSystem, persistentEntityRegistry: PersistentEntityRegistry, employeeDao: EmployeeDao) {
@@ -25,7 +25,7 @@ class CreditScheduler(system: ActorSystem, persistentEntityRegistry: PersistentE
     if (today.isEqual(lastDate)) {
       val res = employeeDao.getEmployees()
       res.map { employees =>
-        employees.filter(e => e.isActive).foreach(e => entityRef(e.id).ask(Credit(e.id)))
+        employees.filter(e => e.isActive).foreach(e => entityRef(e.id).ask(CreditLeaves(e.id)))
       }
     }
   }

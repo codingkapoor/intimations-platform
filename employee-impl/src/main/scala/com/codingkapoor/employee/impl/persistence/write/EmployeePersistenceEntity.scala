@@ -101,8 +101,8 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         ctx.done
 
-    }.onCommand[Credit, Done] {
-      case (Credit(empId), ctx, state) =>
+    }.onCommand[CreditLeaves, Done] {
+      case (CreditLeaves(empId), ctx, state) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received Credit command.")
 
         val msg = s"No employee found with id = $empId."
@@ -320,9 +320,27 @@ class EmployeePersistenceEntity extends PersistentEntity {
           )(() => ctx.reply(newLeaves))
         }
 
-    }.onCommand[Credit, Done] {
-      case (Credit(empId), ctx, state) =>
-        logger.info(s"EmployeePersistenceEntity at state = $state received ${Credit(empId)} command.")
+    }.onCommand[CreditLeaves, Done] {
+      case (CreditLeaves(empId), ctx, state@Some(e)) =>
+        logger.info(s"EmployeePersistenceEntity at state = $state received ${CreditLeaves(empId)} command.")
+
+        val (earnedCredits, sickCredits) = computeCredits(e.doj)
+
+        val latestRequestDate = e.intimations.head.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
+        if (latestRequestDate.isAfter(LocalDate.now())) {
+          val balanced = balanceExtra(e.lastLeaves.earned + earnedCredits, e.lastLeaves.sick + sickCredits, e.lastLeaves.extra)
+          val newLeaves = getNewLeaves(e.intimations.head.requests, balanced)
+
+          ctx.thenPersistAll(
+            LastLeavesSaved(e.id, balanced.earned, balanced.sick, balanced.extra),
+            LeavesCredited(e.id, newLeaves.earned, newLeaves.sick, newLeaves.extra)
+          )(() => ctx.reply(Done))
+        } else {
+          val balanced = balanceExtra(e.leaves.earned + earnedCredits, e.leaves.sick + sickCredits, e.leaves.extra)
+
+          ctx.thenPersist(LeavesCredited(e.id, balanced.earned, balanced.sick, balanced.extra))(_ =>
+            ctx.reply(Done))
+        }
 
         ctx.done
 
@@ -350,10 +368,14 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
       case (LastLeavesSaved(_, earned, sick, extra), Some(e)) =>
         Some(e.copy(lastLeaves = Leaves(earned, sick, extra)))
+
+      case (LeavesCredited(_, earned, sick, extra), Some(e)) =>
+        Some(e.copy(leaves = Leaves(earned, sick, extra)))
     }
 }
 
 object EmployeePersistenceEntity {
+
   private def isWeekend(date: LocalDate) = date.getDayOfWeek.toString == "SATURDAY" || date.getDayOfWeek.toString == "SUNDAY"
 
   private def already5(date: LocalDate): Boolean = {
@@ -393,6 +415,17 @@ object EmployeePersistenceEntity {
       else
         Leaves(extra = due - (earned + sick))
     }
+  }
+
+  private def computeCredits(doj: LocalDate): (Double, Double) = {
+    val today = LocalDate.now()
+
+    // Credits get computed on the pro-rata basis
+    if (today.getMonthValue == doj.getMonthValue && today.getYear == doj.getYear) {
+      if (today.getDayOfMonth - doj.getDayOfMonth >= 15) (1.5, 0.5)
+      else if (today.getDayOfMonth - doj.getDayOfMonth >= 10) (1.0, 0.0)
+      else (0.0, 0.0)
+    } else (1.5, 0.5)
   }
 
 }
