@@ -420,7 +420,6 @@ object EmployeePersistenceEntity {
   private def computeCredits(doj: LocalDate): (Double, Double) = {
     val today = LocalDate.now()
 
-    // Credits get computed on the pro-rata basis
     if (today.getMonthValue == doj.getMonthValue && today.getYear == doj.getYear) {
       if (today.getDayOfMonth - doj.getDayOfMonth >= 15) (1.5, 0.5)
       else if (today.getDayOfMonth - doj.getDayOfMonth >= 10) (1.0, 0.0)
