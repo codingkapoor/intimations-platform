@@ -6,7 +6,7 @@ import java.time.{LocalDate, LocalDateTime}
 import akka.Done
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
 import org.slf4j.LoggerFactory
-import com.codingkapoor.employee.api.model.{Employee, EmployeeInfo, Intimation, Leaves, Request, RequestType, Role}
+import com.codingkapoor.employee.api.model.{Employee, Intimation, Leaves, Request, RequestType, Role}
 
 class EmployeePersistenceEntity extends PersistentEntity {
 
@@ -101,9 +101,20 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         ctx.done
 
+    }.onCommand[CreditLeaves, Done] {
+      case (CreditLeaves(empId), ctx, state) =>
+        logger.info(s"EmployeePersistenceEntity at state = $state received Credit command.")
+
+        val msg = s"No employee found with id = $empId."
+
+        ctx.invalidCommand(msg)
+        logger.error(s"InvalidCommandException: $msg")
+
+        ctx.done
+
     }.onEvent {
       case (EmployeeAdded(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles), _) =>
-        Some(EmployeeState(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles, Nil, Leaves()))
+        Some(EmployeeState(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles, None, Leaves()))
     }
 
   private val employeeAdded: Actions =
@@ -128,13 +139,14 @@ class EmployeePersistenceEntity extends PersistentEntity {
         val location = employeeInfo.location.getOrElse(e.location)
         val roles = employeeInfo.roles.getOrElse(e.roles)
 
-        if (e.intimations.nonEmpty && employeeInfo.leaves.isDefined && employeeInfo.leaves.get != e.leaves) {
+        if (e.activeIntimationOpt.isDefined && employeeInfo.leaves.isDefined && employeeInfo.leaves.get != e.leaves) {
           val leaves = employeeInfo.leaves.get
 
-          lazy val latestRequestDate = e.intimations.head.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
+          lazy val activeIntimation = e.activeIntimationOpt.get
+          lazy val latestRequestDate = activeIntimation.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
           if (latestRequestDate.isAfter(LocalDate.now())) {
             val balanced = balanceExtra(leaves.earned, leaves.sick, e.lastLeaves.extra)
-            val newLeaves = getNewLeaves(e.intimations.head.requests, balanced)
+            val newLeaves = getNewLeaves(activeIntimation.requests, balanced)
 
             ctx.thenPersistAll(
               LastLeavesSaved(e.id, balanced.earned, balanced.sick, balanced.extra),
@@ -180,8 +192,8 @@ class EmployeePersistenceEntity extends PersistentEntity {
       case (CreateIntimation(empId, intimationReq), ctx, state@Some(e)) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received CreateIntimation command.")
 
-        lazy val intimations = state.get.intimations
-        lazy val latestRequestDate = intimations.head.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
+        lazy val activeIntimation = e.activeIntimationOpt.get
+        lazy val latestRequestDate = activeIntimation.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
 
         if (intimationReq.requests.isEmpty || intimationReq.reason.trim == "") {
           val msg = "Intimation can't be created without any requests or a reason"
@@ -207,7 +219,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
           ctx.done
 
-        } else if (intimations.isEmpty || latestRequestDate.isBefore(LocalDate.now()) || already5(latestRequestDate)) {
+        } else if (e.activeIntimationOpt.isEmpty || latestRequestDate.isBefore(LocalDate.now()) || already5(latestRequestDate)) {
           val newLeaves = getNewLeaves(intimationReq.requests, lastLeaves = Leaves(e.leaves.earned, e.leaves.sick, e.leaves.extra))
 
           ctx.thenPersistAll(
@@ -229,8 +241,8 @@ class EmployeePersistenceEntity extends PersistentEntity {
       case (UpdateIntimation(empId, intimationReq), ctx, state@Some(e)) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received UpdateIntimation command.")
 
-        lazy val intimations = state.get.intimations
-        lazy val requests1 = intimations.head.requests
+        lazy val activeIntimation = e.activeIntimationOpt.get
+        lazy val requests1 = activeIntimation.requests
         lazy val requests2 = intimationReq.requests
 
         lazy val latestRequestDate = requests1.map(_.date).toList.sortWith(_.isBefore(_)).last
@@ -245,7 +257,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
           logger.error(s"InvalidCommandException: $msg")
 
           ctx.done
-        } else if (intimations.isEmpty) {
+        } else if (e.activeIntimationOpt.isEmpty) {
           val msg = s"No intimations found."
 
           ctx.invalidCommand(msg)
@@ -282,13 +294,13 @@ class EmployeePersistenceEntity extends PersistentEntity {
       case (CancelIntimation(empId), ctx, state@Some(e)) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received CancelIntimation command.")
 
-        val intimations = state.get.intimations
-        lazy val requests = intimations.head.requests
-        lazy val reason = intimations.head.reason
+        lazy val activeIntimation = e.activeIntimationOpt.get
+        lazy val requests = activeIntimation.requests
+        lazy val reason = activeIntimation.reason
 
-        lazy val latestRequestDate = intimations.head.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
+        lazy val latestRequestDate = activeIntimation.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
 
-        if (intimations.isEmpty) {
+        if (e.activeIntimationOpt.isEmpty) {
           val msg = s"No intimations found."
 
           ctx.invalidCommand(msg)
@@ -309,9 +321,34 @@ class EmployeePersistenceEntity extends PersistentEntity {
           )(() => ctx.reply(newLeaves))
         }
 
+    }.onCommand[CreditLeaves, Done] {
+      case (CreditLeaves(empId), ctx, state@Some(e)) =>
+        logger.info(s"EmployeePersistenceEntity at state = $state received ${CreditLeaves(empId)} command.")
+
+        val (earnedCredits, sickCredits) = computeCredits(e.doj)
+
+        lazy val activeIntimation = e.activeIntimationOpt.get
+        lazy val latestRequestDate = activeIntimation.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
+        if (e.activeIntimationOpt.isDefined && latestRequestDate.isAfter(LocalDate.now())) {
+          val balanced = balanceExtra(e.lastLeaves.earned + earnedCredits, e.lastLeaves.sick + sickCredits, e.lastLeaves.extra)
+          val newLeaves = getNewLeaves(activeIntimation.requests, balanced)
+
+          ctx.thenPersistAll(
+            LastLeavesSaved(e.id, balanced.earned, balanced.sick, balanced.extra),
+            LeavesCredited(e.id, newLeaves.earned, newLeaves.sick, newLeaves.extra)
+          )(() => ctx.reply(Done))
+        } else {
+          val balanced = balanceExtra(e.leaves.earned + earnedCredits, e.leaves.sick + sickCredits, e.leaves.extra)
+
+          ctx.thenPersist(LeavesCredited(e.id, balanced.earned, balanced.sick, balanced.extra))(_ =>
+            ctx.reply(Done))
+        }
+
+        ctx.done
+
     }.onEvent {
       case (EmployeeUpdated(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles), Some(e)) =>
-        Some(EmployeeState(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles, e.intimations, e.lastLeaves))
+        Some(EmployeeState(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles, e.activeIntimationOpt, e.lastLeaves))
 
       case (EmployeeTerminated(_), Some(e)) =>
         Some(e.copy(isActive = false))
@@ -320,23 +357,24 @@ class EmployeePersistenceEntity extends PersistentEntity {
         None
 
       case (IntimationCreated(_, reason, lastModified, requests), Some(e)) =>
-        val intimations = Intimation(reason, lastModified, requests) :: e.intimations
-        Some(e.copy(intimations = intimations))
+        Some(e.copy(activeIntimationOpt = Some(Intimation(reason, lastModified, requests))))
 
       case (IntimationUpdated(_, reason, lastModified, requests), Some(e)) =>
-        val intimations = Intimation(reason, lastModified, requests) :: e.intimations.tail
-        Some(e.copy(intimations = intimations))
+        Some(e.copy(activeIntimationOpt = Some(Intimation(reason, lastModified, requests))))
 
-      case (IntimationCancelled(_, reason, lastModified, requests), Some(e)) =>
-        val intimations = if (requests.isEmpty) e.intimations.tail else Intimation(reason, lastModified, requests) :: e.intimations.tail
-        Some(e.copy(intimations = intimations))
+      case (IntimationCancelled(_, _, _, _), Some(e)) =>
+        Some(e.copy(activeIntimationOpt = None))
 
       case (LastLeavesSaved(_, earned, sick, extra), Some(e)) =>
         Some(e.copy(lastLeaves = Leaves(earned, sick, extra)))
+
+      case (LeavesCredited(_, earned, sick, extra), Some(e)) =>
+        Some(e.copy(leaves = Leaves(earned, sick, extra)))
     }
 }
 
 object EmployeePersistenceEntity {
+
   private def isWeekend(date: LocalDate) = date.getDayOfWeek.toString == "SATURDAY" || date.getDayOfWeek.toString == "SUNDAY"
 
   private def already5(date: LocalDate): Boolean = {
@@ -376,6 +414,16 @@ object EmployeePersistenceEntity {
       else
         Leaves(extra = due - (earned + sick))
     }
+  }
+
+  private def computeCredits(doj: LocalDate): (Double, Double) = {
+    val today = LocalDate.now()
+
+    if (today.getMonthValue == doj.getMonthValue && today.getYear == doj.getYear) {
+      if (today.getDayOfMonth - doj.getDayOfMonth >= 15) (1.5, 0.5)
+      else if (today.getDayOfMonth - doj.getDayOfMonth >= 10) (1.0, 0.0)
+      else (0.0, 0.0)
+    } else (1.5, 0.5)
   }
 
 }

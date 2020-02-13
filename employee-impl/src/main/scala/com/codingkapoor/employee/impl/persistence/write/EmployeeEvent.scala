@@ -23,7 +23,7 @@ object EmployeeAdded {
 }
 
 case class EmployeeUpdated(id: Long, name: String, gender: String, doj: LocalDate, designation: String, pfn: String, isActive: Boolean,
-                         contactInfo: ContactInfo, location: Location, leaves: Leaves, roles: List[Role]) extends EmployeeEvent
+                           contactInfo: ContactInfo, location: Location, leaves: Leaves, roles: List[Role]) extends EmployeeEvent
 
 object EmployeeUpdated {
   implicit val format: Format[EmployeeUpdated] = Json.format[EmployeeUpdated]
@@ -63,4 +63,10 @@ case class LastLeavesSaved(empId: Long, earned: Double = 0.0, sick: Double = 0.0
 
 object LastLeavesSaved {
   implicit val format: Format[LastLeavesSaved] = Json.format[LastLeavesSaved]
+}
+
+case class LeavesCredited(empId: Long, earned: Double, sick: Double, extra: Double) extends EmployeeEvent
+
+object LeavesCredited {
+  implicit val format: Format[LeavesCredited] = Json.format[LeavesCredited]
 }
