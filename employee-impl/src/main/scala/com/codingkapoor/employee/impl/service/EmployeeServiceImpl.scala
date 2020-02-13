@@ -205,6 +205,9 @@ object EmployeeServiceImpl {
 
       case LastLeavesSaved(empId, earned, sick, extra) =>
         LastLeavesSavedKafkaEvent(empId, earned, sick, extra)
+
+      case LeavesCredited(empId, earned, sick, extra) =>
+        LeavesCreditedKafkaEvent(empId, earned, sick, extra)
     }
   }
 

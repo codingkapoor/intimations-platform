@@ -63,3 +63,9 @@ case class LastLeavesSavedKafkaEvent(id: Long, earned: Double, sick: Double, ext
 object LastLeavesSavedKafkaEvent {
   implicit val format: Format[LastLeavesSavedKafkaEvent] = Json.format[LastLeavesSavedKafkaEvent]
 }
+
+case class LeavesCreditedKafkaEvent(id: Long, earned: Double, sick: Double, extra: Double) extends EmployeeKafkaEvent
+
+object LeavesCreditedKafkaEvent {
+  implicit val format: Format[LeavesCreditedKafkaEvent] = Json.format[LeavesCreditedKafkaEvent]
+}
