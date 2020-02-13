@@ -4,15 +4,13 @@ import com.codingkapoor.employee.api.model.Role
 import com.codingkapoor.employee.api.model.Role.Role
 import slick.jdbc.MySQLProfile.api._
 
-case class EmployeeEntity(id: Long, name: String, isActive: Boolean, email: String, roles: List[Role])
+case class EmployeeEntity(id: Long, name: String, email: String, roles: List[Role])
 
 class EmployeeTableDef(tag: Tag) extends Table[EmployeeEntity](tag, "employees") {
 
   def id = column[Long]("ID", O.PrimaryKey)
 
   def name = column[String]("NAME")
-
-  def isActive = column[Boolean]("IS_ACTIVE")
 
   def email = column[String]("EMAIL")
 
@@ -22,7 +20,7 @@ class EmployeeTableDef(tag: Tag) extends Table[EmployeeEntity](tag, "employees")
   def roles = column[List[Role]]("ROLES")
 
   override def * =
-    (id, name, isActive, email, roles).mapTo[EmployeeEntity]
+    (id, name, email, roles).mapTo[EmployeeEntity]
 }
 
 object EmployeeTableDef {

@@ -38,7 +38,7 @@ class PasswordlessServiceImpl(override val employeeService: EmployeeService, ove
 
   override def createOTP(email: String): ServiceCall[NotUsed, Done] = ServiceCall { _ =>
     employeeDao.getEmployees(Some(email)).map { res =>
-      if (res.nonEmpty && res.head.isActive) {
+      if (res.nonEmpty) {
         val emp = res.head
 
         otpDao.deleteOTP(email).flatMap { _ =>

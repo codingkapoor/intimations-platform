@@ -4,7 +4,7 @@ import akka.Done
 import com.codingkapoor.employee.impl.persistence.read.repository.employee.{EmployeeEntity, EmployeeDao}
 import com.codingkapoor.employee.impl.persistence.read.repository.intimation.{IntimationEntity, IntimationDao}
 import com.codingkapoor.employee.impl.persistence.read.repository.request.{RequestEntity, RequestDao}
-import com.codingkapoor.employee.impl.persistence.write.{EmployeeAdded, EmployeeDeleted, EmployeeEvent, EmployeeTerminated, EmployeeUpdated, IntimationCancelled, IntimationCreated, IntimationUpdated}
+import com.codingkapoor.employee.impl.persistence.write.{EmployeeAdded, EmployeeDeleted, EmployeeEvent, EmployeeReleased, EmployeeUpdated, IntimationCancelled, IntimationCreated, IntimationUpdated}
 import com.lightbend.lagom.scaladsl.persistence.{AggregateEventTag, EventStreamElement, ReadSideProcessor}
 import com.lightbend.lagom.scaladsl.persistence.slick.SlickReadSide
 import org.slf4j.LoggerFactory
@@ -22,7 +22,7 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
       .setGlobalPrepare(employeeRepository.createTable andThen intimationRepository.createTable andThen requestRepository.createTable)
       .setEventHandler[EmployeeAdded](processEmployeeAdded)
       .setEventHandler[EmployeeUpdated](processEmployeeUpdated)
-      .setEventHandler[EmployeeTerminated](processEmployeeTerminated)
+      .setEventHandler[EmployeeReleased](processEmployeeReleased)
       .setEventHandler[EmployeeDeleted](processEmployeeDeleted)
       .setEventHandler[IntimationCreated](processIntimationCreated)
       .setEventHandler[IntimationUpdated](processIntimationUpdated)
@@ -37,7 +37,7 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
     val added = eventStreamElement.event
 
     val employee =
-      EmployeeEntity(added.id, added.name, added.gender, added.doj, added.designation, added.pfn, added.isActive,
+      EmployeeEntity(added.id, added.name, added.gender, added.doj, added.dor, added.designation, added.pfn,
         added.contactInfo.phone, added.contactInfo.email, added.location.city, added.location.state, added.location.country,
         added.leaves.earned, added.leaves.sick, added.leaves.extra, added.roles)
 
@@ -50,18 +50,18 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
     val updated = eventStreamElement.event
 
     val employee =
-      EmployeeEntity(updated.id, updated.name, updated.gender, updated.doj, updated.designation, updated.pfn, updated.isActive,
+      EmployeeEntity(updated.id, updated.name, updated.gender, updated.doj, updated.dor, updated.designation, updated.pfn,
         updated.contactInfo.phone, updated.contactInfo.email, updated.location.city, updated.location.state, updated.location.country,
         updated.leaves.earned, updated.leaves.sick, updated.leaves.extra, updated.roles)
 
     employeeRepository.updateEmployee(employee)
   }
 
-  private def processEmployeeTerminated(eventStreamElement: EventStreamElement[EmployeeTerminated]): DBIO[Done] = {
-    log.info(s"EmployeeEventProcessor received EmployeeTerminated event.")
+  private def processEmployeeReleased(eventStreamElement: EventStreamElement[EmployeeReleased]): DBIO[Done] = {
+    log.info(s"EmployeeEventProcessor received EmployeeReleased event.")
 
-    val terminated = eventStreamElement.event
-    employeeRepository.terminateEmployee(terminated.id)
+    val released = eventStreamElement.event
+    employeeRepository.releaseEmployee(released.id, released.dor)
   }
 
   private def processEmployeeDeleted(eventStreamElement: EventStreamElement[EmployeeDeleted]): DBIO[Done] = {

@@ -14,24 +14,24 @@ object EmployeeKafkaEvent {
   implicit val format: Format[EmployeeKafkaEvent] = derived.flat.oformat((__ \ "type").format[String])
 }
 
-case class EmployeeAddedKafkaEvent(id: Long, name: String, gender: String, doj: LocalDate, designation: String, pfn: String,
-                                   isActive: Boolean, contactInfo: ContactInfo, location: Location, leaves: Leaves, roles: List[Role]) extends EmployeeKafkaEvent
+case class EmployeeAddedKafkaEvent(id: Long, name: String, gender: String, doj: LocalDate, dor: Option[LocalDate], designation: String, pfn: String,
+                                   contactInfo: ContactInfo, location: Location, leaves: Leaves, roles: List[Role]) extends EmployeeKafkaEvent
 
 object EmployeeAddedKafkaEvent {
   implicit val format: Format[EmployeeAddedKafkaEvent] = Json.format[EmployeeAddedKafkaEvent]
 }
 
-case class EmployeeUpdatedKafkaEvent(id: Long, name: String, gender: String, doj: LocalDate, designation: String, pfn: String,
-                                     isActive: Boolean, contactInfo: ContactInfo, location: Location, leaves: Leaves, roles: List[Role]) extends EmployeeKafkaEvent
+case class EmployeeUpdatedKafkaEvent(id: Long, name: String, gender: String, doj: LocalDate, dor: Option[LocalDate], designation: String, pfn: String,
+                                     contactInfo: ContactInfo, location: Location, leaves: Leaves, roles: List[Role]) extends EmployeeKafkaEvent
 
 object EmployeeUpdatedKafkaEvent {
   implicit val format: Format[EmployeeUpdatedKafkaEvent] = Json.format[EmployeeUpdatedKafkaEvent]
 }
 
-case class EmployeeTerminatedKafkaEvent(id: Long) extends EmployeeKafkaEvent
+case class EmployeeReleasedKafkaEvent(id: Long, dor: LocalDate) extends EmployeeKafkaEvent
 
-object EmployeeTerminatedKafkaEvent {
-  implicit val format: Format[EmployeeTerminatedKafkaEvent] = Json.format[EmployeeTerminatedKafkaEvent]
+object EmployeeReleasedKafkaEvent {
+  implicit val format: Format[EmployeeReleasedKafkaEvent] = Json.format[EmployeeReleasedKafkaEvent]
 }
 
 case class EmployeeDeletedKafkaEvent(id: Long) extends EmployeeKafkaEvent

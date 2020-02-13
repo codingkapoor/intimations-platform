@@ -3,7 +3,7 @@ package com.codingkapoor.passwordless.impl.service
 import akka.Done
 import akka.stream.scaladsl.Flow
 import com.codingkapoor.employee.api.EmployeeService
-import com.codingkapoor.employee.api.model.{EmployeeAddedKafkaEvent, EmployeeDeletedKafkaEvent, EmployeeKafkaEvent, EmployeeTerminatedKafkaEvent, EmployeeUpdatedKafkaEvent}
+import com.codingkapoor.employee.api.model.{EmployeeAddedKafkaEvent, EmployeeDeletedKafkaEvent, EmployeeKafkaEvent, EmployeeReleasedKafkaEvent, EmployeeUpdatedKafkaEvent}
 import com.codingkapoor.passwordless.impl.repository.employee.{EmployeeDao, EmployeeEntity}
 import com.codingkapoor.passwordless.impl.repository.otp.OTPDao
 import com.codingkapoor.passwordless.impl.repository.token.RefreshTokenDao
@@ -28,20 +28,20 @@ trait EmployeeKafkaEventHandler {
       Flow[EmployeeKafkaEvent].map { ke =>
         ke match {
           case added: EmployeeAddedKafkaEvent =>
-            employeeDao.addEmployee(EmployeeEntity(added.id, added.name, added.isActive, added.contactInfo.email, added.roles))
+            employeeDao.addEmployee(EmployeeEntity(added.id, added.name, added.contactInfo.email, added.roles))
 
           case updated: EmployeeUpdatedKafkaEvent =>
-            employeeDao.updateEmployee(EmployeeEntity(updated.id, updated.name, updated.isActive, updated.contactInfo.email, updated.roles))
+            employeeDao.updateEmployee(EmployeeEntity(updated.id, updated.name, updated.contactInfo.email, updated.roles))
 
-          case terminated: EmployeeTerminatedKafkaEvent =>
-            val empId = terminated.id
+          case released: EmployeeReleasedKafkaEvent =>
+            val empId = released.id
 
             for {
-              _ <- employeeDao.terminateEmployee(empId)
+              _ <- employeeDao.deleteEmployee(empId)
               _ <- otpDao.deleteOTP(empId)
               _ <- refreshTokenDao.deleteRefreshToken(empId)
             } yield {
-              logger.info(s"EmployeeTerminatedKafkaEvent kafka event received. Deleted both OTPs and Refresh Tokens that belonged to empId = ${ke.id}, if any.")
+              logger.info(s"EmployeeReleasedKafkaEvent kafka event received. Deleted both OTPs and Refresh Tokens that belonged to empId = ${ke.id}, if any.")
             }
 
           case deleted: EmployeeDeletedKafkaEvent =>

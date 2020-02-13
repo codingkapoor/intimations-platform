@@ -22,6 +22,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
   override def behavior: Behavior = {
     case state if state.isEmpty => initial
+    case state if state.isDefined && state.get.dor.isDefined => employeeReleased
     case state if state.isDefined => employeeAdded
   }
 
@@ -32,7 +33,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
           logger.info(s"EmployeePersistenceEntity at state = $state received AddEmployee command.")
 
           ctx.thenPersist(
-            EmployeeAdded(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, e.leaves, e.roles)
+            EmployeeAdded(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, e.leaves, e.roles)
           )(_ => ctx.reply(Done))
 
       }.onCommand[UpdateEmployee, Employee] {
@@ -46,9 +47,9 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         ctx.done
 
-    }.onCommand[TerminateEmployee, Done] {
-      case (TerminateEmployee(id), ctx, state) =>
-        logger.info(s"EmployeePersistenceEntity at state = $state received TerminateEmployee command.")
+    }.onCommand[ReleaseEmployee, Done] {
+      case (ReleaseEmployee(id), ctx, state) =>
+        logger.info(s"EmployeePersistenceEntity at state = $state received ReleaseEmployee command.")
 
         val msg = s"No employee found with id = $id."
 
@@ -113,8 +114,8 @@ class EmployeePersistenceEntity extends PersistentEntity {
         ctx.done
 
     }.onEvent {
-      case (EmployeeAdded(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles), _) =>
-        Some(EmployeeState(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles, None, Leaves()))
+      case (EmployeeAdded(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles), _) =>
+        Some(EmployeeState(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles, None, Leaves()))
     }
 
   private val employeeAdded: Actions =
@@ -150,30 +151,30 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
             ctx.thenPersistAll(
               LastLeavesSaved(e.id, balanced.earned, balanced.sick, balanced.extra),
-              EmployeeUpdated(e.id, e.name, e.gender, e.doj, designation, e.pfn, e.isActive, contactInfo, location, newLeaves, roles)
-            )(() => ctx.reply(Employee(e.id, e.name, e.gender, e.doj, designation, e.pfn, e.isActive, contactInfo, location, newLeaves, roles)))
+              EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, designation, e.pfn, contactInfo, location, newLeaves, roles)
+            )(() => ctx.reply(Employee(e.id, e.name, e.gender, e.doj, e.dor, designation, e.pfn, contactInfo, location, newLeaves, roles)))
           } else {
             val balanced = balanceExtra(leaves.earned, leaves.sick, e.leaves.extra)
 
-            ctx.thenPersistAll(EmployeeUpdated(e.id, e.name, e.gender, e.doj, designation, e.pfn, e.isActive, contactInfo, location, balanced, roles))(() =>
-              ctx.reply(Employee(e.id, e.name, e.gender, e.doj, designation, e.pfn, e.isActive, contactInfo, location, balanced, roles)))
+            ctx.thenPersistAll(EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, designation, e.pfn, contactInfo, location, balanced, roles))(() =>
+              ctx.reply(Employee(e.id, e.name, e.gender, e.doj, e.dor, designation, e.pfn, contactInfo, location, balanced, roles)))
           }
         } else
-          ctx.thenPersist(EmployeeUpdated(e.id, e.name, e.gender, e.doj, designation, e.pfn, e.isActive, contactInfo, location, employeeInfo.leaves.getOrElse(e.leaves), roles))(_ =>
-            ctx.reply(Employee(e.id, e.name, e.gender, e.doj, designation, e.pfn, e.isActive, contactInfo, location, employeeInfo.leaves.getOrElse(e.leaves), roles)))
+          ctx.thenPersist(EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, designation, e.pfn, contactInfo, location, employeeInfo.leaves.getOrElse(e.leaves), roles))(_ =>
+            ctx.reply(Employee(e.id, e.name, e.gender, e.doj, e.dor, designation, e.pfn, contactInfo, location, employeeInfo.leaves.getOrElse(e.leaves), roles)))
 
-    }.onCommand[TerminateEmployee, Done] {
-      case (TerminateEmployee(_), ctx, state@Some(e)) =>
-        logger.info(s"EmployeePersistenceEntity at state = $state received TerminateEmployee command.")
+    }.onCommand[ReleaseEmployee, Done] {
+      case (ReleaseEmployee(_), ctx, state@Some(e)) =>
+        logger.info(s"EmployeePersistenceEntity at state = $state received ReleaseEmployee command.")
 
         if (e.roles.contains(Role.Admin)) {
-          val msg = s"Employees (id = ${e.id}) with admin privileges can't be terminated. Admin privileges must be revoked first."
+          val msg = s"Employees (id = ${e.id}) with admin privileges can't be released. Admin privileges must be revoked first."
 
           ctx.invalidCommand(msg)
           logger.error(s"InvalidCommandException: $msg")
 
           ctx.done
-        } else ctx.thenPersist(EmployeeTerminated(e.id))(_ => ctx.reply(Done))
+        } else ctx.thenPersist(EmployeeReleased(e.id, LocalDate.now()))(_ => ctx.reply(Done))
 
     }.onCommand[DeleteEmployee, Done] {
       case (DeleteEmployee(id), ctx, state@Some(e)) =>
@@ -225,7 +226,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
           ctx.thenPersistAll(
             IntimationCreated(empId, intimationReq.reason, LocalDateTime.now(), intimationReq.requests),
             LastLeavesSaved(empId, e.leaves.earned, e.leaves.sick, e.leaves.extra),
-            EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, newLeaves, e.roles)
+            EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles)
           )(() => ctx.reply(newLeaves))
 
         } else {
@@ -286,7 +287,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
           ctx.thenPersistAll(
             IntimationUpdated(empId, intimationReq.reason, LocalDateTime.now(), newRequests),
-            EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, newLeaves, e.roles)
+            EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles)
           )(() => ctx.reply(newLeaves))
         }
 
@@ -317,7 +318,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
           ctx.thenPersistAll(
             IntimationCancelled(empId, reason, LocalDateTime.now(), requestsAlreadyConsumed),
-            EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, e.contactInfo, e.location, newLeaves, e.roles)
+            EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles)
           )(() => ctx.reply(newLeaves))
         }
 
@@ -347,11 +348,11 @@ class EmployeePersistenceEntity extends PersistentEntity {
         ctx.done
 
     }.onEvent {
-      case (EmployeeUpdated(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles), Some(e)) =>
-        Some(EmployeeState(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles, e.activeIntimationOpt, e.lastLeaves))
+      case (EmployeeUpdated(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles), Some(e)) =>
+        Some(EmployeeState(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles, e.activeIntimationOpt, e.lastLeaves))
 
-      case (EmployeeTerminated(_), Some(e)) =>
-        Some(e.copy(isActive = false))
+      case (EmployeeReleased(_, dor), Some(e)) =>
+        Some(e.copy(dor = Some(dor)))
 
       case (EmployeeDeleted(_), _) =>
         None
@@ -371,6 +372,97 @@ class EmployeePersistenceEntity extends PersistentEntity {
       case (LeavesCredited(_, earned, sick, extra), Some(e)) =>
         Some(e.copy(leaves = Leaves(earned, sick, extra)))
     }
+
+  private val employeeReleased: Actions =
+    Actions()
+      .onCommand[AddEmployee, Done] {
+        case (AddEmployee(e), ctx, state) =>
+          logger.info(s"EmployeePersistenceEntity at state = $state received AddEmployee command.")
+
+          val msg = s"Employee with id = ${e.id} already exists."
+
+          ctx.invalidCommand(msg)
+          logger.error(s"InvalidCommandException: $msg")
+
+          ctx.done
+
+      }.onCommand[UpdateEmployee, Employee] {
+      case (UpdateEmployee(id, _), ctx, state) =>
+        logger.info(s"EmployeePersistenceEntity at state = $state received UpdateEmployee command.")
+
+        val msg = s"Employee with id = $id has already been released."
+
+        ctx.invalidCommand(msg)
+        logger.error(s"InvalidCommandException: $msg")
+
+        ctx.done
+
+    }.onCommand[ReleaseEmployee, Done] {
+      case (ReleaseEmployee(id), ctx, state) =>
+        logger.info(s"EmployeePersistenceEntity at state = $state received ReleaseEmployee command.")
+
+        val msg = s"Employee with id = $id has already been released."
+
+        ctx.invalidCommand(msg)
+        logger.error(s"InvalidCommandException: $msg")
+
+        ctx.done
+
+    }.onCommand[DeleteEmployee, Done] {
+      case (DeleteEmployee(id), ctx, state@Some(e)) =>
+        logger.info(s"EmployeePersistenceEntity at state = $state received DeleteEmployee command.")
+
+        ctx.thenPersist(EmployeeDeleted(id))(_ => ctx.reply(Done))
+
+    }.onCommand[CreateIntimation, Leaves] {
+      case (CreateIntimation(empId, _), ctx, state) =>
+        logger.info(s"EmployeePersistenceEntity at state = $state received CreateIntimation command.")
+
+        val msg = s"Employee with id = $empId has already been released."
+
+        ctx.invalidCommand(msg)
+        logger.error(s"InvalidCommandException: $msg")
+
+        ctx.done
+
+    }.onCommand[UpdateIntimation, Leaves] {
+      case (UpdateIntimation(empId, _), ctx, state) =>
+        logger.info(s"EmployeePersistenceEntity at state = $state received UpdateIntimation command.")
+
+        val msg = s"Employee with id = $empId has already been released."
+
+        ctx.invalidCommand(msg)
+        logger.error(s"InvalidCommandException: $msg")
+
+        ctx.done
+
+    }.onCommand[CancelIntimation, Leaves] {
+      case (CancelIntimation(empId), ctx, state) =>
+        logger.info(s"EmployeePersistenceEntity at state = $state received CancelIntimation command.")
+
+        val msg = s"Employee with id = $empId has already been released."
+
+        ctx.invalidCommand(msg)
+        logger.error(s"InvalidCommandException: $msg")
+
+        ctx.done
+
+    }.onCommand[CreditLeaves, Done] {
+      case (CreditLeaves(empId), ctx, state) =>
+        logger.info(s"EmployeePersistenceEntity at state = $state received Credit command.")
+
+        val msg = s"Employee with id = $empId has already been released."
+
+        ctx.invalidCommand(msg)
+        logger.error(s"InvalidCommandException: $msg")
+
+        ctx.done
+
+    }.onEvent {
+      case (EmployeeDeleted(_), _) =>
+        None
+    }
+
 }
 
 object EmployeePersistenceEntity {

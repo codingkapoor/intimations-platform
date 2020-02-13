@@ -1,5 +1,7 @@
 package com.codingkapoor.employee.impl.persistence.read.repository.employee
 
+import java.time.LocalDate
+
 import akka.Done
 import slick.jdbc.JdbcBackend.Database
 import slick.jdbc.MySQLProfile.api._
@@ -20,10 +22,10 @@ class EmployeeDao(db: Database) {
     employees.insertOrUpdate(employee).map(_ => Done)
   }
 
-  def terminateEmployee(id: Long): DBIO[Done] = {
+  def releaseEmployee(id: Long, dor: LocalDate): DBIO[Done] = {
     val res = Await.result(getEmployee(id), 5.seconds)
 
-    if (res.isDefined) employees.insertOrUpdate(res.get.copy(isActive = false)).map(_ => Done)
+    if (res.isDefined) employees.insertOrUpdate(res.get.copy(dor = Some(dor))).map(_ => Done)
     else throw new Exception(s"Employee not found with id $id")
   }
 

@@ -62,13 +62,13 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
       }
     )
 
-  override def terminateEmployee(id: Long): ServiceCall[NotUsed, Done] =
+  override def releaseEmployee(id: Long): ServiceCall[NotUsed, Done] =
     authorize(requireAllRoles[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
       ServerServiceCall { _: NotUsed =>
         validateTokenType(profile)
         validateIfProfileBelongsToAdmin(profile)
 
-        entityRef(id).ask(TerminateEmployee(id)).recover {
+        entityRef(id).ask(ReleaseEmployee(id)).recover {
           case e: InvalidCommandException => throw BadRequest(e.getMessage)
         }
       }
@@ -182,14 +182,14 @@ object EmployeeServiceImpl {
 
   private def convertPersistentEntityEventToKafkaEvent(eventStreamElement: EventStreamElement[EmployeeEvent]): EmployeeKafkaEvent = {
     eventStreamElement.event match {
-      case EmployeeAdded(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles) =>
-        EmployeeAddedKafkaEvent(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles)
+      case EmployeeAdded(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles) =>
+        EmployeeAddedKafkaEvent(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles)
 
-      case EmployeeUpdated(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles) =>
-        EmployeeUpdatedKafkaEvent(id, name, gender, doj, designation, pfn, isActive, contactInfo, location, leaves, roles)
+      case EmployeeUpdated(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles) =>
+        EmployeeUpdatedKafkaEvent(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles)
 
-      case EmployeeTerminated(id) =>
-        EmployeeTerminatedKafkaEvent(id)
+      case EmployeeReleased(id, dor) =>
+        EmployeeReleasedKafkaEvent(id, dor)
 
       case EmployeeDeleted(id) =>
         EmployeeDeletedKafkaEvent(id)
@@ -212,7 +212,7 @@ object EmployeeServiceImpl {
   }
 
   private def convertEmployeeReadEntityToEmployee(e: EmployeeEntity): Employee = {
-    api.model.Employee(e.id, e.name, e.gender, e.doj, e.designation, e.pfn, e.isActive, ContactInfo(e.phone, e.email),
+    api.model.Employee(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, ContactInfo(e.phone, e.email),
       Location(e.city, e.state, e.country), Leaves(e.earnedLeaves, e.sickLeaves), e.roles)
   }
 

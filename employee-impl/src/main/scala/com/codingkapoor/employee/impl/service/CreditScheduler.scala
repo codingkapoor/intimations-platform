@@ -25,7 +25,7 @@ class CreditScheduler(system: ActorSystem, persistentEntityRegistry: PersistentE
     if (today.isEqual(lastDate)) {
       val res = employeeDao.getEmployees()
       res.map { employees =>
-        employees.filter(e => e.isActive).foreach(e => entityRef(e.id).ask(CreditLeaves(e.id)))
+        employees.filter(e => e.dor.isDefined).foreach(e => entityRef(e.id).ask(CreditLeaves(e.id)))
       }
     }
   }
