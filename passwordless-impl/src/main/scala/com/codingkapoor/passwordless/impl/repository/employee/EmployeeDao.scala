@@ -19,13 +19,6 @@ class EmployeeDao(db: Database) {
     db.run(employees.insertOrUpdate(employee))
   }
 
-  def terminateEmployee(id: Long): Future[Int] = {
-    getEmployee(id).flatMap { res =>
-      if (res.isDefined) db.run(employees.insertOrUpdate(res.get.copy(isActive = false)))
-      else throw new Exception(s"Employee not found with id $id")
-    }
-  }
-
   def getEmployees(email: Option[String]): Future[Seq[EmployeeEntity]] = {
     if (email.isDefined) db.run(employees.filter(_.email === email.get).result)
     else db.run(employees.result)

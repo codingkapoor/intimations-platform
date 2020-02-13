@@ -13,7 +13,7 @@ export const handleKafkaEvents = (message) => {
             });
             break;
         case 'EmployeeDeletedKafkaEvent':
-        case 'EmployeeTerminatedKafkaEvent':
+        case 'EmployeeReleasedKafkaEvent':
             pool.query(`DELETE FROM ${table} WHERE empId = ${data.id}`, (err, res) => {
                 if (err) throw err;
                 console.log("1 record deleted");

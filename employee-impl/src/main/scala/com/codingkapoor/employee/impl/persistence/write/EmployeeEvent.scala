@@ -15,24 +15,24 @@ sealed trait EmployeeEvent extends AggregateEvent[EmployeeEvent] {
   def aggregateTag: AggregateEventTag[EmployeeEvent] = EmployeeEvent.Tag
 }
 
-case class EmployeeAdded(id: Long, name: String, gender: String, doj: LocalDate, designation: String, pfn: String, isActive: Boolean,
+case class EmployeeAdded(id: Long, name: String, gender: String, doj: LocalDate, dor: Option[LocalDate], designation: String, pfn: String,
                          contactInfo: ContactInfo, location: Location, leaves: Leaves, roles: List[Role]) extends EmployeeEvent
 
 object EmployeeAdded {
   implicit val format: Format[EmployeeAdded] = Json.format[EmployeeAdded]
 }
 
-case class EmployeeUpdated(id: Long, name: String, gender: String, doj: LocalDate, designation: String, pfn: String, isActive: Boolean,
+case class EmployeeUpdated(id: Long, name: String, gender: String, doj: LocalDate, dor: Option[LocalDate], designation: String, pfn: String,
                            contactInfo: ContactInfo, location: Location, leaves: Leaves, roles: List[Role]) extends EmployeeEvent
 
 object EmployeeUpdated {
   implicit val format: Format[EmployeeUpdated] = Json.format[EmployeeUpdated]
 }
 
-case class EmployeeTerminated(id: Long) extends EmployeeEvent
+case class EmployeeReleased(id: Long, dor: LocalDate) extends EmployeeEvent
 
-object EmployeeTerminated {
-  implicit val format: Format[EmployeeTerminated] = Json.format[EmployeeTerminated]
+object EmployeeReleased {
+  implicit val format: Format[EmployeeReleased] = Json.format[EmployeeReleased]
 }
 
 case class EmployeeDeleted(id: Long) extends EmployeeEvent

@@ -31,8 +31,8 @@ object Role extends Enumeration {
   implicit val format: Format[Role.Value] = Json.formatEnum(this)
 }
 
-case class Employee(id: Long, name: String, gender: String, doj: LocalDate, designation: String, pfn: String,
-                    isActive: Boolean = true, contactInfo: ContactInfo, location: Location = Location(), leaves: Leaves = Leaves(), roles: List[Role])
+case class Employee(id: Long, name: String, gender: String, doj: LocalDate, dor: Option[LocalDate] = None, designation: String, pfn: String,
+                    contactInfo: ContactInfo, location: Location = Location(), leaves: Leaves = Leaves(), roles: List[Role])
 
 object Employee {
   implicit val format: Format[Employee] = Json.using[Json.WithDefaultValues].format[Employee]
