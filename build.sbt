@@ -107,6 +107,30 @@ lazy val `passwordless-impl` = (project in file("passwordless-impl"))
   .settings(lagomForkedTestSettings)
   .dependsOn(`passwordless-api`, `employee-api`)
 
+lazy val `notifier-api` = (project in file("notifier-api"))
+  .settings(
+    libraryDependencies ++= Seq(
+      lagomScaladslApi
+    )
+  )
+
+lazy val `notifier-impl` = (project in file("notifier-impl"))
+  .enablePlugins(LagomScala)
+  .settings(
+    libraryDependencies ++= Seq(
+      lagomPac4j,
+      lagomScaladslTestKit,
+      lagomScaladslPersistenceJdbc,
+      lagomScaladslKafkaClient,
+      macwire,
+      scalaTest,
+      courier,
+      mysql
+    )
+  )
+  .settings(lagomForkedTestSettings)
+  .dependsOn(`notifier-api`, `employee-api`)
+
 lagomServiceGatewayAddress in ThisBuild := "0.0.0.0"
 
 //lagomCassandraCleanOnStart in ThisBuild := true

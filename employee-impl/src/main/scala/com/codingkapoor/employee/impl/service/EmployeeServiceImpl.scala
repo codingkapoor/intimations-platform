@@ -44,6 +44,7 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
 
         entityRef(employee.id).ask(AddEmployee(employee)).recover {
           case e: InvalidCommandException => throw BadRequest(e.getMessage)
+            // TODO: How about handling general exception and logging the same
         }
       }
     )
