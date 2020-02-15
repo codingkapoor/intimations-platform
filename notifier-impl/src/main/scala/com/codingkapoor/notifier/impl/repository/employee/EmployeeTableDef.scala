@@ -4,7 +4,7 @@ import slick.jdbc.MySQLProfile.api._
 
 final case class EmployeeEntity(empId: Long, empName: String, expoToken: Option[String])
 
-class EmployeeTableDef(tag: Tag) extends Table[EmployeeEntity](tag, "employee") {
+class EmployeeTableDef(tag: Tag) extends Table[EmployeeEntity](tag, "employees") {
 
   def empId = column[Long]("EMP_ID", O.PrimaryKey)
 
