@@ -14,6 +14,7 @@ val courier = "com.github.daddykotex" %% "courier" % "2.0.0"
 val lagomPac4j = "org.pac4j" %% "lagom-pac4j" % "2.0.0"
 val pac4jHttp = "org.pac4j" % "pac4j-http" % pac4jVersion
 val pac4jJwt = "org.pac4j" % "pac4j-jwt" % pac4jVersion
+val expoServerSdk = "com.kinoroy.expo.push" % "expo-push-sdk" % "0.1.3"
 
 lazy val `intimations` = (project in file("."))
   .aggregate(`employee-api`, `employee-impl`, `holiday-api`, `holiday-impl`, `audit`, `passwordless-api`, `passwordless-impl`)
@@ -106,6 +107,34 @@ lazy val `passwordless-impl` = (project in file("passwordless-impl"))
   )
   .settings(lagomForkedTestSettings)
   .dependsOn(`passwordless-api`, `employee-api`)
+
+lazy val `notifier-api` = (project in file("notifier-api"))
+  .settings(
+    libraryDependencies ++= Seq(
+      lagomScaladslApi
+    )
+  )
+  .dependsOn(`employee-api`)
+
+lazy val `notifier-impl` = (project in file("notifier-impl"))
+  .enablePlugins(LagomScala)
+  .settings(
+    libraryDependencies ++= Seq(
+      lagomScaladslTestKit,
+      lagomScaladslPersistenceJdbc,
+      lagomScaladslKafkaClient,
+      macwire,
+      scalaTest,
+      courier,
+      mysql,
+      expoServerSdk,
+      pac4jHttp,
+      pac4jJwt,
+      lagomPac4j
+    )
+  )
+  .settings(lagomForkedTestSettings)
+  .dependsOn(`notifier-api`, `employee-api`)
 
 lagomServiceGatewayAddress in ThisBuild := "0.0.0.0"
 
