@@ -1,9 +1,9 @@
-package com.codingkapoor.notifier.api
+package com.codingkapoor.notifier.api.model
 
 import java.time.LocalDateTime
 
 import com.codingkapoor.employee.api.model.Request
-import com.codingkapoor.notifier.api.IntimationType.IntimationType
+import com.codingkapoor.notifier.api.model.IntimationType.IntimationType
 import play.api.libs.json.{Format, Json}
 
 object IntimationType extends Enumeration {

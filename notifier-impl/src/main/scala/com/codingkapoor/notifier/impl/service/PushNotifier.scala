@@ -1,8 +1,8 @@
 package com.codingkapoor.notifier.impl.service
 
 import java.time.LocalDate
+
 import play.api.libs.json.Json
-import com.codingkapoor.notifier.api.Notification
 import com.codingkapoor.notifier.impl.repository.employee.EmployeeDao
 import com.kinoroy.expo.push._
 import org.slf4j.{Logger, LoggerFactory}
@@ -15,7 +15,8 @@ import scala.util.control.NonFatal
 import java.util
 
 import com.codingkapoor.employee.api.model.RequestType
-import com.codingkapoor.notifier.api.IntimationType._
+import com.codingkapoor.notifier.api.model.IntimationType._
+import com.codingkapoor.notifier.api.model.Notification
 
 class PushNotifier(employeeDao: EmployeeDao) {
 

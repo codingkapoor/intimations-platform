@@ -1,8 +1,8 @@
 package com.codingkapoor.notifier.impl.service
 
 import com.codingkapoor.employee.api.model.RequestType
-import com.codingkapoor.notifier.api.Notification
-import com.codingkapoor.notifier.api.IntimationType.{Cancelled, Created, Updated}
+import com.codingkapoor.notifier.api.model.IntimationType.{Cancelled, Created, Updated}
+import com.codingkapoor.notifier.api.model.Notification
 import courier.Defaults._
 import courier._
 import javax.mail.internet.InternetAddress
