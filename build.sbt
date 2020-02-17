@@ -14,6 +14,7 @@ val courier = "com.github.daddykotex" %% "courier" % "2.0.0"
 val lagomPac4j = "org.pac4j" %% "lagom-pac4j" % "2.0.0"
 val pac4jHttp = "org.pac4j" % "pac4j-http" % pac4jVersion
 val pac4jJwt = "org.pac4j" % "pac4j-jwt" % pac4jVersion
+val expoServerSdk = "com.kinoroy.expo.push" % "expo-push-sdk" % "0.1.3"
 
 lazy val `intimations` = (project in file("."))
   .aggregate(`employee-api`, `employee-impl`, `holiday-api`, `holiday-impl`, `audit`, `passwordless-api`, `passwordless-impl`)
@@ -113,6 +114,7 @@ lazy val `notifier-api` = (project in file("notifier-api"))
       lagomScaladslApi
     )
   )
+  .dependsOn(`employee-api`)
 
 lazy val `notifier-impl` = (project in file("notifier-impl"))
   .enablePlugins(LagomScala)
@@ -125,7 +127,8 @@ lazy val `notifier-impl` = (project in file("notifier-impl"))
       macwire,
       scalaTest,
       courier,
-      mysql
+      mysql,
+      expoServerSdk
     )
   )
   .settings(lagomForkedTestSettings)

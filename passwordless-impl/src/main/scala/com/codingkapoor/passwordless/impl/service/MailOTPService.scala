@@ -5,7 +5,7 @@ import java.time.format.DateTimeFormatter
 
 import courier.Defaults._
 import courier._
-import org.slf4j.LoggerFactory
+import org.slf4j.{Logger, LoggerFactory}
 import play.api.Configuration
 
 import scala.util.{Failure, Success}
@@ -31,16 +31,16 @@ class MailOTPService(config: Configuration) {
         .content(Text(BODY.format(otp, expiriesAt)))
 
     mailer(envelope).onComplete {
-      case Success(_) => log.info("OTP sent successfully.")
+      case Success(_) => logger.info("OTP sent successfully.")
       case Failure(e) => e.printStackTrace()
     }
   }
 }
 
 object MailOTPService {
-  val log = LoggerFactory.getLogger(classOf[MailOTPService])
+  val logger: Logger = LoggerFactory.getLogger(classOf[MailOTPService])
 
-  val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+  val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
   final val SUBJECT = "%s is your OTP for login"
   final val BODY =
@@ -67,7 +67,7 @@ object MailOTPService {
     val password: Option[String] = config.getOptional[String]("mail.password")
 
     if (interface.isEmpty || port.isEmpty || email.isEmpty || password.isEmpty)
-      log.warn("Mail configurations missing. Resorting to default configurations.")
+      logger.warn("Mail configurations missing. Resorting to default configurations.")
 
     Mail(
       email.getOrElse("intimations@glassbeam.com"),

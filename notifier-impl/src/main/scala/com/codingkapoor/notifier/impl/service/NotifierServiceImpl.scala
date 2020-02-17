@@ -1,6 +1,7 @@
 package com.codingkapoor.notifier.impl.service
 
 import akka.{Done, NotUsed}
+import com.codingkapoor.employee.api.EmployeeService
 import com.codingkapoor.notifier.api.NotifierService
 import com.codingkapoor.notifier.impl.repository.employee.EmployeeDao
 import com.lightbend.lagom.scaladsl.api.ServiceCall
@@ -9,10 +10,12 @@ import org.slf4j.{Logger, LoggerFactory}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class NotifierServiceImpl(employeeDao: EmployeeDao) extends NotifierService {
+class NotifierServiceImpl(override val employeeService: EmployeeService, override val employeeDao: EmployeeDao, override val mailNotifier: MailNotifier,
+                          override val pushNotifier: PushNotifier) extends NotifierService with EmployeeKafkaEventHandler {
 
-  val logger: Logger = LoggerFactory.getLogger(classOf[NotifierServiceImpl])
+  override val logger: Logger = LoggerFactory.getLogger(classOf[NotifierServiceImpl])
 
+  // TODO: Authentication/Authorization
   override def subscribe(empId: Long): ServiceCall[ExpoToken, Done] = ServiceCall { expoToken =>
     employeeDao.getEmployee(empId).flatMap { employeeOpt =>
       if (employeeOpt.isDefined) {

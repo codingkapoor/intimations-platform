@@ -4,6 +4,7 @@ import slick.jdbc.JdbcBackend.Database
 import slick.jdbc.MySQLProfile.api._
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class EmployeeDao(db: Database) {
 
@@ -17,6 +18,10 @@ class EmployeeDao(db: Database) {
 
   def getEmployee(empId: Long): Future[Option[EmployeeEntity]] = {
     db.run(employees.filter(_.empId === empId).result.headOption)
+  }
+
+  def getEmployees: Future[List[EmployeeEntity]] = {
+    db.run(employees.result).map(_.toList)
   }
 
   def updateEmployee(employee: EmployeeEntity): Future[Int] = {
