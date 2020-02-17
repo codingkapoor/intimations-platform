@@ -120,7 +120,6 @@ lazy val `notifier-impl` = (project in file("notifier-impl"))
   .enablePlugins(LagomScala)
   .settings(
     libraryDependencies ++= Seq(
-      lagomPac4j,
       lagomScaladslTestKit,
       lagomScaladslPersistenceJdbc,
       lagomScaladslKafkaClient,
@@ -128,7 +127,10 @@ lazy val `notifier-impl` = (project in file("notifier-impl"))
       scalaTest,
       courier,
       mysql,
-      expoServerSdk
+      expoServerSdk,
+      pac4jHttp,
+      pac4jJwt,
+      lagomPac4j
     )
   )
   .settings(lagomForkedTestSettings)

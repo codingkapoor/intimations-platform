@@ -1,5 +1,7 @@
 package com.codingkapoor.notifier.impl.core
 
+import java.util
+
 import com.lightbend.lagom.scaladsl.server.{LagomApplication, LagomApplicationContext, LagomServer}
 import com.softwaremill.macwire.wire
 import play.api.libs.ws.ahc.AhcWSComponents
@@ -10,6 +12,12 @@ import com.codingkapoor.notifier.impl.service.{MailNotifier, NotifierServiceImpl
 import com.lightbend.lagom.scaladsl.broker.kafka.LagomKafkaClientComponents
 import com.lightbend.lagom.scaladsl.persistence.slick.SlickPersistenceComponents
 import com.lightbend.lagom.scaladsl.playjson.JsonSerializerRegistry
+import org.pac4j.core.config.Config
+import org.pac4j.core.context.HttpConstants.{AUTHORIZATION_HEADER, BEARER_HEADER_PREFIX}
+import org.pac4j.core.context.WebContext
+import org.pac4j.core.profile.CommonProfile
+import org.pac4j.http.client.direct.HeaderClient
+import org.pac4j.lagom.jwt.JwtAuthenticatorHelper
 import play.api.db.HikariCPComponents
 
 abstract class NotifierApplication(context: LagomApplicationContext)
@@ -29,5 +37,24 @@ abstract class NotifierApplication(context: LagomApplicationContext)
   lazy val mailNotifier: MailNotifier = wire[MailNotifier]
 
   lazy val pushNotifier: PushNotifier = wire[PushNotifier]
+
+  lazy val jwtClient: HeaderClient = {
+    val headerClient = new HeaderClient
+    headerClient.setHeaderName(AUTHORIZATION_HEADER)
+    headerClient.setPrefixHeader(BEARER_HEADER_PREFIX)
+    headerClient.setAuthenticator(JwtAuthenticatorHelper.parse(config.getConfig("pac4j.lagom.jwt.authenticator")))
+    headerClient.setAuthorizationGenerator((_: WebContext, profile: CommonProfile) => {
+      if (profile.containsAttribute("roles")) profile.addRoles(profile.getAttribute("roles", classOf[util.Collection[String]]))
+      profile
+    })
+    headerClient.setName("jwt_header")
+    headerClient
+  }
+
+  lazy val serviceConfig: Config = {
+    val config = new Config(jwtClient)
+    config.getClients.setDefaultSecurityClients(jwtClient.getName)
+    config
+  }
 
 }
