@@ -52,9 +52,13 @@ object MailNotifier {
   private final val BODY =
     """
       |
-      |Reason# %s
+      |Reason
+      |----------------
+      |%s
       |
-      |Requests#
+      |
+      |Requests
+      |-----------------
       |%s
       |
       |""".stripMargin
@@ -84,36 +88,39 @@ object MailNotifier {
   }
 
   private def getContent(notification: Notification): (String, String) = {
-    val subject = notification.intimationType match {
-      case Created => INTIMATION_CREATION_TITLE_TEMPLATE.format(notification.empName)
-      case Updated => INTIMATION_UPDATE_TITLE_TEMPLATE.format(notification.empName)
-      case Cancelled => INTIMATION_CANCELLATION_TITLE_TEMPLATE.format(notification.empName)
+
+    def getBody: String = {
+      val requests = StringBuilder.newBuilder
+      for (request <- notification.requests.toList.sortWith((r1, r2) => r1.date.isBefore(r2.date))) {
+        val date = request.date.toString
+
+        if (request.firstHalf == RequestType.WFH && request.secondHalf == RequestType.WFO)
+          requests.append(s"${WFH_WFO_MAIL_BODY_TEMPLATE.format(date)}\n")
+        else if (request.firstHalf == RequestType.WFO && request.secondHalf == RequestType.WFH)
+          requests.append(s"${WFO_WFH_MAIL_BODY_TEMPLATE.format(date)}\n")
+        else if (request.firstHalf == RequestType.WFO && request.secondHalf == RequestType.Leave)
+          requests.append(s"${WFO_LEAVE_MAIL_BODY_TEMPLATE.format(date)}\n")
+        else if (request.firstHalf == RequestType.Leave && request.secondHalf == RequestType.WFO)
+          requests.append(s"${LEAVE_WFO_MAIL_BODY_TEMPLATE.format(date)}\n")
+        else if (request.firstHalf == RequestType.WFH && request.secondHalf == RequestType.Leave)
+          requests.append(s"${WFH_LEAVE_MAIL_BODY_TEMPLATE.format(date)}\n")
+        else if (request.firstHalf == RequestType.Leave && request.secondHalf == RequestType.WFH)
+          requests.append(s"${LEAVE_WFH_MAIL_BODY_TEMPLATE.format(date)}\n")
+        else if (request.firstHalf == RequestType.WFH && request.secondHalf == RequestType.WFH)
+          requests.append(s"${WFH_MAIL_BODY_TEMPLATE.format(date)}\n")
+        else if (request.firstHalf == RequestType.Leave && request.secondHalf == RequestType.Leave)
+          requests.append(s"${LEAVE_MAIL_BODY_TEMPLATE.format(date)}\n")
+        else ""
+      }
+
+      BODY.format(notification.reason, requests)
     }
 
-    val requests = StringBuilder.newBuilder
-    for (request <- notification.requests) {
-      val date = request.date.toString
-
-      if (request.firstHalf == RequestType.WFH && request.secondHalf == RequestType.WFO)
-        requests.append(s"${WFH_WFO_MAIL_BODY_TEMPLATE.format(date)}\n")
-      else if (request.firstHalf == RequestType.WFO && request.secondHalf == RequestType.WFH)
-        requests.append(s"${WFO_WFH_MAIL_BODY_TEMPLATE.format(date)}\n")
-      else if (request.firstHalf == RequestType.WFO && request.secondHalf == RequestType.Leave)
-        requests.append(s"${WFO_LEAVE_MAIL_BODY_TEMPLATE.format(date)}\n")
-      else if (request.firstHalf == RequestType.Leave && request.secondHalf == RequestType.WFO)
-        requests.append(s"${LEAVE_WFO_MAIL_BODY_TEMPLATE.format(date)}\n")
-      else if (request.firstHalf == RequestType.WFH && request.secondHalf == RequestType.Leave)
-        requests.append(s"${WFH_LEAVE_MAIL_BODY_TEMPLATE.format(date)}\n")
-      else if (request.firstHalf == RequestType.Leave && request.secondHalf == RequestType.WFH)
-        requests.append(s"${LEAVE_WFH_MAIL_BODY_TEMPLATE.format(date)}\n")
-      else if (request.firstHalf == RequestType.WFH && request.secondHalf == RequestType.WFH)
-        requests.append(s"${WFH_MAIL_BODY_TEMPLATE.format(date)}\n")
-      else if (request.firstHalf == RequestType.Leave && request.secondHalf == RequestType.Leave)
-        requests.append(s"${LEAVE_MAIL_BODY_TEMPLATE.format(date)}\n")
-      else ""
+    val (subject, body) = notification.intimationType match {
+      case Created => (INTIMATION_CREATION_TITLE_TEMPLATE.format(notification.empName), getBody)
+      case Updated => (INTIMATION_UPDATE_TITLE_TEMPLATE.format(notification.empName), getBody)
+      case Cancelled => (INTIMATION_CANCELLATION_TITLE_TEMPLATE.format(notification.empName), "")
     }
-
-    val body = BODY.format(notification.reason, requests)
 
     (subject, body)
   }

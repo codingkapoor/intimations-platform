@@ -38,7 +38,6 @@ class PushNotifier(employeeDao: EmployeeDao) {
           logger.warn(s"Deleted an invalid expo token = ${token} against empId = ${e.empId}")
         } else {
           val (title, body, data) = getContent(notification)
-          logger.info(s"title = $title, body = $body, data = $data")
 
           val message =
             new Message.Builder()
@@ -53,8 +52,6 @@ class PushNotifier(employeeDao: EmployeeDao) {
           messages += message
         }
       }
-
-      logger.info(s"messages = $messages")
 
       val chunks = ExpoPushClient.chunkItems(messages.asJava).asScala
       for (chunk <- chunks) {
@@ -82,42 +79,47 @@ object PushNotifier {
   private final val REASON = "reason"
   private final val LAST_MODIFIED = "lastModified"
   private final val REQUEST = "requests"
+  private final val TYPE = "type"
 
   private def getContent(notification: Notification): (String, String, util.HashMap[String, Object]) = {
 
-    val title = notification.intimationType match {
-      case Created => INTIMATION_CREATION_TITLE_TEMPLATE.format(notification.empName)
-      case Updated => INTIMATION_UPDATE_TITLE_TEMPLATE.format(notification.empName)
-      case Cancelled => INTIMATION_CANCELLATION_TITLE_TEMPLATE.format(notification.empName)
+    def getBody: String = {
+      val firstRequest = notification.requests.toList.sortWith((r1, r2) => r1.date.isBefore(r2.date)).head
+      val today = LocalDate.now()
+      val tomorrow = LocalDate.parse(s"${today.getYear}-${"%02d".format(today.getMonthValue)}-${"%02d".format(today.getDayOfMonth + 1)}")
+
+      val body = if (firstRequest.date.isEqual(today) || firstRequest.date.isEqual(tomorrow)) {
+        val day = if (firstRequest.date.isEqual(today)) TODAY else TOMORROW
+
+        if (firstRequest.firstHalf == RequestType.WFH && firstRequest.secondHalf == RequestType.WFO)
+          WFH_WFO_PUSH_NOTIFICATION_TEMPLATE.format(day)
+        else if (firstRequest.firstHalf == RequestType.WFO && firstRequest.secondHalf == RequestType.WFH)
+          WFO_WFH_PUSH_NOTIFICATION_TEMPLATE.format(day)
+        else if (firstRequest.firstHalf == RequestType.WFO && firstRequest.secondHalf == RequestType.Leave)
+          WFO_LEAVE_PUSH_NOTIFICATION_TEMPLATE.format(day)
+        else if (firstRequest.firstHalf == RequestType.Leave && firstRequest.secondHalf == RequestType.WFO)
+          LEAVE_WFO_PUSH_NOTIFICATION_TEMPLATE.format(day)
+        else if (firstRequest.firstHalf == RequestType.WFH && firstRequest.secondHalf == RequestType.Leave)
+          WFH_LEAVE_PUSH_NOTIFICATION_TEMPLATE.format(day)
+        else if (firstRequest.firstHalf == RequestType.Leave && firstRequest.secondHalf == RequestType.WFH)
+          LEAVE_WFH_PUSH_NOTIFICATION_TEMPLATE.format(day)
+        else if (firstRequest.firstHalf == RequestType.WFH && firstRequest.secondHalf == RequestType.WFH)
+          WFH_PUSH_NOTIFICATION_TEMPLATE.format(day)
+        else if (firstRequest.firstHalf == RequestType.Leave && firstRequest.secondHalf == RequestType.Leave)
+          LEAVE_PUSH_NOTIFICATION_TEMPLATE.format(day)
+        else ""
+
+      } else
+        PLANNED_PUSH_NOTIFICATION_TEMPLATE
+
+      body
     }
 
-    val firstRequest = notification.requests.toList.sortWith((r1, r2) => r1.date.isBefore(r2.date)).head
-    val today = LocalDate.now()
-    val tomorrow = LocalDate.parse(s"${today.getYear}-${"%02d".format(today.getMonthValue)}-${"%02d".format(today.getDayOfMonth + 1)}")
-
-    val body = if (firstRequest.date.isEqual(today) || firstRequest.date.isEqual(tomorrow)) {
-      val day = if (firstRequest.date.isEqual(today)) TODAY else TOMORROW
-
-      if (firstRequest.firstHalf == RequestType.WFH && firstRequest.secondHalf == RequestType.WFO)
-        WFH_WFO_PUSH_NOTIFICATION_TEMPLATE.format(day)
-      else if (firstRequest.firstHalf == RequestType.WFO && firstRequest.secondHalf == RequestType.WFH)
-        WFO_WFH_PUSH_NOTIFICATION_TEMPLATE.format(day)
-      else if (firstRequest.firstHalf == RequestType.WFO && firstRequest.secondHalf == RequestType.Leave)
-        WFO_LEAVE_PUSH_NOTIFICATION_TEMPLATE.format(day)
-      else if (firstRequest.firstHalf == RequestType.Leave && firstRequest.secondHalf == RequestType.WFO)
-        LEAVE_WFO_PUSH_NOTIFICATION_TEMPLATE.format(day)
-      else if (firstRequest.firstHalf == RequestType.WFH && firstRequest.secondHalf == RequestType.Leave)
-        WFH_LEAVE_PUSH_NOTIFICATION_TEMPLATE.format(day)
-      else if (firstRequest.firstHalf == RequestType.Leave && firstRequest.secondHalf == RequestType.WFH)
-        LEAVE_WFH_PUSH_NOTIFICATION_TEMPLATE.format(day)
-      else if (firstRequest.firstHalf == RequestType.WFH && firstRequest.secondHalf == RequestType.WFH)
-        WFH_PUSH_NOTIFICATION_TEMPLATE.format(day)
-      else if (firstRequest.firstHalf == RequestType.Leave && firstRequest.secondHalf == RequestType.Leave)
-        LEAVE_PUSH_NOTIFICATION_TEMPLATE.format(day)
-      else ""
-
-    } else
-      PLANNED_PUSH_NOTIFICATION_TEMPLATE
+    val (title, body) = notification.intimationType match {
+      case Created => (INTIMATION_CREATION_TITLE_TEMPLATE.format(notification.empName), getBody)
+      case Updated => (INTIMATION_UPDATE_TITLE_TEMPLATE.format(notification.empName), getBody)
+      case Cancelled => (INTIMATION_CANCELLATION_TITLE_TEMPLATE.format(notification.empName), "")
+    }
 
     val data = new util.HashMap[String, Object]()
     data.put(EMP_ID, notification.empId.asInstanceOf[AnyRef])
@@ -125,6 +127,7 @@ object PushNotifier {
     data.put(REASON, notification.reason.asInstanceOf[AnyRef])
     data.put(LAST_MODIFIED, notification.lastModified.toString.asInstanceOf[AnyRef])
     data.put(REQUEST, Json.stringify(Json.toJson(notification.requests)).asInstanceOf[AnyRef])
+    data.put(TYPE, notification.intimationType.toString.asInstanceOf[AnyRef])
 
     (title, body, data)
   }

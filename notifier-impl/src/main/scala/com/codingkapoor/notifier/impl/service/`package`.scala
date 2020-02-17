@@ -20,11 +20,11 @@ object `package` {
     final val WFH_WFO_MAIL_BODY_TEMPLATE = "%s: WFH first half"
     final val WFO_WFH_MAIL_BODY_TEMPLATE = "%s: WFH second half"
     final val WFO_LEAVE_MAIL_BODY_TEMPLATE = "%s: Leave second half"
-    final val LEAVE_WFO_MAIL_BODY_TEMPLATE = "%s: Leave for first half"
+    final val LEAVE_WFO_MAIL_BODY_TEMPLATE = "%s: Leave first half"
     final val WFH_LEAVE_MAIL_BODY_TEMPLATE = "%s: WFH first half, Leave second half"
     final val LEAVE_WFH_MAIL_BODY_TEMPLATE = "%s: Leave first half, WFH second half"
     final val WFH_MAIL_BODY_TEMPLATE = "%s: WFH"
-    final val LEAVE_MAIL_BODY_TEMPLATE = "%s Leave"
+    final val LEAVE_MAIL_BODY_TEMPLATE = "%s: Leave"
   }
 
 }
