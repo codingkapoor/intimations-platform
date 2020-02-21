@@ -140,28 +140,8 @@ class EmployeePersistenceEntity extends PersistentEntity {
         val location = employeeInfo.location.getOrElse(e.location)
         val roles = employeeInfo.roles.getOrElse(e.roles)
 
-        if (e.activeIntimationOpt.isDefined && employeeInfo.leaves.isDefined && employeeInfo.leaves.get != e.leaves) {
-          val leaves = employeeInfo.leaves.get
-
-          lazy val activeIntimation = e.activeIntimationOpt.get
-          lazy val latestRequestDate = activeIntimation.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
-          if (latestRequestDate.isAfter(LocalDate.now())) {
-            val balanced = balanceExtra(leaves.earned, leaves.sick, e.lastLeaves.extra)
-            val newLeaves = getNewLeaves(activeIntimation.requests, balanced)
-
-            ctx.thenPersistAll(
-              LastLeavesSaved(e.id, balanced.earned, balanced.sick, balanced.extra),
-              EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, designation, e.pfn, contactInfo, location, newLeaves, roles)
-            )(() => ctx.reply(Employee(e.id, e.name, e.gender, e.doj, e.dor, designation, e.pfn, contactInfo, location, newLeaves, roles)))
-          } else {
-            val balanced = balanceExtra(leaves.earned, leaves.sick, e.leaves.extra)
-
-            ctx.thenPersistAll(EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, designation, e.pfn, contactInfo, location, balanced, roles))(() =>
-              ctx.reply(Employee(e.id, e.name, e.gender, e.doj, e.dor, designation, e.pfn, contactInfo, location, balanced, roles)))
-          }
-        } else
-          ctx.thenPersist(EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, designation, e.pfn, contactInfo, location, employeeInfo.leaves.getOrElse(e.leaves), roles))(_ =>
-            ctx.reply(Employee(e.id, e.name, e.gender, e.doj, e.dor, designation, e.pfn, contactInfo, location, employeeInfo.leaves.getOrElse(e.leaves), roles)))
+        ctx.thenPersist(EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, designation, e.pfn, contactInfo, location, e.leaves, roles))(_ =>
+          ctx.reply(Employee(e.id, e.name, e.gender, e.doj, e.dor, designation, e.pfn, contactInfo, location, e.leaves, roles)))
 
     }.onCommand[ReleaseEmployee, Done] {
       case (ReleaseEmployee(_), ctx, state@Some(e)) =>
