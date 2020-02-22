@@ -1,10 +1,10 @@
-package com.codingkapoor.employee.impl.persistence.write
+package com.codingkapoor.employee.impl.persistence.write.models
 
 import java.time.LocalDate
-import play.api.libs.json.{Format, Json}
 
-import com.codingkapoor.employee.api.model.Role.Role
-import com.codingkapoor.employee.api.model.{ContactInfo, Intimation, Leaves, Location}
+import com.codingkapoor.employee.api.models.Role.Role
+import com.codingkapoor.employee.api.models.{ContactInfo, Intimation, Leaves, Location}
+import play.api.libs.json.{Format, Json}
 
 case class EmployeeState(id: Long, name: String, gender: String, doj: LocalDate, dor: Option[LocalDate], designation: String, pfn: String, contactInfo: ContactInfo,
                          location: Location, leaves: Leaves, roles: List[Role], activeIntimationOpt: Option[Intimation], lastLeaves: Leaves)

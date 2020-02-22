@@ -18,7 +18,7 @@ import com.nimbusds.jwt.{JWTClaimsSet, JWTParser, SignedJWT}
 import com.nimbusds.jose.JWSAlgorithm.RS256
 import play.api.Configuration
 import com.codingkapoor.employee.api.EmployeeService
-import com.codingkapoor.employee.api.model.Role.Role
+import com.codingkapoor.employee.api.models.Role.Role
 import com.codingkapoor.passwordless.api.PasswordlessService
 import com.codingkapoor.passwordless.api.model.Tokens
 import com.codingkapoor.passwordless.impl.repository.employee.EmployeeDao

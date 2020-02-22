@@ -1,10 +1,10 @@
-package com.codingkapoor.employee.api.model
+package com.codingkapoor.employee.api.models
 
 import java.time.{LocalDate, LocalDateTime}
 import play.api.libs.json.{Format, Json}
 
-import com.codingkapoor.employee.api.model.RequestType.RequestType
-import com.codingkapoor.employee.api.model.Role.Role
+import com.codingkapoor.employee.api.models.RequestType.RequestType
+import com.codingkapoor.employee.api.models.Role.Role
 
 case class ContactInfo(phone: String, email: String)
 
@@ -18,7 +18,7 @@ object Location {
   implicit val format: Format[Location] = Json.using[Json.WithDefaultValues].format[Location]
 }
 
-case class Leaves(earned: Double = 0.0, sick: Double = 0.0, extra: Double = 0.0)
+case class Leaves(earned: Double = 0.0, currentYearEarned: Double = 0.0, sick: Double = 0.0, extra: Double = 0.0)
 
 object Leaves {
   implicit val format: Format[Leaves] = Json.using[Json.WithDefaultValues].format[Leaves]

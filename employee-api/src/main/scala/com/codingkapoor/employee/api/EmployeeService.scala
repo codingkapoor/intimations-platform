@@ -7,7 +7,7 @@ import com.lightbend.lagom.scaladsl.api.broker.Topic
 import com.lightbend.lagom.scaladsl.api.broker.kafka.{KafkaProperties, PartitionKeyStrategy}
 import com.lightbend.lagom.scaladsl.api.transport.Method
 import com.lightbend.lagom.scaladsl.api.{Descriptor, Service, ServiceCall}
-import com.codingkapoor.employee.api.model.{ActiveIntimation, Employee, EmployeeInfo, EmployeeKafkaEvent, InactiveIntimation, IntimationReq, Leaves}
+import com.codingkapoor.employee.api.models.{ActiveIntimation, Employee, EmployeeInfo, EmployeeKafkaEvent, InactiveIntimation, IntimationReq, Leaves}
 
 object EmployeeService {
   val TOPIC_NAME = "employee"

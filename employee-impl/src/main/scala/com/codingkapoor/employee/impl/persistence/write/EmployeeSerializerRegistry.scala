@@ -1,5 +1,6 @@
 package com.codingkapoor.employee.impl.persistence.write
 
+import com.codingkapoor.employee.impl.persistence.write.models.{AddEmployee, CancelIntimation, CreateIntimation, DeleteEmployee, EmployeeAdded, EmployeeDeleted, EmployeeReleased, EmployeeState, EmployeeUpdated, IntimationCancelled, IntimationCreated, IntimationUpdated, LastLeavesSaved, LeavesCredited, ReleaseEmployee, UpdateEmployee, UpdateIntimation}
 import com.lightbend.lagom.scaladsl.playjson.{JsonSerializer, JsonSerializerRegistry}
 
 import scala.collection.immutable.Seq

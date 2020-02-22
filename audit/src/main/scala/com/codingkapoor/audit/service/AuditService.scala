@@ -3,7 +3,7 @@ package com.codingkapoor.audit.service
 import akka.Done
 import akka.stream.scaladsl.Flow
 import com.codingkapoor.employee.api.EmployeeService
-import com.codingkapoor.employee.api.model.EmployeeKafkaEvent
+import com.codingkapoor.employee.api.models.EmployeeKafkaEvent
 import com.lightbend.lagom.scaladsl.api.Service.named
 import com.lightbend.lagom.scaladsl.api.{Descriptor, Service}
 import org.slf4j.LoggerFactory

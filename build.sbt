@@ -138,4 +138,4 @@ lazy val `notifier-impl` = (project in file("notifier-impl"))
 
 lagomServiceGatewayAddress in ThisBuild := "0.0.0.0"
 
-//lagomCassandraCleanOnStart in ThisBuild := true
+lagomCassandraCleanOnStart in ThisBuild := true

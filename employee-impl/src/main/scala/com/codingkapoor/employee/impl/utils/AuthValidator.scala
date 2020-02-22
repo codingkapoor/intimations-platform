@@ -1,7 +1,7 @@
-package com.codingkapoor.employee.impl.util
+package com.codingkapoor.employee.impl.utils
 
-import com.codingkapoor.employee.api.model.Role
-import com.codingkapoor.employee.impl.persistence.read.repository.employee.EmployeeDao
+import com.codingkapoor.employee.api.models.Role
+import com.codingkapoor.employee.impl.persistence.read.repositories.employee.EmployeeDao
 import com.lightbend.lagom.scaladsl.api.transport.Forbidden
 import org.pac4j.core.profile.CommonProfile
 import org.slf4j.Logger

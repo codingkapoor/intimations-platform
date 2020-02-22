@@ -1,10 +1,10 @@
 package com.codingkapoor.employee.impl.persistence.read
 
 import akka.Done
-import com.codingkapoor.employee.impl.persistence.read.repository.employee.{EmployeeEntity, EmployeeDao}
-import com.codingkapoor.employee.impl.persistence.read.repository.intimation.{IntimationEntity, IntimationDao}
-import com.codingkapoor.employee.impl.persistence.read.repository.request.{RequestEntity, RequestDao}
-import com.codingkapoor.employee.impl.persistence.write.{EmployeeAdded, EmployeeDeleted, EmployeeEvent, EmployeeReleased, EmployeeUpdated, IntimationCancelled, IntimationCreated, IntimationUpdated}
+import com.codingkapoor.employee.impl.persistence.read.repositories.employee.{EmployeeDao, EmployeeEntity}
+import com.codingkapoor.employee.impl.persistence.read.repositories.intimation.{IntimationDao, IntimationEntity}
+import com.codingkapoor.employee.impl.persistence.read.repositories.request.{RequestDao, RequestEntity}
+import com.codingkapoor.employee.impl.persistence.write.models.{EmployeeAdded, EmployeeDeleted, EmployeeEvent, EmployeeReleased, EmployeeUpdated, IntimationCancelled, IntimationCreated, IntimationUpdated}
 import com.lightbend.lagom.scaladsl.persistence.{AggregateEventTag, EventStreamElement, ReadSideProcessor}
 import com.lightbend.lagom.scaladsl.persistence.slick.SlickReadSide
 import org.slf4j.LoggerFactory
@@ -39,7 +39,7 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
     val employee =
       EmployeeEntity(added.id, added.name, added.gender, added.doj, added.dor, added.designation, added.pfn,
         added.contactInfo.phone, added.contactInfo.email, added.location.city, added.location.state, added.location.country,
-        added.leaves.earned, added.leaves.sick, added.leaves.extra, added.roles)
+        added.leaves.earned, added.leaves.currentYearEarned, added.leaves.sick, added.leaves.extra, added.roles)
 
     employeeRepository.addEmployee(employee)
   }
@@ -52,7 +52,7 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
     val employee =
       EmployeeEntity(updated.id, updated.name, updated.gender, updated.doj, updated.dor, updated.designation, updated.pfn,
         updated.contactInfo.phone, updated.contactInfo.email, updated.location.city, updated.location.state, updated.location.country,
-        updated.leaves.earned, updated.leaves.sick, updated.leaves.extra, updated.roles)
+        updated.leaves.earned, updated.leaves.currentYearEarned, updated.leaves.sick, updated.leaves.extra, updated.roles)
 
     employeeRepository.updateEmployee(employee)
   }

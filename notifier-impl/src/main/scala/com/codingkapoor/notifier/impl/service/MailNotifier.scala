@@ -1,6 +1,6 @@
 package com.codingkapoor.notifier.impl.service
 
-import com.codingkapoor.employee.api.model.RequestType
+import com.codingkapoor.employee.api.models.RequestType
 import com.codingkapoor.notifier.api.model.IntimationType.{Cancelled, Created, Updated}
 import com.codingkapoor.notifier.api.model.Notification
 import courier.Defaults._

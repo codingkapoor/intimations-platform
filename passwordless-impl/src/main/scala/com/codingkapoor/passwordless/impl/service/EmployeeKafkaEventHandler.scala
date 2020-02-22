@@ -3,7 +3,7 @@ package com.codingkapoor.passwordless.impl.service
 import akka.Done
 import akka.stream.scaladsl.Flow
 import com.codingkapoor.employee.api.EmployeeService
-import com.codingkapoor.employee.api.model.{EmployeeAddedKafkaEvent, EmployeeDeletedKafkaEvent, EmployeeKafkaEvent, EmployeeReleasedKafkaEvent, EmployeeUpdatedKafkaEvent}
+import com.codingkapoor.employee.api.models.{EmployeeAddedKafkaEvent, EmployeeDeletedKafkaEvent, EmployeeKafkaEvent, EmployeeReleasedKafkaEvent, EmployeeUpdatedKafkaEvent}
 import com.codingkapoor.passwordless.impl.repository.employee.{EmployeeDao, EmployeeEntity}
 import com.codingkapoor.passwordless.impl.repository.otp.OTPDao
 import com.codingkapoor.passwordless.impl.repository.token.RefreshTokenDao

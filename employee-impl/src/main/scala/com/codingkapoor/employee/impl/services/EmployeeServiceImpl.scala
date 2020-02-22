@@ -1,4 +1,4 @@
-package com.codingkapoor.employee.impl.service
+package com.codingkapoor.employee.impl.services
 
 import java.time.LocalDate
 
@@ -9,19 +9,20 @@ import com.lightbend.lagom.scaladsl.api.transport.{BadRequest, NotFound}
 import com.lightbend.lagom.scaladsl.broker.TopicProducer
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.InvalidCommandException
 import com.lightbend.lagom.scaladsl.persistence.{EventStreamElement, PersistentEntityRegistry}
-import org.slf4j.LoggerFactory
+import org.slf4j.{Logger, LoggerFactory}
 import org.pac4j.core.authorization.authorizer.RequireAnyRoleAuthorizer.requireAnyRole
 import org.pac4j.core.authorization.authorizer.RequireAllRolesAuthorizer.requireAllRoles
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.codingkapoor.employee.api
-import com.codingkapoor.employee.api.model._
+import com.codingkapoor.employee.api.models._
 import com.codingkapoor.employee.api.EmployeeService
-import com.codingkapoor.employee.impl.persistence.read.repository.employee.{EmployeeDao, EmployeeEntity}
-import com.codingkapoor.employee.impl.persistence.read.repository.intimation.{IntimationDao, IntimationEntity}
-import com.codingkapoor.employee.impl.persistence.read.repository.request.{RequestDao, RequestEntity}
+import com.codingkapoor.employee.impl.persistence.read.repositories.employee.{EmployeeDao, EmployeeEntity}
+import com.codingkapoor.employee.impl.persistence.read.repositories.intimation.{IntimationDao, IntimationEntity}
+import com.codingkapoor.employee.impl.persistence.read.repositories.request.{RequestDao, RequestEntity}
 import com.codingkapoor.employee.impl.persistence.write._
-import com.codingkapoor.employee.impl.util.AuthValidator
+import com.codingkapoor.employee.impl.persistence.write.models.{AddEmployee, CancelIntimation, CreateIntimation, DeleteEmployee, EmployeeAdded, EmployeeDeleted, EmployeeEvent, EmployeeReleased, EmployeeUpdated, IntimationCancelled, IntimationCreated, IntimationUpdated, LastLeavesSaved, LeavesBalanced, LeavesCredited, ReleaseEmployee, UpdateEmployee, UpdateIntimation}
+import com.codingkapoor.employee.impl.utils.AuthValidator
 import com.lightbend.lagom.scaladsl.server.ServerServiceCall
 import org.pac4j.core.config.Config
 import org.pac4j.core.profile.CommonProfile
@@ -32,7 +33,7 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
 
   import EmployeeServiceImpl._
 
-  override val logger = LoggerFactory.getLogger(classOf[EmployeeServiceImpl])
+  override val logger: Logger = LoggerFactory.getLogger(classOf[EmployeeServiceImpl])
 
   private def entityRef(id: Long) = persistentEntityRegistry.refFor[EmployeePersistenceEntity](id.toString)
 
@@ -204,16 +205,19 @@ object EmployeeServiceImpl {
       case IntimationCancelled(empId, reason, lastModified, requests) =>
         IntimationCancelledKafkaEvent(empId, reason, lastModified, requests)
 
-      case LastLeavesSaved(empId, earned, sick, extra) =>
-        LastLeavesSavedKafkaEvent(empId, earned, sick, extra)
+      case LastLeavesSaved(empId, earned, currentYearEarned, sick, extra) =>
+        LastLeavesSavedKafkaEvent(empId, earned, currentYearEarned, sick, extra)
 
-      case LeavesCredited(empId, earned, sick, extra) =>
-        LeavesCreditedKafkaEvent(empId, earned, sick, extra)
+      case LeavesCredited(empId, earned, currentYearEarned, sick, extra) =>
+        LeavesCreditedKafkaEvent(empId, earned, currentYearEarned, sick, extra)
+
+      case LeavesBalanced(empId, earned, lapsed) =>
+        LeavesBalancedKafkaEvent(empId, earned, lapsed)
     }
   }
 
   private def convertEmployeeReadEntityToEmployee(e: EmployeeEntity): Employee = {
-    api.model.Employee(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, ContactInfo(e.phone, e.email),
+    api.models.Employee(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, ContactInfo(e.phone, e.email),
       Location(e.city, e.state, e.country), Leaves(e.earnedLeaves, e.sickLeaves), e.roles)
   }
 

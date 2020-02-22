@@ -2,11 +2,11 @@ package com.codingkapoor.employee.impl.core
 
 import com.codingkapoor.employee.api.EmployeeService
 import com.codingkapoor.employee.impl.persistence.read.EmployeeEventProcessor
-import com.codingkapoor.employee.impl.persistence.read.repository.employee.EmployeeDao
-import com.codingkapoor.employee.impl.persistence.read.repository.intimation.IntimationDao
-import com.codingkapoor.employee.impl.persistence.read.repository.request.RequestDao
+import com.codingkapoor.employee.impl.persistence.read.repositories.employee.EmployeeDao
+import com.codingkapoor.employee.impl.persistence.read.repositories.intimation.IntimationDao
+import com.codingkapoor.employee.impl.persistence.read.repositories.request.RequestDao
 import com.codingkapoor.employee.impl.persistence.write.{EmployeePersistenceEntity, EmployeeSerializerRegistry}
-import com.codingkapoor.employee.impl.service.{CreditScheduler, EmployeeServiceImpl}
+import com.codingkapoor.employee.impl.services.{CreditScheduler, EmployeeServiceImpl}
 import com.lightbend.lagom.scaladsl.broker.kafka.LagomKafkaComponents
 import com.lightbend.lagom.scaladsl.persistence.cassandra.WriteSideCassandraPersistenceComponents
 import com.lightbend.lagom.scaladsl.persistence.slick.ReadSideSlickPersistenceComponents

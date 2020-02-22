@@ -2,7 +2,7 @@ package com.codingkapoor.notifier.impl.service
 
 import akka.{Done, NotUsed}
 import com.codingkapoor.employee.api.EmployeeService
-import com.codingkapoor.employee.api.model.Role
+import com.codingkapoor.employee.api.models.Role
 import com.codingkapoor.notifier.api.NotifierService
 import com.codingkapoor.notifier.impl.repository.employee.EmployeeDao
 import com.lightbend.lagom.scaladsl.api.ServiceCall

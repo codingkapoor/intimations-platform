@@ -3,8 +3,8 @@ package com.codingkapoor.passwordless.impl.repository.otp
 import java.time.ZonedDateTime
 
 import slick.jdbc.MySQLProfile.api._
-import com.codingkapoor.employee.api.model.Role
-import com.codingkapoor.employee.api.model.Role.Role
+import com.codingkapoor.employee.api.models.Role
+import com.codingkapoor.employee.api.models.Role.Role
 
 final case class OTPEntity(otp: Int, empId: Long, email: String, roles: List[Role], createdAt: ZonedDateTime)
 

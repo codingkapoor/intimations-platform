@@ -14,7 +14,7 @@ import scala.concurrent.Future
 import scala.util.control.NonFatal
 import java.util
 
-import com.codingkapoor.employee.api.model.RequestType
+import com.codingkapoor.employee.api.models.RequestType
 import com.codingkapoor.notifier.api.model.IntimationType._
 import com.codingkapoor.notifier.api.model.Notification
 
