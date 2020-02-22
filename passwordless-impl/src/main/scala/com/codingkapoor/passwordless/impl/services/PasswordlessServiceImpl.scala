@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory
 import play.api.libs.json.Json
 
 class PasswordlessServiceImpl(override val employeeService: EmployeeService, override val otpDao: OTPDao, override val refreshTokenDao: RefreshTokenDao,
-                              override val employeeDao: EmployeeDao, mailOTPService: MailOTPService, implicit val config: Configuration)
+                              override val employeeDao: EmployeeDao, otpMailer: OTPMailer, implicit val config: Configuration)
   extends PasswordlessService with EmployeeKafkaEventHandler {
 
   import PasswordlessServiceImpl._
@@ -44,7 +44,7 @@ class PasswordlessServiceImpl(override val employeeService: EmployeeService, ove
         otpDao.deleteOTP(email).flatMap { _ =>
           val otp = generateOTP
           otpDao.createOTP(OTPEntity(otp, emp.id, email, emp.roles, ZonedDateTime.now(ZoneOffset.UTC))).map { _ =>
-            mailOTPService.sendOTP(email, otp)
+            otpMailer.sendOTP(email, otp)
           }
         }
 

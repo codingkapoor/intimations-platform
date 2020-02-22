@@ -2,6 +2,7 @@ package com.codingkapoor.notifier.impl.core
 
 import java.util
 
+import com.codingkapoor.common.Mailer
 import com.lightbend.lagom.scaladsl.server.{LagomApplication, LagomApplicationContext, LagomServer}
 import com.softwaremill.macwire.wire
 import play.api.libs.ws.ahc.AhcWSComponents
@@ -35,8 +36,8 @@ abstract class NotifierApplication(context: LagomApplicationContext)
   lazy val employeeDao: EmployeeDao = wire[EmployeeDao]
 
   lazy val mailNotifier: MailNotifier = wire[MailNotifier]
-
   lazy val pushNotifier: PushNotifier = wire[PushNotifier]
+  lazy val mailer: Mailer = wire[Mailer]
 
   lazy val jwtClient: HeaderClient = {
     val headerClient = new HeaderClient

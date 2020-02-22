@@ -1,40 +1,27 @@
 package com.codingkapoor.notifier.impl.services
 
+import com.codingkapoor.common.Mailer
 import com.codingkapoor.employee.api.models.RequestType
 import com.codingkapoor.notifier.api.models.IntimationType.{Cancelled, Created, Updated}
 import com.codingkapoor.notifier.api.models.Notification
-import courier.Defaults._
-import courier._
-import javax.mail.internet.InternetAddress
 import org.slf4j.{Logger, LoggerFactory}
 import play.api.Configuration
-
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
 
-class MailNotifier(config: Configuration) {
+class MailNotifier(config: Configuration, mailer: Mailer) {
 
   import MailNotifier._
-
-  val mail: Mail = getMailConfig(config)
-
-  val mailer: Mailer =
-    Mailer(mail.smtp.interface, mail.smtp.port)
-      .auth(true)
-      .as(mail.sender, mail.password)
-      .startTls(true)()
 
   def sendNotification(notification: Notification): Unit = {
 
     val receiversOpt: Option[String] = config.getOptional[String]("mail.receivers")
 
     if (receiversOpt.isDefined) {
-      val receivers: Seq[InternetAddress] = receiversOpt.get.split(",").toSeq.map(mailid => mailid.addr)
-
+      val receivers: Seq[String] = receiversOpt.get.split(",").toSeq
       val (subject, body) = getContent(notification)
 
-      val envelope = Envelope(from = mail.sender.addr, _to = receivers, _subject = Some((subject, None)), _content = Text(body))
-
-      mailer(envelope).onComplete {
+      mailer.sendMail(receivers, subject, body).onComplete {
         case Success(_) => logger.info("Mail notifications sent successfully.")
         case Failure(e) => e.printStackTrace()
       }
@@ -62,30 +49,6 @@ object MailNotifier {
       |%s
       |
       |""".stripMargin
-
-  case class SMTP(interface: String, port: Int)
-
-  case class Mail(sender: String, password: String, smtp: SMTP)
-
-  def getMailConfig(config: Configuration): Mail = {
-    val interface: Option[String] = config.getOptional[String]("mail.smtp.interface")
-    val port: Option[Int] = config.getOptional[Int]("mail.smtp.port")
-
-    val email: Option[String] = config.getOptional[String]("mail.email")
-    val password: Option[String] = config.getOptional[String]("mail.password")
-
-    if (interface.isEmpty || port.isEmpty || email.isEmpty || password.isEmpty)
-      logger.warn("Mail configurations missing. Resorting to default configurations.")
-
-    Mail(
-      email.getOrElse("intimations@glassbeam.com"),
-      password.getOrElse("password"),
-      SMTP(
-        interface.getOrElse("mymail.myoutlookonline.com"),
-        port.getOrElse(587)
-      )
-    )
-  }
 
   private def getContent(notification: Notification): (String, String) = {
 
