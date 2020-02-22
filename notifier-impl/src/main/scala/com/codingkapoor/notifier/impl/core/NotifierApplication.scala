@@ -7,8 +7,8 @@ import com.softwaremill.macwire.wire
 import play.api.libs.ws.ahc.AhcWSComponents
 import com.codingkapoor.employee.api.EmployeeService
 import com.codingkapoor.notifier.api.NotifierService
-import com.codingkapoor.notifier.impl.repository.employee.EmployeeDao
-import com.codingkapoor.notifier.impl.service.{MailNotifier, NotifierServiceImpl, PushNotifier}
+import com.codingkapoor.notifier.impl.repositories.employee.EmployeeDao
+import com.codingkapoor.notifier.impl.services.{MailNotifier, NotifierServiceImpl, PushNotifier}
 import com.lightbend.lagom.scaladsl.broker.kafka.LagomKafkaClientComponents
 import com.lightbend.lagom.scaladsl.persistence.slick.SlickPersistenceComponents
 import com.lightbend.lagom.scaladsl.playjson.JsonSerializerRegistry

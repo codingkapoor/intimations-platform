@@ -1,6 +1,6 @@
 package com.codingkapoor.audit.core
 
-import com.codingkapoor.audit.service.AuditService
+import com.codingkapoor.audit.services.AuditService
 import com.lightbend.lagom.scaladsl.api.{Descriptor, ServiceLocator}
 import com.lightbend.lagom.scaladsl.api.ServiceLocator.NoServiceLocator
 import com.lightbend.lagom.scaladsl.devmode.LagomDevModeComponents

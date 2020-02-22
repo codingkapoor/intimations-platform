@@ -1,7 +1,7 @@
 package com.codingkapoor.passwordless.api
 
 import akka.{Done, NotUsed}
-import com.codingkapoor.passwordless.api.model.Tokens
+import com.codingkapoor.passwordless.api.models.Tokens
 import com.lightbend.lagom.scaladsl.api.{Descriptor, Service, ServiceCall}
 import com.lightbend.lagom.scaladsl.api.transport.Method
 

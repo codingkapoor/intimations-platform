@@ -1,7 +1,7 @@
 package com.codingkapoor.audit.core
 
 import com.codingkapoor.employee.api.EmployeeService
-import com.codingkapoor.audit.service.{AuditService, AuditServiceImpl}
+import com.codingkapoor.audit.services.{AuditService, AuditServiceImpl}
 import com.lightbend.lagom.scaladsl.broker.kafka.LagomKafkaClientComponents
 import com.lightbend.lagom.scaladsl.server.{LagomApplication, LagomApplicationContext}
 import com.softwaremill.macwire.wire

@@ -5,10 +5,10 @@ import com.softwaremill.macwire.wire
 import play.api.libs.ws.ahc.AhcWSComponents
 import com.codingkapoor.employee.api.EmployeeService
 import com.codingkapoor.passwordless.api.PasswordlessService
-import com.codingkapoor.passwordless.impl.repository.employee.EmployeeDao
-import com.codingkapoor.passwordless.impl.repository.otp.OTPDao
-import com.codingkapoor.passwordless.impl.repository.token.RefreshTokenDao
-import com.codingkapoor.passwordless.impl.service.{MailOTPService, PasswordlessServiceImpl}
+import com.codingkapoor.passwordless.impl.repositories.employee.EmployeeDao
+import com.codingkapoor.passwordless.impl.repositories.otp.OTPDao
+import com.codingkapoor.passwordless.impl.repositories.token.RefreshTokenDao
+import com.codingkapoor.passwordless.impl.services.{MailOTPService, PasswordlessServiceImpl}
 import com.lightbend.lagom.scaladsl.broker.kafka.LagomKafkaClientComponents
 import com.lightbend.lagom.scaladsl.persistence.slick.SlickPersistenceComponents
 import com.lightbend.lagom.scaladsl.playjson.JsonSerializerRegistry

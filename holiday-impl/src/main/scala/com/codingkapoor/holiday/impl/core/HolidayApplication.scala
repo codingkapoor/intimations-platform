@@ -3,8 +3,8 @@ package com.codingkapoor.holiday.impl.core
 import java.util
 
 import com.codingkapoor.holiday.api.HolidayService
-import com.codingkapoor.holiday.impl.repository.HolidayDao
-import com.codingkapoor.holiday.impl.service.HolidayServiceImpl
+import com.codingkapoor.holiday.impl.repositories.holiday.HolidayDao
+import com.codingkapoor.holiday.impl.services.HolidayServiceImpl
 import com.lightbend.lagom.scaladsl.persistence.slick.SlickPersistenceComponents
 import com.lightbend.lagom.scaladsl.playjson.JsonSerializerRegistry
 import com.lightbend.lagom.scaladsl.server.{LagomApplication, LagomApplicationContext, LagomServer}
