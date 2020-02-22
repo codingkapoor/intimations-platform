@@ -1,7 +1,7 @@
 package com.codingkapoor.passwordless.impl.repository.employee
 
-import com.codingkapoor.employee.api.model.Role
-import com.codingkapoor.employee.api.model.Role.Role
+import com.codingkapoor.employee.api.models.Role
+import com.codingkapoor.employee.api.models.Role.Role
 import slick.jdbc.MySQLProfile.api._
 
 case class EmployeeEntity(id: Long, name: String, email: String, roles: List[Role])

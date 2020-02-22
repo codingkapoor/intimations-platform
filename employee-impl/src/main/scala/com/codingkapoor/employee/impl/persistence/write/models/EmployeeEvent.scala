@@ -1,11 +1,11 @@
-package com.codingkapoor.employee.impl.persistence.write
+package com.codingkapoor.employee.impl.persistence.write.models
 
 import java.time.{LocalDate, LocalDateTime}
 
-import com.codingkapoor.employee.api.model.Role.Role
+import com.codingkapoor.employee.api.models.Role.Role
+import com.codingkapoor.employee.api.models.{ContactInfo, Leaves, Location, Request}
 import com.lightbend.lagom.scaladsl.persistence.{AggregateEvent, AggregateEventTag}
 import play.api.libs.json.{Format, Json}
-import com.codingkapoor.employee.api.model.{ContactInfo, Leaves, Location, Request}
 
 object EmployeeEvent {
   val Tag: AggregateEventTag[EmployeeEvent] = AggregateEventTag[EmployeeEvent]
@@ -59,14 +59,20 @@ object IntimationCancelled {
   implicit val format: Format[IntimationCancelled] = Json.format[IntimationCancelled]
 }
 
-case class LastLeavesSaved(empId: Long, earned: Double = 0.0, sick: Double = 0.0, extra: Double = 0.0) extends EmployeeEvent
+case class LastLeavesSaved(empId: Long, earned: Double = 0.0, currentYearEarned: Double = 0.0, sick: Double = 0.0, extra: Double = 0.0) extends EmployeeEvent
 
 object LastLeavesSaved {
   implicit val format: Format[LastLeavesSaved] = Json.format[LastLeavesSaved]
 }
 
-case class LeavesCredited(empId: Long, earned: Double, sick: Double, extra: Double) extends EmployeeEvent
+case class LeavesCredited(empId: Long, earned: Double, currentYearEarned: Double, sick: Double, extra: Double) extends EmployeeEvent
 
 object LeavesCredited {
   implicit val format: Format[LeavesCredited] = Json.format[LeavesCredited]
+}
+
+case class LeavesBalanced(empId: Long, earned: Double, lapsed: Double) extends EmployeeEvent
+
+object LeavesBalanced {
+  implicit val format: Format[LeavesBalanced] = Json.format[LeavesBalanced]
 }

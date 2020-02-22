@@ -3,7 +3,7 @@ package com.codingkapoor.holiday.impl.service
 import java.time.LocalDate
 
 import akka.{Done, NotUsed}
-import com.codingkapoor.employee.api.model.Role
+import com.codingkapoor.employee.api.models.Role
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import org.slf4j.LoggerFactory

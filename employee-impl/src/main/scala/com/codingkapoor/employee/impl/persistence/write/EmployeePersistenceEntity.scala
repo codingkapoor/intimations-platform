@@ -6,7 +6,8 @@ import java.time.{LocalDate, LocalDateTime}
 import akka.Done
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
 import org.slf4j.LoggerFactory
-import com.codingkapoor.employee.api.model.{Employee, Intimation, Leaves, Request, RequestType, Role}
+import com.codingkapoor.employee.api.models.{Employee, Intimation, Leaves, Request, RequestType, Role}
+import com.codingkapoor.employee.impl.persistence.write.models._
 
 class EmployeePersistenceEntity extends PersistentEntity {
 
@@ -113,6 +114,17 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         ctx.done
 
+    }.onCommand[BalanceLeaves, Done] {
+      case (BalanceLeaves(empId), ctx, state) =>
+        logger.info(s"EmployeePersistenceEntity at state = $state received BalanceLeaves command.")
+
+        val msg = s"No employee found with id = $empId."
+
+        ctx.invalidCommand(msg)
+        logger.error(s"InvalidCommandException: $msg")
+
+        ctx.done
+
     }.onEvent {
       case (EmployeeAdded(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles), _) =>
         Some(EmployeeState(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles, None, Leaves()))
@@ -154,6 +166,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
           logger.error(s"InvalidCommandException: $msg")
 
           ctx.done
+
         } else ctx.thenPersist(EmployeeReleased(e.id, LocalDate.now()))(_ => ctx.reply(Done))
 
     }.onCommand[DeleteEmployee, Done] {
@@ -167,6 +180,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
           logger.error(s"InvalidCommandException: $msg")
 
           ctx.done
+
         } else ctx.thenPersist(EmployeeDeleted(id))(_ => ctx.reply(Done))
 
     }.onCommand[CreateIntimation, Leaves] {
@@ -201,11 +215,11 @@ class EmployeePersistenceEntity extends PersistentEntity {
           ctx.done
 
         } else if (e.activeIntimationOpt.isEmpty || latestRequestDate.isBefore(LocalDate.now()) || already5(latestRequestDate)) {
-          val newLeaves = getNewLeaves(intimationReq.requests, lastLeaves = Leaves(e.leaves.earned, e.leaves.sick, e.leaves.extra))
+          val newLeaves = getNewLeaves(intimationReq.requests, lastLeaves = Leaves(e.leaves.earned, e.leaves.currentYearEarned, e.leaves.sick, e.leaves.extra))
 
           ctx.thenPersistAll(
             IntimationCreated(empId, intimationReq.reason, LocalDateTime.now(), intimationReq.requests),
-            LastLeavesSaved(empId, e.leaves.earned, e.leaves.sick, e.leaves.extra),
+            LastLeavesSaved(empId, e.leaves.earned, e.leaves.currentYearEarned, e.leaves.sick, e.leaves.extra),
             EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles)
           )(() => ctx.reply(newLeaves))
 
@@ -216,6 +230,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
           logger.error(s"InvalidCommandException: $msg")
 
           ctx.done
+
         }
 
     }.onCommand[UpdateIntimation, Leaves] {
@@ -263,7 +278,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         } else {
           val newRequests = requestsAlreadyConsumed ++ requests2
-          val newLeaves = getNewLeaves(intimationReq.requests, lastLeaves = Leaves(e.lastLeaves.earned, e.lastLeaves.sick, e.lastLeaves.extra))
+          val newLeaves = getNewLeaves(intimationReq.requests, lastLeaves = Leaves(e.lastLeaves.earned, e.lastLeaves.currentYearEarned, e.lastLeaves.sick, e.lastLeaves.extra))
 
           ctx.thenPersistAll(
             IntimationUpdated(empId, intimationReq.reason, LocalDateTime.now(), newRequests),
@@ -294,7 +309,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         else {
           val requestsAlreadyConsumed = requests.filter(r => r.date.isBefore(LocalDate.now()) || already5(r.date))
-          val newLeaves = getNewLeaves(requestsAlreadyConsumed, lastLeaves = Leaves(e.lastLeaves.earned, e.lastLeaves.sick, e.lastLeaves.extra))
+          val newLeaves = getNewLeaves(requestsAlreadyConsumed, lastLeaves = Leaves(e.lastLeaves.earned, e.lastLeaves.currentYearEarned, e.lastLeaves.sick, e.lastLeaves.extra))
 
           ctx.thenPersistAll(
             IntimationCancelled(empId, reason, LocalDateTime.now(), requestsAlreadyConsumed),
@@ -310,22 +325,45 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         lazy val activeIntimation = e.activeIntimationOpt.get
         lazy val latestRequestDate = activeIntimation.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
+
         if (e.activeIntimationOpt.isDefined && latestRequestDate.isAfter(LocalDate.now())) {
-          val balanced = balanceExtra(e.lastLeaves.earned + earnedCredits, e.lastLeaves.sick + sickCredits, e.lastLeaves.extra)
+          val balanced = balanceExtra(e.lastLeaves.earned + earnedCredits, e.lastLeaves.currentYearEarned + earnedCredits, e.lastLeaves.sick + sickCredits, e.lastLeaves.extra)
           val newLeaves = getNewLeaves(activeIntimation.requests, balanced)
 
           ctx.thenPersistAll(
-            LastLeavesSaved(e.id, balanced.earned, balanced.sick, balanced.extra),
-            LeavesCredited(e.id, newLeaves.earned, newLeaves.sick, newLeaves.extra)
+            LastLeavesSaved(e.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+            LeavesCredited(e.id, newLeaves.earned, newLeaves.currentYearEarned, newLeaves.sick, newLeaves.extra),
+            EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles)
           )(() => ctx.reply(Done))
-        } else {
-          val balanced = balanceExtra(e.leaves.earned + earnedCredits, e.leaves.sick + sickCredits, e.leaves.extra)
 
-          ctx.thenPersist(LeavesCredited(e.id, balanced.earned, balanced.sick, balanced.extra))(_ =>
-            ctx.reply(Done))
+        } else {
+          val balanced = balanceExtra(e.leaves.earned + earnedCredits, e.leaves.currentYearEarned + earnedCredits, e.leaves.sick + sickCredits, e.leaves.extra)
+          val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
+
+          ctx.thenPersistAll(
+            LastLeavesSaved(e.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+            LeavesCredited(e.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+            EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles)
+          )(() => ctx.reply(Done))
         }
 
-        ctx.done
+    }.onCommand[BalanceLeaves, Done] {
+      case (BalanceLeaves(empId), ctx, state@Some(e)) =>
+        logger.info(s"EmployeePersistenceEntity at state = $state received ${BalanceLeaves(empId)} command.")
+
+        val totalLeaves = e.leaves.currentYearEarned + e.leaves.sick
+        val balancedTotalLeaves = if (totalLeaves > 10) 10 else totalLeaves
+
+        val totalCumulativeLeaves = if (totalLeaves > 10) e.leaves.earned - e.leaves.currentYearEarned + 10 else e.leaves.earned + e.leaves.sick
+        val balancedTotalCumulativeLeaves = if (totalCumulativeLeaves > 20) 20 else totalCumulativeLeaves
+
+        val lapsedLeaves = (totalLeaves - balancedTotalLeaves) + (totalCumulativeLeaves - balancedTotalCumulativeLeaves) + e.leaves.extra
+        val newLeaves = Leaves(earned = balancedTotalCumulativeLeaves)
+
+        ctx.thenPersistAll(
+          LeavesBalanced(e.id, balancedTotalCumulativeLeaves, lapsedLeaves),
+          EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles)
+        )(() => ctx.reply(Done))
 
     }.onEvent {
       case (EmployeeUpdated(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles), Some(e)) =>
@@ -346,11 +384,14 @@ class EmployeePersistenceEntity extends PersistentEntity {
       case (IntimationCancelled(_, _, _, _), Some(e)) =>
         Some(e.copy(activeIntimationOpt = None))
 
-      case (LastLeavesSaved(_, earned, sick, extra), Some(e)) =>
-        Some(e.copy(lastLeaves = Leaves(earned, sick, extra)))
+      case (LastLeavesSaved(_, earned, currentYearEarned, sick, extra), Some(e)) =>
+        Some(e.copy(lastLeaves = Leaves(earned, currentYearEarned, sick, extra)))
 
-      case (LeavesCredited(_, earned, sick, extra), Some(e)) =>
-        Some(e.copy(leaves = Leaves(earned, sick, extra)))
+      case (LeavesCredited(_, earned, currentYearEarned, sick, extra), Some(e)) =>
+        Some(e.copy(leaves = Leaves(earned, currentYearEarned, sick, extra)))
+
+      case (LeavesBalanced(_, earned, _), Some(e)) =>
+        Some(e.copy(leaves = Leaves(earned)))
     }
 
   private val employeeReleased: Actions =
@@ -438,6 +479,17 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         ctx.done
 
+    }.onCommand[BalanceLeaves, Done] {
+      case (BalanceLeaves(empId), ctx, state) =>
+        logger.info(s"EmployeePersistenceEntity at state = $state received BalanceLeaves command.")
+
+        val msg = s"Employee with id = $empId has already been released."
+
+        ctx.invalidCommand(msg)
+        logger.error(s"InvalidCommandException: $msg")
+
+        ctx.done
+
     }.onEvent {
       case (EmployeeDeleted(_), _) =>
         None
@@ -462,27 +514,34 @@ object EmployeePersistenceEntity {
     }
 
     val earned = lastLeaves.earned
+    val currentYearEarned = lastLeaves.currentYearEarned
     val sick = lastLeaves.sick
     val extra = lastLeaves.extra
 
     val applied = getTotalNumOfLeavesApplied(requests)
 
     if (sick >= applied)
-      Leaves(earned = earned, sick = sick - applied)
+      Leaves(earned = earned, currentYearEarned = currentYearEarned, sick = sick - applied)
     else {
       if (earned >= (applied - sick))
-        Leaves(earned = earned - (applied - sick))
+        Leaves(
+          earned = earned - (applied - sick),
+          currentYearEarned = if (currentYearEarned - (applied - sick) < 0) 0 else currentYearEarned - (applied - sick)
+        )
       else
         Leaves(extra = extra + applied - (earned + sick))
     }
   }
 
-  private def balanceExtra(earned: Double, sick: Double, due: Double): Leaves = {
+  private def balanceExtra(earned: Double, currentYearEarned: Double, sick: Double, due: Double): Leaves = {
     if (sick >= due)
-      Leaves(earned = earned, sick = sick - due)
+      Leaves(earned = earned, currentYearEarned = currentYearEarned, sick = sick - due)
     else {
       if (earned >= (due - sick))
-        Leaves(earned = earned - (due - sick))
+        Leaves(
+          earned = earned - (due - sick),
+          currentYearEarned = if (currentYearEarned - (due - sick) < 0) 0 else currentYearEarned - (due - sick)
+        )
       else
         Leaves(extra = due - (earned + sick))
     }

@@ -1,4 +1,4 @@
-package com.codingkapoor.employee.impl.persistence.read.repository.employee
+package com.codingkapoor.employee.impl.persistence.read.repositories.employee
 
 import java.time.LocalDate
 

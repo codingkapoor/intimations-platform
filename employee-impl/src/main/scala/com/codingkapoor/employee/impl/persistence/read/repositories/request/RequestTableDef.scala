@@ -1,11 +1,11 @@
-package com.codingkapoor.employee.impl.persistence.read.repository.request
+package com.codingkapoor.employee.impl.persistence.read.repositories.request
 
 import java.time.LocalDate
 
 import slick.jdbc.MySQLProfile.api._
-import com.codingkapoor.employee.api.model.RequestType
-import com.codingkapoor.employee.api.model.RequestType.RequestType
-import com.codingkapoor.employee.impl.persistence.read.repository.intimation.IntimationTableDef._
+import com.codingkapoor.employee.api.models.RequestType
+import com.codingkapoor.employee.api.models.RequestType.RequestType
+import com.codingkapoor.employee.impl.persistence.read.repositories.intimation.IntimationTableDef._
 
 case class RequestEntity(date: LocalDate, firstHalf: RequestType, secondHalf: RequestType, intimationId: Long, id: Long = 0L)
 

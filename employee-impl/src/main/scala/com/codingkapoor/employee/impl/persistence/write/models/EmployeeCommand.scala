@@ -1,9 +1,9 @@
-package com.codingkapoor.employee.impl.persistence.write
+package com.codingkapoor.employee.impl.persistence.write.models
 
 import akka.Done
+import com.codingkapoor.employee.api.models.{Employee, EmployeeInfo, IntimationReq, Leaves}
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.ReplyType
 import play.api.libs.json.{Format, Json}
-import com.codingkapoor.employee.api.model.{Employee, EmployeeInfo, IntimationReq, Leaves}
 
 sealed trait EmployeeCommand[R] extends ReplyType[R]
 
@@ -53,4 +53,10 @@ case class CreditLeaves(empId: Long) extends EmployeeCommand[Done]
 
 object CreditLeaves {
   implicit val format: Format[CreditLeaves] = Json.format[CreditLeaves]
+}
+
+case class BalanceLeaves(empId: Long) extends EmployeeCommand[Done]
+
+object BalanceLeaves {
+  implicit val format: Format[BalanceLeaves] = Json.format[BalanceLeaves]
 }

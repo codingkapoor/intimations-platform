@@ -1,8 +1,8 @@
-package com.codingkapoor.employee.api.model
+package com.codingkapoor.employee.api.models
 
 import java.time.{LocalDate, LocalDateTime}
 
-import com.codingkapoor.employee.api.model.Role.Role
+import com.codingkapoor.employee.api.models.Role.Role
 import julienrf.json.derived
 import play.api.libs.json._
 
@@ -58,14 +58,20 @@ object IntimationCancelledKafkaEvent {
   implicit val format: Format[IntimationCancelledKafkaEvent] = Json.format[IntimationCancelledKafkaEvent]
 }
 
-case class LastLeavesSavedKafkaEvent(id: Long, earned: Double, sick: Double, extra: Double) extends EmployeeKafkaEvent
+case class LastLeavesSavedKafkaEvent(id: Long, earned: Double, currentYearEarned: Double, sick: Double, extra: Double) extends EmployeeKafkaEvent
 
 object LastLeavesSavedKafkaEvent {
   implicit val format: Format[LastLeavesSavedKafkaEvent] = Json.format[LastLeavesSavedKafkaEvent]
 }
 
-case class LeavesCreditedKafkaEvent(id: Long, earned: Double, sick: Double, extra: Double) extends EmployeeKafkaEvent
+case class LeavesCreditedKafkaEvent(id: Long, earned: Double, currentYearEarned: Double, sick: Double, extra: Double) extends EmployeeKafkaEvent
 
 object LeavesCreditedKafkaEvent {
   implicit val format: Format[LeavesCreditedKafkaEvent] = Json.format[LeavesCreditedKafkaEvent]
+}
+
+case class LeavesBalancedKafkaEvent(id: Long, earned: Double, lapsed: Double) extends EmployeeKafkaEvent
+
+object LeavesBalancedKafkaEvent {
+  implicit val format: Format[LeavesBalancedKafkaEvent] = Json.format[LeavesBalancedKafkaEvent]
 }

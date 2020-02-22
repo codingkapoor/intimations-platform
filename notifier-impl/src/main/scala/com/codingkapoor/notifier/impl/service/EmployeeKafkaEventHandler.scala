@@ -3,7 +3,7 @@ package com.codingkapoor.notifier.impl.service
 import akka.Done
 import akka.stream.scaladsl.Flow
 import com.codingkapoor.employee.api.EmployeeService
-import com.codingkapoor.employee.api.model.{EmployeeAddedKafkaEvent, EmployeeDeletedKafkaEvent, EmployeeKafkaEvent, EmployeeReleasedKafkaEvent, EmployeeUpdatedKafkaEvent, IntimationCancelledKafkaEvent, IntimationCreatedKafkaEvent, IntimationUpdatedKafkaEvent}
+import com.codingkapoor.employee.api.models.{EmployeeAddedKafkaEvent, EmployeeDeletedKafkaEvent, EmployeeKafkaEvent, EmployeeReleasedKafkaEvent, EmployeeUpdatedKafkaEvent, IntimationCancelledKafkaEvent, IntimationCreatedKafkaEvent, IntimationUpdatedKafkaEvent}
 import com.codingkapoor.notifier.api.model.{IntimationType, Notification}
 import com.codingkapoor.notifier.impl.repository.employee.{EmployeeDao, EmployeeEntity}
 import org.slf4j.Logger

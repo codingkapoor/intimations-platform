@@ -1,4 +1,4 @@
-package com.codingkapoor.employee.impl.persistence.read.repository.request
+package com.codingkapoor.employee.impl.persistence.read.repositories.request
 
 import slick.dbio.DBIO
 import slick.jdbc.JdbcBackend.Database
