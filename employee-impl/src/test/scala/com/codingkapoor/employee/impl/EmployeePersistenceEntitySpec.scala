@@ -4,9 +4,9 @@ import java.time.LocalDate
 
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
-import com.codingkapoor.employee.api.models.{ContactInfo, Employee, EmployeeInfo, Leaves, Location, Role}
+import com.codingkapoor.employee.api.models.{ContactInfo, Employee, EmployeeInfo, IntimationReq, Leaves, Location, Request, RequestType, Role}
 import com.codingkapoor.employee.impl.persistence.write.{EmployeePersistenceEntity, EmployeeSerializerRegistry}
-import com.codingkapoor.employee.impl.persistence.write.models.{AddEmployee, EmployeeAdded, EmployeeCommand, EmployeeEvent, EmployeeState, UpdateEmployee}
+import com.codingkapoor.employee.impl.persistence.write.models.{AddEmployee, BalanceLeaves, CancelIntimation, CreateIntimation, CreditLeaves, DeleteEmployee, EmployeeAdded, EmployeeCommand, EmployeeEvent, EmployeeState, ReleaseEmployee, UpdateEmployee, UpdateIntimation}
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.InvalidCommandException
 import com.lightbend.lagom.scaladsl.playjson.JsonSerializerRegistry
 import com.lightbend.lagom.scaladsl.testkit.PersistentEntityTestDriver
@@ -38,7 +38,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
 
   "Employee persistence entity" should {
 
-    "add employee when no employee found with the given employee id" in withDriver { driver =>
+    "add an employee that doesn't already exists against a given employee id" in withDriver { driver =>
       val outcome = driver.run(AddEmployee(employee))
 
       outcome.events should contain only EmployeeAdded(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, e.leaves, e.roles)
@@ -46,13 +46,73 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome.issues should be(Nil)
     }
 
-    "invalidate update employee when no employee found with the given employee id" in withDriver { driver =>
+    "invalidate updation of a non existent employee" in withDriver { driver =>
       val outcome = driver.run(UpdateEmployee(empId, employeeInfo))
 
       outcome.replies.head.getClass should be(classOf[InvalidCommandException])
       outcome.events.size should ===(0)
       outcome.issues should be(Nil)
     }
-  }
 
+    "invalidate release of a non existent employee" in withDriver { driver =>
+      val outcome = driver.run(ReleaseEmployee(empId))
+
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome.events.size should ===(0)
+      outcome.issues should be(Nil)
+    }
+
+    "invalidate deletion of a non existent employee" in withDriver { driver =>
+      val outcome = driver.run(DeleteEmployee(empId))
+
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome.events.size should ===(0)
+      outcome.issues should be(Nil)
+    }
+
+    "invalidate creation of an intimation for a non existent employee" in withDriver { driver =>
+      val intimationReq = IntimationReq("Travelling to my native", Set(Request(LocalDate.now(), RequestType.WFH, RequestType.Leave)))
+
+      val outcome = driver.run(CreateIntimation(empId, intimationReq))
+
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome.events.size should ===(0)
+      outcome.issues should be(Nil)
+    }
+
+    "invalidate updation of an intimation for a non existent employee" in withDriver { driver =>
+      val intimationReq = IntimationReq("Travelling to my native", Set(Request(LocalDate.now(), RequestType.WFH, RequestType.Leave)))
+
+      val outcome = driver.run(UpdateIntimation(empId, intimationReq))
+
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome.events.size should ===(0)
+      outcome.issues should be(Nil)
+    }
+
+    "invalidate cancellation of an intimation for a non existent employee" in withDriver { driver =>
+      val outcome = driver.run(CancelIntimation(empId))
+
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome.events.size should ===(0)
+      outcome.issues should be(Nil)
+    }
+
+    "invalidate monthly credit of leaves for a non existent employee" in withDriver { driver =>
+      val outcome = driver.run(CreditLeaves(empId))
+
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome.events.size should ===(0)
+      outcome.issues should be(Nil)
+    }
+
+    "invalidate yearly balancing of leaves for a non existent employee" in withDriver { driver =>
+      val outcome = driver.run(BalanceLeaves(empId))
+
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome.events.size should ===(0)
+      outcome.issues should be(Nil)
+    }
+
+  }
 }
