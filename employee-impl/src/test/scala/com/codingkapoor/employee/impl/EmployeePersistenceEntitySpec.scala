@@ -36,9 +36,9 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
     }
   }
 
-  "Employee persistent entity" should {
+  "Employee persistence entity" should {
 
-    "add an employee" in withDriver { driver =>
+    "add employee when no employee found with the given employee id" in withDriver { driver =>
       val outcome = driver.run(AddEmployee(employee))
 
       outcome.events should contain only EmployeeAdded(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, e.leaves, e.roles)
@@ -46,7 +46,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome.issues should be(Nil)
     }
 
-    "validate update employee when no employee with given id found" in withDriver { driver =>
+    "invalidate update employee when no employee found with the given employee id" in withDriver { driver =>
       val outcome = driver.run(UpdateEmployee(empId, employeeInfo))
 
       outcome.replies.head.getClass should be(classOf[InvalidCommandException])
