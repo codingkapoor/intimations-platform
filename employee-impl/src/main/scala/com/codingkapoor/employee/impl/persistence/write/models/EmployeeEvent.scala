@@ -2,6 +2,7 @@ package com.codingkapoor.employee.impl.persistence.write.models
 
 import java.time.{LocalDate, LocalDateTime}
 
+import com.codingkapoor.employee.api.models.PrerogativeIntimationType.PrerogativeIntimationType
 import com.codingkapoor.employee.api.models.Role.Role
 import com.codingkapoor.employee.api.models.{ContactInfo, Leaves, Location, Request}
 import com.lightbend.lagom.scaladsl.persistence.{AggregateEvent, AggregateEventTag}
@@ -57,6 +58,24 @@ case class IntimationCancelled(empId: Long, reason: String, lastModified: LocalD
 
 object IntimationCancelled {
   implicit val format: Format[IntimationCancelled] = Json.format[IntimationCancelled]
+}
+
+case class PrerogativeIntimationCreated(empId: Long, prerogativeIntimationType: PrerogativeIntimationType, start: LocalDate, end: LocalDate) extends EmployeeEvent
+
+object PrerogativeIntimationCreated {
+  implicit val format: Format[PrerogativeIntimationCreated] = Json.format[PrerogativeIntimationCreated]
+}
+
+case class PrerogativeIntimationUpdated(empId: Long, prerogativeIntimationType: PrerogativeIntimationType, start: LocalDate, end: LocalDate) extends EmployeeEvent
+
+object PrerogativeIntimationUpdated {
+  implicit val format: Format[PrerogativeIntimationUpdated] = Json.format[PrerogativeIntimationUpdated]
+}
+
+case class PrerogativeIntimationCancelled(empId: Long, prerogativeIntimationType: PrerogativeIntimationType, start: LocalDate, end: LocalDate) extends EmployeeEvent
+
+object PrerogativeIntimationCancelled {
+  implicit val format: Format[PrerogativeIntimationCancelled] = Json.format[PrerogativeIntimationCancelled]
 }
 
 case class LastLeavesSaved(empId: Long, earned: Double = 0.0, currentYearEarned: Double = 0.0, sick: Double = 0.0, extra: Double = 0.0) extends EmployeeEvent

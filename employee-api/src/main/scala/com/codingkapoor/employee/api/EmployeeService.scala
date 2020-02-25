@@ -7,7 +7,7 @@ import com.lightbend.lagom.scaladsl.api.broker.Topic
 import com.lightbend.lagom.scaladsl.api.broker.kafka.{KafkaProperties, PartitionKeyStrategy}
 import com.lightbend.lagom.scaladsl.api.transport.Method
 import com.lightbend.lagom.scaladsl.api.{Descriptor, Service, ServiceCall}
-import com.codingkapoor.employee.api.models.{ActiveIntimation, Employee, EmployeeInfo, EmployeeKafkaEvent, InactiveIntimation, IntimationReq, Leaves}
+import com.codingkapoor.employee.api.models.{ActiveIntimation, Employee, EmployeeInfo, EmployeeKafkaEvent, InactiveIntimation, IntimationReq, Leaves, PrerogativeIntimation}
 
 object EmployeeService {
   val TOPIC_NAME = "employee"
@@ -33,6 +33,12 @@ trait EmployeeService extends Service with EmployeePathParamSerializer {
 
   def cancelIntimation(empId: Long): ServiceCall[NotUsed, Leaves]
 
+  def createPrerogativeIntimation(empId: Long): ServiceCall[PrerogativeIntimation, Leaves]
+
+  def updatePrerogativeIntimation(empId: Long): ServiceCall[PrerogativeIntimation, Leaves]
+
+  def cancelPrerogativeIntimation(empId: Long): ServiceCall[NotUsed, Leaves]
+
   def getInactiveIntimations(empId: Long, start: LocalDate, end: LocalDate): ServiceCall[NotUsed, List[InactiveIntimation]]
 
   def getActiveIntimations: ServiceCall[NotUsed, List[ActiveIntimation]]
@@ -54,6 +60,9 @@ trait EmployeeService extends Service with EmployeePathParamSerializer {
         restCall(Method.POST, "/api/employees/:id/intimations", createIntimation _),
         restCall(Method.PUT, "/api/employees/:id/intimations", updateIntimation _),
         restCall(Method.PUT, "/api/employees/:id/intimations/cancel", cancelIntimation _),
+        restCall(Method.POST, "/api/employees/:id/intimations/prerogative", createPrerogativeIntimation _),
+        restCall(Method.PUT, "/api/employees/:id/intimations/prerogative", updatePrerogativeIntimation _),
+        restCall(Method.PUT, "/api/employees/:id/intimations/prerogative/cancel", cancelPrerogativeIntimation _),
         restCall(Method.GET, "/api/employees/:id/intimations?start&end", getInactiveIntimations _)
       )
       .withTopics(

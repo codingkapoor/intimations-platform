@@ -2,6 +2,7 @@ package com.codingkapoor.employee.api.models
 
 import java.time.{LocalDate, LocalDateTime}
 
+import com.codingkapoor.employee.api.models.PrerogativeIntimationType.PrerogativeIntimationType
 import com.codingkapoor.employee.api.models.Role.Role
 import julienrf.json.derived
 import play.api.libs.json._
@@ -56,6 +57,24 @@ case class IntimationCancelledKafkaEvent(id: Long, reason: String, lastModified:
 
 object IntimationCancelledKafkaEvent {
   implicit val format: Format[IntimationCancelledKafkaEvent] = Json.format[IntimationCancelledKafkaEvent]
+}
+
+case class PrerogativeIntimationCreatedKafkaEvent(id: Long, prerogativeIntimationType: PrerogativeIntimationType, start: LocalDate, end: LocalDate) extends EmployeeKafkaEvent
+
+object PrerogativeIntimationCreatedKafkaEvent {
+  implicit val format: Format[PrerogativeIntimationCreatedKafkaEvent] = Json.format[PrerogativeIntimationCreatedKafkaEvent]
+}
+
+case class PrerogativeIntimationUpdatedKafkaEvent(id: Long, prerogativeIntimationType: PrerogativeIntimationType, start: LocalDate, end: LocalDate) extends EmployeeKafkaEvent
+
+object PrerogativeIntimationUpdatedKafkaEvent {
+  implicit val format: Format[PrerogativeIntimationUpdatedKafkaEvent] = Json.format[PrerogativeIntimationUpdatedKafkaEvent]
+}
+
+case class PrerogativeIntimationCancelledKafkaEvent(id: Long, prerogativeIntimationType: PrerogativeIntimationType, start: LocalDate, end: LocalDate) extends EmployeeKafkaEvent
+
+object PrerogativeIntimationCancelledKafkaEvent {
+  implicit val format: Format[PrerogativeIntimationCancelledKafkaEvent] = Json.format[PrerogativeIntimationCancelledKafkaEvent]
 }
 
 case class LastLeavesSavedKafkaEvent(id: Long, earned: Double, currentYearEarned: Double, sick: Double, extra: Double) extends EmployeeKafkaEvent

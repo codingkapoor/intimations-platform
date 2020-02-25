@@ -1,7 +1,7 @@
 package com.codingkapoor.employee.impl.persistence.write.models
 
 import akka.Done
-import com.codingkapoor.employee.api.models.{Employee, EmployeeInfo, IntimationReq, Leaves}
+import com.codingkapoor.employee.api.models.{Employee, EmployeeInfo, IntimationReq, Leaves, PrerogativeIntimation}
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.ReplyType
 import play.api.libs.json.{Format, Json}
 
@@ -47,6 +47,24 @@ case class CancelIntimation(empId: Long) extends EmployeeCommand[Leaves]
 
 object CancelIntimation {
   implicit val format: Format[CancelIntimation] = Json.format[CancelIntimation]
+}
+
+case class CreatePrerogativeIntimation(empId: Long, prerogativeIntimation: PrerogativeIntimation) extends EmployeeCommand[Leaves]
+
+object CreatePrerogativeIntimation {
+  implicit val format: Format[CreatePrerogativeIntimation] = Json.format[CreatePrerogativeIntimation]
+}
+
+case class UpdatePrerogativeIntimation(empId: Long, prerogativeIntimation: PrerogativeIntimation) extends EmployeeCommand[Leaves]
+
+object UpdatePrerogativeIntimation {
+  implicit val format: Format[UpdatePrerogativeIntimation] = Json.format[UpdatePrerogativeIntimation]
+}
+
+case class CancelPrerogativeIntimation(empId: Long) extends EmployeeCommand[Leaves]
+
+object CancelPrerogativeIntimation {
+  implicit val format: Format[CancelPrerogativeIntimation] = Json.format[CancelPrerogativeIntimation]
 }
 
 case class CreditLeaves(empId: Long) extends EmployeeCommand[Done]

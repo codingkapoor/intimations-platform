@@ -21,7 +21,7 @@ import com.codingkapoor.employee.impl.persistence.read.repositories.employee.{Em
 import com.codingkapoor.employee.impl.persistence.read.repositories.intimation.{IntimationDao, IntimationEntity}
 import com.codingkapoor.employee.impl.persistence.read.repositories.request.{RequestDao, RequestEntity}
 import com.codingkapoor.employee.impl.persistence.write._
-import com.codingkapoor.employee.impl.persistence.write.models.{AddEmployee, CancelIntimation, CreateIntimation, DeleteEmployee, EmployeeAdded, EmployeeDeleted, EmployeeEvent, EmployeeReleased, EmployeeUpdated, IntimationCancelled, IntimationCreated, IntimationUpdated, LastLeavesSaved, LeavesBalanced, LeavesCredited, ReleaseEmployee, UpdateEmployee, UpdateIntimation}
+import com.codingkapoor.employee.impl.persistence.write.models._
 import com.codingkapoor.employee.impl.utils.AuthValidator
 import com.lightbend.lagom.scaladsl.server.ServerServiceCall
 import org.pac4j.core.config.Config
@@ -171,6 +171,24 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
         intimationDao.getActiveIntimations.map(convertToActiveIntimations)
       }
     )
+
+  override def createPrerogativeIntimation(empId: Long): ServiceCall[PrerogativeIntimation, Leaves] = ServiceCall[PrerogativeIntimation, Leaves] { prerogativeIntimation =>
+    entityRef(empId).ask(CreatePrerogativeIntimation(empId, prerogativeIntimation)).recover {
+      case e: InvalidCommandException => throw BadRequest(e.message)
+    }
+  }
+
+  override def updatePrerogativeIntimation(empId: Long): ServiceCall[PrerogativeIntimation, Leaves] = ServiceCall[PrerogativeIntimation, Leaves] { prerogativeIntimation =>
+    entityRef(empId).ask(UpdatePrerogativeIntimation(empId, prerogativeIntimation)).recover {
+      case e: InvalidCommandException => throw BadRequest(e.message)
+    }
+  }
+
+  override def cancelPrerogativeIntimation(empId: Long): ServiceCall[NotUsed, Leaves] = ServiceCall[NotUsed, Leaves] { _ =>
+    entityRef(empId).ask(CancelPrerogativeIntimation(empId)).recover {
+      case e: InvalidCommandException => throw BadRequest(e.message)
+    }
+  }
 
   override def employeeTopic: Topic[EmployeeKafkaEvent] = {
     TopicProducer.singleStreamWithOffset { fromOffset =>
