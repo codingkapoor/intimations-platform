@@ -103,6 +103,39 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         ctx.done
 
+    }.onCommand[CreatePrerogativeIntimation, Leaves] {
+      case (CreatePrerogativeIntimation(empId, _), ctx, state) =>
+        logger.info(s"EmployeePersistenceEntity at state = $state received CreatePrerogativeIntimation command.")
+
+        val msg = s"No employee found with id = $empId."
+
+        ctx.invalidCommand(msg)
+        logger.error(s"InvalidCommandException: $msg")
+
+        ctx.done
+
+    }.onCommand[UpdatePrerogativeIntimation, Leaves] {
+      case (UpdatePrerogativeIntimation(empId, _), ctx, state) =>
+        logger.info(s"EmployeePersistenceEntity at state = $state received UpdatePrerogativeIntimation command.")
+
+        val msg = s"No employee found with id = $empId."
+
+        ctx.invalidCommand(msg)
+        logger.error(s"InvalidCommandException: $msg")
+
+        ctx.done
+
+    }.onCommand[CancelPrerogativeIntimation, Leaves] {
+      case (CancelPrerogativeIntimation(empId), ctx, state) =>
+        logger.info(s"EmployeePersistenceEntity at state = $state received CancelPrerogativeIntimation command.")
+
+        val msg = s"No employee found with id = $empId."
+
+        ctx.invalidCommand(msg)
+        logger.error(s"InvalidCommandException: $msg")
+
+        ctx.done
+
     }.onCommand[CreditLeaves, Done] {
       case (CreditLeaves(empId), ctx, state) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received Credit command.")
@@ -460,6 +493,39 @@ class EmployeePersistenceEntity extends PersistentEntity {
     }.onCommand[CancelIntimation, Leaves] {
       case (CancelIntimation(empId), ctx, state) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received CancelIntimation command.")
+
+        val msg = s"Employee with id = $empId has already been released."
+
+        ctx.invalidCommand(msg)
+        logger.error(s"InvalidCommandException: $msg")
+
+        ctx.done
+
+    }.onCommand[CreatePrerogativeIntimation, Leaves] {
+      case (CreatePrerogativeIntimation(empId, _), ctx, state) =>
+        logger.info(s"EmployeePersistenceEntity at state = $state received CreatePrerogativeIntimation command.")
+
+        val msg = s"Employee with id = $empId has already been released."
+
+        ctx.invalidCommand(msg)
+        logger.error(s"InvalidCommandException: $msg")
+
+        ctx.done
+
+    }.onCommand[UpdatePrerogativeIntimation, Leaves] {
+      case (UpdatePrerogativeIntimation(empId, _), ctx, state) =>
+        logger.info(s"EmployeePersistenceEntity at state = $state received UpdatePrerogativeIntimation command.")
+
+        val msg = s"Employee with id = $empId has already been released."
+
+        ctx.invalidCommand(msg)
+        logger.error(s"InvalidCommandException: $msg")
+
+        ctx.done
+
+    }.onCommand[CancelPrerogativeIntimation, Leaves] {
+      case (CancelPrerogativeIntimation(empId), ctx, state) =>
+        logger.info(s"EmployeePersistenceEntity at state = $state received CancelPrerogativeIntimation command.")
 
         val msg = s"Employee with id = $empId has already been released."
 
