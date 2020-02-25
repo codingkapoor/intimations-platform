@@ -160,7 +160,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
     }.onEvent {
       case (EmployeeAdded(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles), _) =>
-        Some(EmployeeState(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles, None, Leaves()))
+        Some(EmployeeState(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles, None, Leaves(), creditsPaused = false))
     }
 
   private val employeeAdded: Actions =
@@ -400,7 +400,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
     }.onEvent {
       case (EmployeeUpdated(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles), Some(e)) =>
-        Some(EmployeeState(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles, e.activeIntimationOpt, e.lastLeaves))
+        Some(EmployeeState(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles, e.activeIntimationOpt, e.lastLeaves, e.creditsPaused))
 
       case (EmployeeReleased(_, dor), Some(e)) =>
         Some(e.copy(dor = Some(dor)))
