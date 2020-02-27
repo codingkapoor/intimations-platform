@@ -103,8 +103,8 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         ctx.done
 
-    }.onCommand[CreatePrerogativeIntimation, Leaves] {
-      case (CreatePrerogativeIntimation(empId, _), ctx, state) =>
+    }.onCommand[CreatePrivilegedIntimation, Leaves] {
+      case (CreatePrivilegedIntimation(empId, _), ctx, state) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received CreatePrerogativeIntimation command.")
 
         val msg = s"No employee found with id = $empId."
@@ -114,8 +114,8 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         ctx.done
 
-    }.onCommand[UpdatePrerogativeIntimation, Leaves] {
-      case (UpdatePrerogativeIntimation(empId, _), ctx, state) =>
+    }.onCommand[UpdatePrivilegedIntimation, Leaves] {
+      case (UpdatePrivilegedIntimation(empId, _), ctx, state) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received UpdatePrerogativeIntimation command.")
 
         val msg = s"No employee found with id = $empId."
@@ -125,8 +125,8 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         ctx.done
 
-    }.onCommand[CancelPrerogativeIntimation, Leaves] {
-      case (CancelPrerogativeIntimation(empId), ctx, state) =>
+    }.onCommand[CancelPrivilegedIntimation, Leaves] {
+      case (CancelPrivilegedIntimation(empId), ctx, state) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received CancelPrerogativeIntimation command.")
 
         val msg = s"No employee found with id = $empId."
@@ -160,7 +160,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
     }.onEvent {
       case (EmployeeAdded(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles), _) =>
-        Some(EmployeeState(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles, None, Leaves(), creditsPaused = false))
+        Some(EmployeeState(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles, None, None, Leaves(), creditsPaused = false))
     }
 
   private val employeeAdded: Actions =
@@ -400,7 +400,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
     }.onEvent {
       case (EmployeeUpdated(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles), Some(e)) =>
-        Some(EmployeeState(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles, e.activeIntimationOpt, e.lastLeaves, e.creditsPaused))
+        Some(EmployeeState(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles, e.activeIntimationOpt, e.privilegedIntimationOpt, e.lastLeaves, e.creditsPaused))
 
       case (EmployeeReleased(_, dor), Some(e)) =>
         Some(e.copy(dor = Some(dor)))
@@ -501,8 +501,8 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         ctx.done
 
-    }.onCommand[CreatePrerogativeIntimation, Leaves] {
-      case (CreatePrerogativeIntimation(empId, _), ctx, state) =>
+    }.onCommand[CreatePrivilegedIntimation, Leaves] {
+      case (CreatePrivilegedIntimation(empId, _), ctx, state) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received CreatePrerogativeIntimation command.")
 
         val msg = s"Employee with id = $empId has already been released."
@@ -512,8 +512,8 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         ctx.done
 
-    }.onCommand[UpdatePrerogativeIntimation, Leaves] {
-      case (UpdatePrerogativeIntimation(empId, _), ctx, state) =>
+    }.onCommand[UpdatePrivilegedIntimation, Leaves] {
+      case (UpdatePrivilegedIntimation(empId, _), ctx, state) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received UpdatePrerogativeIntimation command.")
 
         val msg = s"Employee with id = $empId has already been released."
@@ -523,8 +523,8 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         ctx.done
 
-    }.onCommand[CancelPrerogativeIntimation, Leaves] {
-      case (CancelPrerogativeIntimation(empId), ctx, state) =>
+    }.onCommand[CancelPrivilegedIntimation, Leaves] {
+      case (CancelPrivilegedIntimation(empId), ctx, state) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received CancelPrerogativeIntimation command.")
 
         val msg = s"Employee with id = $empId has already been released."

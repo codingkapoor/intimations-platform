@@ -1,7 +1,7 @@
 package com.codingkapoor.employee.impl.persistence.write.models
 
 import akka.Done
-import com.codingkapoor.employee.api.models.{Employee, EmployeeInfo, IntimationReq, Leaves, PrerogativeIntimation}
+import com.codingkapoor.employee.api.models.{Employee, EmployeeInfo, IntimationReq, Leaves, PrivilegedIntimation}
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.ReplyType
 import play.api.libs.json.{Format, Json}
 
@@ -49,22 +49,22 @@ object CancelIntimation {
   implicit val format: Format[CancelIntimation] = Json.format[CancelIntimation]
 }
 
-case class CreatePrerogativeIntimation(empId: Long, prerogativeIntimation: PrerogativeIntimation) extends EmployeeCommand[Leaves]
+case class CreatePrivilegedIntimation(empId: Long, privilegedIntimation: PrivilegedIntimation) extends EmployeeCommand[Leaves]
 
-object CreatePrerogativeIntimation {
-  implicit val format: Format[CreatePrerogativeIntimation] = Json.format[CreatePrerogativeIntimation]
+object CreatePrivilegedIntimation {
+  implicit val format: Format[CreatePrivilegedIntimation] = Json.format[CreatePrivilegedIntimation]
 }
 
-case class UpdatePrerogativeIntimation(empId: Long, prerogativeIntimation: PrerogativeIntimation) extends EmployeeCommand[Leaves]
+case class UpdatePrivilegedIntimation(empId: Long, privilegedIntimation: PrivilegedIntimation) extends EmployeeCommand[Leaves]
 
-object UpdatePrerogativeIntimation {
-  implicit val format: Format[UpdatePrerogativeIntimation] = Json.format[UpdatePrerogativeIntimation]
+object UpdatePrivilegedIntimation {
+  implicit val format: Format[UpdatePrivilegedIntimation] = Json.format[UpdatePrivilegedIntimation]
 }
 
-case class CancelPrerogativeIntimation(empId: Long) extends EmployeeCommand[Leaves]
+case class CancelPrivilegedIntimation(empId: Long) extends EmployeeCommand[Leaves]
 
-object CancelPrerogativeIntimation {
-  implicit val format: Format[CancelPrerogativeIntimation] = Json.format[CancelPrerogativeIntimation]
+object CancelPrivilegedIntimation {
+  implicit val format: Format[CancelPrivilegedIntimation] = Json.format[CancelPrivilegedIntimation]
 }
 
 case class CreditLeaves(empId: Long) extends EmployeeCommand[Done]

@@ -172,20 +172,20 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
       }
     )
 
-  override def createPrerogativeIntimation(empId: Long): ServiceCall[PrerogativeIntimation, Leaves] = ServiceCall[PrerogativeIntimation, Leaves] { prerogativeIntimation =>
-    entityRef(empId).ask(CreatePrerogativeIntimation(empId, prerogativeIntimation)).recover {
+  override def createPrivilegedIntimation(empId: Long): ServiceCall[PrivilegedIntimation, Leaves] = ServiceCall[PrivilegedIntimation, Leaves] { privilegedIntimation =>
+    entityRef(empId).ask(CreatePrivilegedIntimation(empId, privilegedIntimation)).recover {
       case e: InvalidCommandException => throw BadRequest(e.message)
     }
   }
 
-  override def updatePrerogativeIntimation(empId: Long): ServiceCall[PrerogativeIntimation, Leaves] = ServiceCall[PrerogativeIntimation, Leaves] { prerogativeIntimation =>
-    entityRef(empId).ask(UpdatePrerogativeIntimation(empId, prerogativeIntimation)).recover {
+  override def updatePrivilegedIntimation(empId: Long): ServiceCall[PrivilegedIntimation, Leaves] = ServiceCall[PrivilegedIntimation, Leaves] { privilegedIntimation =>
+    entityRef(empId).ask(UpdatePrivilegedIntimation(empId, privilegedIntimation)).recover {
       case e: InvalidCommandException => throw BadRequest(e.message)
     }
   }
 
-  override def cancelPrerogativeIntimation(empId: Long): ServiceCall[NotUsed, Leaves] = ServiceCall[NotUsed, Leaves] { _ =>
-    entityRef(empId).ask(CancelPrerogativeIntimation(empId)).recover {
+  override def cancelPrivilegedIntimation(empId: Long): ServiceCall[NotUsed, Leaves] = ServiceCall[NotUsed, Leaves] { _ =>
+    entityRef(empId).ask(CancelPrivilegedIntimation(empId)).recover {
       case e: InvalidCommandException => throw BadRequest(e.message)
     }
   }

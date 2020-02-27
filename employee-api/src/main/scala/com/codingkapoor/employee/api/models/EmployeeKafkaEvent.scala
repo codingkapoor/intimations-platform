@@ -2,7 +2,7 @@ package com.codingkapoor.employee.api.models
 
 import java.time.{LocalDate, LocalDateTime}
 
-import com.codingkapoor.employee.api.models.PrerogativeIntimationType.PrerogativeIntimationType
+import com.codingkapoor.employee.api.models.PrivilegedIntimationType.PrivilegedIntimationType
 import com.codingkapoor.employee.api.models.Role.Role
 import julienrf.json.derived
 import play.api.libs.json._
@@ -59,22 +59,22 @@ object IntimationCancelledKafkaEvent {
   implicit val format: Format[IntimationCancelledKafkaEvent] = Json.format[IntimationCancelledKafkaEvent]
 }
 
-case class PrerogativeIntimationCreatedKafkaEvent(id: Long, prerogativeIntimationType: PrerogativeIntimationType, start: LocalDate, end: LocalDate) extends EmployeeKafkaEvent
+case class PrivilegedIntimationCreatedKafkaEvent(id: Long, privilegedIntimationType: PrivilegedIntimationType, start: LocalDate, end: LocalDate) extends EmployeeKafkaEvent
 
-object PrerogativeIntimationCreatedKafkaEvent {
-  implicit val format: Format[PrerogativeIntimationCreatedKafkaEvent] = Json.format[PrerogativeIntimationCreatedKafkaEvent]
+object PrivilegedIntimationCreatedKafkaEvent {
+  implicit val format: Format[PrivilegedIntimationCreatedKafkaEvent] = Json.format[PrivilegedIntimationCreatedKafkaEvent]
 }
 
-case class PrerogativeIntimationUpdatedKafkaEvent(id: Long, prerogativeIntimationType: PrerogativeIntimationType, start: LocalDate, end: LocalDate) extends EmployeeKafkaEvent
+case class PrivilegedIntimationUpdatedKafkaEvent(id: Long, privilegedIntimationType: PrivilegedIntimationType, start: LocalDate, end: LocalDate) extends EmployeeKafkaEvent
 
-object PrerogativeIntimationUpdatedKafkaEvent {
-  implicit val format: Format[PrerogativeIntimationUpdatedKafkaEvent] = Json.format[PrerogativeIntimationUpdatedKafkaEvent]
+object PrivilegedIntimationUpdatedKafkaEvent {
+  implicit val format: Format[PrivilegedIntimationUpdatedKafkaEvent] = Json.format[PrivilegedIntimationUpdatedKafkaEvent]
 }
 
-case class PrerogativeIntimationCancelledKafkaEvent(id: Long, prerogativeIntimationType: PrerogativeIntimationType, start: LocalDate, end: LocalDate) extends EmployeeKafkaEvent
+case class PrivilegedIntimationCancelledKafkaEvent(id: Long, privilegedIntimationType: PrivilegedIntimationType, start: LocalDate, end: LocalDate) extends EmployeeKafkaEvent
 
-object PrerogativeIntimationCancelledKafkaEvent {
-  implicit val format: Format[PrerogativeIntimationCancelledKafkaEvent] = Json.format[PrerogativeIntimationCancelledKafkaEvent]
+object PrivilegedIntimationCancelledKafkaEvent {
+  implicit val format: Format[PrivilegedIntimationCancelledKafkaEvent] = Json.format[PrivilegedIntimationCancelledKafkaEvent]
 }
 
 case class LastLeavesSavedKafkaEvent(id: Long, earned: Double, currentYearEarned: Double, sick: Double, extra: Double) extends EmployeeKafkaEvent

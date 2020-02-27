@@ -2,7 +2,7 @@ package com.codingkapoor.employee.impl.persistence.write.models
 
 import java.time.{LocalDate, LocalDateTime}
 
-import com.codingkapoor.employee.api.models.PrerogativeIntimationType.PrerogativeIntimationType
+import com.codingkapoor.employee.api.models.PrivilegedIntimationType.PrivilegedIntimationType
 import com.codingkapoor.employee.api.models.Role.Role
 import com.codingkapoor.employee.api.models.{ContactInfo, Leaves, Location, Request}
 import com.lightbend.lagom.scaladsl.persistence.{AggregateEvent, AggregateEventTag}
@@ -60,22 +60,22 @@ object IntimationCancelled {
   implicit val format: Format[IntimationCancelled] = Json.format[IntimationCancelled]
 }
 
-case class PrerogativeIntimationCreated(empId: Long, prerogativeIntimationType: PrerogativeIntimationType, start: LocalDate, end: LocalDate) extends EmployeeEvent
+case class PrivilegedIntimationCreated(empId: Long, privilegedIntimationType: PrivilegedIntimationType, start: LocalDate, end: LocalDate) extends EmployeeEvent
 
-object PrerogativeIntimationCreated {
-  implicit val format: Format[PrerogativeIntimationCreated] = Json.format[PrerogativeIntimationCreated]
+object PrivilegedIntimationCreated {
+  implicit val format: Format[PrivilegedIntimationCreated] = Json.format[PrivilegedIntimationCreated]
 }
 
-case class PrerogativeIntimationUpdated(empId: Long, prerogativeIntimationType: PrerogativeIntimationType, start: LocalDate, end: LocalDate) extends EmployeeEvent
+case class PrivilegedIntimationUpdated(empId: Long, privilegedIntimationType: PrivilegedIntimationType, start: LocalDate, end: LocalDate) extends EmployeeEvent
 
-object PrerogativeIntimationUpdated {
-  implicit val format: Format[PrerogativeIntimationUpdated] = Json.format[PrerogativeIntimationUpdated]
+object PrivilegedIntimationUpdated {
+  implicit val format: Format[PrivilegedIntimationUpdated] = Json.format[PrivilegedIntimationUpdated]
 }
 
-case class PrerogativeIntimationCancelled(empId: Long, prerogativeIntimationType: PrerogativeIntimationType, start: LocalDate, end: LocalDate) extends EmployeeEvent
+case class PrivilegedIntimationCancelled(empId: Long, privilegedIntimationType: PrivilegedIntimationType, start: LocalDate, end: LocalDate) extends EmployeeEvent
 
-object PrerogativeIntimationCancelled {
-  implicit val format: Format[PrerogativeIntimationCancelled] = Json.format[PrerogativeIntimationCancelled]
+object PrivilegedIntimationCancelled {
+  implicit val format: Format[PrivilegedIntimationCancelled] = Json.format[PrivilegedIntimationCancelled]
 }
 
 case class LastLeavesSaved(empId: Long, earned: Double = 0.0, currentYearEarned: Double = 0.0, sick: Double = 0.0, extra: Double = 0.0) extends EmployeeEvent
