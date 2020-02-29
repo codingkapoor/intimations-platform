@@ -42,7 +42,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val outcome = driver.run(AddEmployee(employee))
 
       outcome.events should contain only EmployeeAdded(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, e.leaves, e.roles)
-      outcome.state should ===(Some(EmployeeState(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, e.leaves, e.roles, None, Leaves())))
+      outcome.state should ===(Some(EmployeeState(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, e.leaves, e.roles, None, None, Leaves(), creditsPaused = false)))
       outcome.issues should be(Nil)
     }
 

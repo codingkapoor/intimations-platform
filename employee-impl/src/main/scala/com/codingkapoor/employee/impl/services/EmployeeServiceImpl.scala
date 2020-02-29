@@ -21,7 +21,7 @@ import com.codingkapoor.employee.impl.persistence.read.repositories.employee.{Em
 import com.codingkapoor.employee.impl.persistence.read.repositories.intimation.{IntimationDao, IntimationEntity}
 import com.codingkapoor.employee.impl.persistence.read.repositories.request.{RequestDao, RequestEntity}
 import com.codingkapoor.employee.impl.persistence.write._
-import com.codingkapoor.employee.impl.persistence.write.models.{AddEmployee, CancelIntimation, CreateIntimation, DeleteEmployee, EmployeeAdded, EmployeeDeleted, EmployeeEvent, EmployeeReleased, EmployeeUpdated, IntimationCancelled, IntimationCreated, IntimationUpdated, LastLeavesSaved, LeavesBalanced, LeavesCredited, ReleaseEmployee, UpdateEmployee, UpdateIntimation}
+import com.codingkapoor.employee.impl.persistence.write.models._
 import com.codingkapoor.employee.impl.utils.AuthValidator
 import com.lightbend.lagom.scaladsl.server.ServerServiceCall
 import org.pac4j.core.config.Config
@@ -172,6 +172,24 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
       }
     )
 
+  override def createPrivilegedIntimation(empId: Long): ServiceCall[PrivilegedIntimation, Leaves] = ServiceCall[PrivilegedIntimation, Leaves] { privilegedIntimation =>
+    entityRef(empId).ask(CreatePrivilegedIntimation(empId, privilegedIntimation)).recover {
+      case e: InvalidCommandException => throw BadRequest(e.message)
+    }
+  }
+
+  override def updatePrivilegedIntimation(empId: Long): ServiceCall[PrivilegedIntimation, Leaves] = ServiceCall[PrivilegedIntimation, Leaves] { privilegedIntimation =>
+    entityRef(empId).ask(UpdatePrivilegedIntimation(empId, privilegedIntimation)).recover {
+      case e: InvalidCommandException => throw BadRequest(e.message)
+    }
+  }
+
+  override def cancelPrivilegedIntimation(empId: Long): ServiceCall[NotUsed, Leaves] = ServiceCall[NotUsed, Leaves] { _ =>
+    entityRef(empId).ask(CancelPrivilegedIntimation(empId)).recover {
+      case e: InvalidCommandException => throw BadRequest(e.message)
+    }
+  }
+
   override def employeeTopic: Topic[EmployeeKafkaEvent] = {
     TopicProducer.singleStreamWithOffset { fromOffset =>
       persistentEntityRegistry.eventStream(EmployeeEvent.Tag, fromOffset)
@@ -196,14 +214,23 @@ object EmployeeServiceImpl {
       case EmployeeDeleted(id) =>
         EmployeeDeletedKafkaEvent(id)
 
-      case IntimationCreated(empId, reason, lastModified, requests) =>
+      case IntimationCreated(empId, reason, requests, lastModified) =>
         IntimationCreatedKafkaEvent(empId, reason, lastModified, requests)
 
-      case IntimationUpdated(empId, reason, lastModified, requests) =>
+      case IntimationUpdated(empId, reason, requests, lastModified) =>
         IntimationUpdatedKafkaEvent(empId, reason, lastModified, requests)
 
-      case IntimationCancelled(empId, reason, lastModified, requests) =>
+      case IntimationCancelled(empId, reason, requests, lastModified) =>
         IntimationCancelledKafkaEvent(empId, reason, lastModified, requests)
+
+      case PrivilegedIntimationCreated(empId, privilegedIntimationType, start, end, reason, requests, lastModified) =>
+        PrivilegedIntimationCreatedKafkaEvent(empId, privilegedIntimationType, start, end, reason, requests, lastModified)
+
+      case PrivilegedIntimationUpdated(empId, privilegedIntimationType, start, end, reason, requests, lastModified) =>
+        PrivilegedIntimationUpdatedKafkaEvent(empId, privilegedIntimationType, start, end, reason, requests, lastModified)
+
+      case PrivilegedIntimationCancelled(empId, privilegedIntimationType, start, end, reason, requests, lastModified) =>
+        PrivilegedIntimationCancelledKafkaEvent(empId, privilegedIntimationType, start, end, reason, requests, lastModified)
 
       case LastLeavesSaved(empId, earned, currentYearEarned, sick, extra) =>
         LastLeavesSavedKafkaEvent(empId, earned, currentYearEarned, sick, extra)

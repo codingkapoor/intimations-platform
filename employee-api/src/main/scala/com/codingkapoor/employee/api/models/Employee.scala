@@ -1,8 +1,9 @@
 package com.codingkapoor.employee.api.models
 
 import java.time.{LocalDate, LocalDateTime}
-import play.api.libs.json.{Format, Json}
 
+import com.codingkapoor.employee.api.models.PrivilegedIntimationType.PrivilegedIntimationType
+import play.api.libs.json.{Format, Json}
 import com.codingkapoor.employee.api.models.RequestType.RequestType
 import com.codingkapoor.employee.api.models.Role.Role
 
@@ -57,7 +58,7 @@ object Request {
   implicit val format: Format[Request] = Json.format[Request]
 }
 
-case class Intimation(reason: String, lastModified: LocalDateTime, requests: Set[Request])
+case class Intimation(reason: String, requests: Set[Request], lastModified: LocalDateTime)
 
 object Intimation {
   implicit val format: Format[Intimation] = Json.format[Intimation]
@@ -67,6 +68,19 @@ case class IntimationReq(reason: String, requests: Set[Request])
 
 object IntimationReq {
   implicit val format: Format[IntimationReq] = Json.format[IntimationReq]
+}
+
+object PrivilegedIntimationType extends Enumeration {
+  type PrivilegedIntimationType = Value
+  val Maternity, Paternity, Sabbatical = Value
+
+  implicit val format: Format[PrivilegedIntimationType.Value] = Json.formatEnum(this)
+}
+
+case class PrivilegedIntimation(privilegedIntimationType: PrivilegedIntimationType, start: LocalDate, end: LocalDate)
+
+object PrivilegedIntimation {
+  implicit val format: Format[PrivilegedIntimation] = Json.format[PrivilegedIntimation]
 }
 
 case class InactiveIntimation(id: Long, empId: Long, reason: String, requests: Set[Request])

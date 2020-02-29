@@ -2,6 +2,7 @@ package com.codingkapoor.employee.api.models
 
 import java.time.{LocalDate, LocalDateTime}
 
+import com.codingkapoor.employee.api.models.PrivilegedIntimationType.PrivilegedIntimationType
 import com.codingkapoor.employee.api.models.Role.Role
 import julienrf.json.derived
 import play.api.libs.json._
@@ -56,6 +57,27 @@ case class IntimationCancelledKafkaEvent(id: Long, reason: String, lastModified:
 
 object IntimationCancelledKafkaEvent {
   implicit val format: Format[IntimationCancelledKafkaEvent] = Json.format[IntimationCancelledKafkaEvent]
+}
+
+case class PrivilegedIntimationCreatedKafkaEvent(id: Long, privilegedIntimationType: PrivilegedIntimationType, start: LocalDate, end: LocalDate,
+                                                 reason: String, requests: Set[Request], lastModified: LocalDateTime) extends EmployeeKafkaEvent
+
+object PrivilegedIntimationCreatedKafkaEvent {
+  implicit val format: Format[PrivilegedIntimationCreatedKafkaEvent] = Json.format[PrivilegedIntimationCreatedKafkaEvent]
+}
+
+case class PrivilegedIntimationUpdatedKafkaEvent(id: Long, privilegedIntimationType: PrivilegedIntimationType, start: LocalDate, end: LocalDate,
+                                                 reason: String, requests: Set[Request], lastModified: LocalDateTime) extends EmployeeKafkaEvent
+
+object PrivilegedIntimationUpdatedKafkaEvent {
+  implicit val format: Format[PrivilegedIntimationUpdatedKafkaEvent] = Json.format[PrivilegedIntimationUpdatedKafkaEvent]
+}
+
+case class PrivilegedIntimationCancelledKafkaEvent(id: Long, privilegedIntimationType: PrivilegedIntimationType, start: LocalDate, end: LocalDate,
+                                                   reason: String, requests: Set[Request], lastModified: LocalDateTime) extends EmployeeKafkaEvent
+
+object PrivilegedIntimationCancelledKafkaEvent {
+  implicit val format: Format[PrivilegedIntimationCancelledKafkaEvent] = Json.format[PrivilegedIntimationCancelledKafkaEvent]
 }
 
 case class LastLeavesSavedKafkaEvent(id: Long, earned: Double, currentYearEarned: Double, sick: Double, extra: Double) extends EmployeeKafkaEvent
