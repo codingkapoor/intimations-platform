@@ -45,7 +45,7 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
 
         entityRef(employee.id).ask(AddEmployee(employee)).recover {
           case e: InvalidCommandException => throw BadRequest(e.getMessage)
-            // TODO: How about handling general exception and logging the same
+          // TODO: How about handling general exception and logging the same
         }
       }
     )
@@ -172,23 +172,41 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
       }
     )
 
-  override def createPrivilegedIntimation(empId: Long): ServiceCall[PrivilegedIntimation, Leaves] = ServiceCall[PrivilegedIntimation, Leaves] { privilegedIntimation =>
-    entityRef(empId).ask(CreatePrivilegedIntimation(empId, privilegedIntimation)).recover {
-      case e: InvalidCommandException => throw BadRequest(e.message)
-    }
-  }
+  override def createPrivilegedIntimation(empId: Long): ServiceCall[PrivilegedIntimation, Leaves] =
+    authorize(requireAllRoles[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
+      ServerServiceCall[PrivilegedIntimation, Leaves] { privilegedIntimation: PrivilegedIntimation =>
+        validateTokenType(profile)
+        validateIfProfileBelongsToAdmin(profile)
 
-  override def updatePrivilegedIntimation(empId: Long): ServiceCall[PrivilegedIntimation, Leaves] = ServiceCall[PrivilegedIntimation, Leaves] { privilegedIntimation =>
-    entityRef(empId).ask(UpdatePrivilegedIntimation(empId, privilegedIntimation)).recover {
-      case e: InvalidCommandException => throw BadRequest(e.message)
-    }
-  }
+        entityRef(empId).ask(CreatePrivilegedIntimation(empId, privilegedIntimation)).recover {
+          case e: InvalidCommandException => throw BadRequest(e.message)
+        }
+      }
+    )
 
-  override def cancelPrivilegedIntimation(empId: Long): ServiceCall[NotUsed, Leaves] = ServiceCall[NotUsed, Leaves] { _ =>
-    entityRef(empId).ask(CancelPrivilegedIntimation(empId)).recover {
-      case e: InvalidCommandException => throw BadRequest(e.message)
-    }
-  }
+  override def updatePrivilegedIntimation(empId: Long): ServiceCall[PrivilegedIntimation, Leaves] =
+    authorize(requireAllRoles[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
+      ServerServiceCall[PrivilegedIntimation, Leaves] { privilegedIntimation: PrivilegedIntimation =>
+        validateTokenType(profile)
+        validateIfProfileBelongsToAdmin(profile)
+
+        entityRef(empId).ask(UpdatePrivilegedIntimation(empId, privilegedIntimation)).recover {
+          case e: InvalidCommandException => throw BadRequest(e.message)
+        }
+      }
+    )
+
+  override def cancelPrivilegedIntimation(empId: Long): ServiceCall[NotUsed, Leaves] =
+    authorize(requireAllRoles[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
+      ServerServiceCall[NotUsed, Leaves] { _: NotUsed =>
+        validateTokenType(profile)
+        validateIfProfileBelongsToAdmin(profile)
+
+        entityRef(empId).ask(CancelPrivilegedIntimation(empId)).recover {
+          case e: InvalidCommandException => throw BadRequest(e.message)
+        }
+      }
+    )
 
   override def employeeTopic: Topic[EmployeeKafkaEvent] = {
     TopicProducer.singleStreamWithOffset { fromOffset =>
