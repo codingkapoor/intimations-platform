@@ -59,19 +59,22 @@ object IntimationCancelledKafkaEvent {
   implicit val format: Format[IntimationCancelledKafkaEvent] = Json.format[IntimationCancelledKafkaEvent]
 }
 
-case class PrivilegedIntimationCreatedKafkaEvent(id: Long, privilegedIntimationType: PrivilegedIntimationType, start: LocalDate, end: LocalDate) extends EmployeeKafkaEvent
+case class PrivilegedIntimationCreatedKafkaEvent(id: Long, privilegedIntimationType: PrivilegedIntimationType, start: LocalDate, end: LocalDate,
+                                                 reason: String, requests: Set[Request], lastModified: LocalDateTime) extends EmployeeKafkaEvent
 
 object PrivilegedIntimationCreatedKafkaEvent {
   implicit val format: Format[PrivilegedIntimationCreatedKafkaEvent] = Json.format[PrivilegedIntimationCreatedKafkaEvent]
 }
 
-case class PrivilegedIntimationUpdatedKafkaEvent(id: Long, privilegedIntimationType: PrivilegedIntimationType, start: LocalDate, end: LocalDate) extends EmployeeKafkaEvent
+case class PrivilegedIntimationUpdatedKafkaEvent(id: Long, privilegedIntimationType: PrivilegedIntimationType, start: LocalDate, end: LocalDate,
+                                                 reason: String, requests: Set[Request], lastModified: LocalDateTime) extends EmployeeKafkaEvent
 
 object PrivilegedIntimationUpdatedKafkaEvent {
   implicit val format: Format[PrivilegedIntimationUpdatedKafkaEvent] = Json.format[PrivilegedIntimationUpdatedKafkaEvent]
 }
 
-case class PrivilegedIntimationCancelledKafkaEvent(id: Long, privilegedIntimationType: PrivilegedIntimationType, start: LocalDate, end: LocalDate) extends EmployeeKafkaEvent
+case class PrivilegedIntimationCancelledKafkaEvent(id: Long, privilegedIntimationType: PrivilegedIntimationType, start: LocalDate, end: LocalDate,
+                                                   reason: String, requests: Set[Request], lastModified: LocalDateTime) extends EmployeeKafkaEvent
 
 object PrivilegedIntimationCancelledKafkaEvent {
   implicit val format: Format[PrivilegedIntimationCancelledKafkaEvent] = Json.format[PrivilegedIntimationCancelledKafkaEvent]

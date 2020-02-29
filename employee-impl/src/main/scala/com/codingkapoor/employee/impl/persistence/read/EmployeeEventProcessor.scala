@@ -4,7 +4,7 @@ import akka.Done
 import com.codingkapoor.employee.impl.persistence.read.repositories.employee.{EmployeeDao, EmployeeEntity}
 import com.codingkapoor.employee.impl.persistence.read.repositories.intimation.{IntimationDao, IntimationEntity}
 import com.codingkapoor.employee.impl.persistence.read.repositories.request.{RequestDao, RequestEntity}
-import com.codingkapoor.employee.impl.persistence.write.models.{EmployeeAdded, EmployeeDeleted, EmployeeEvent, EmployeeReleased, EmployeeUpdated, IntimationCancelled, IntimationCreated, IntimationUpdated}
+import com.codingkapoor.employee.impl.persistence.write.models._
 import com.lightbend.lagom.scaladsl.persistence.{AggregateEventTag, EventStreamElement, ReadSideProcessor}
 import com.lightbend.lagom.scaladsl.persistence.slick.SlickReadSide
 import org.slf4j.LoggerFactory
@@ -27,6 +27,9 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
       .setEventHandler[IntimationCreated](processIntimationCreated)
       .setEventHandler[IntimationUpdated](processIntimationUpdated)
       .setEventHandler[IntimationCancelled](processIntimationCancelled)
+      .setEventHandler[PrivilegedIntimationCreated](processPrivilegedIntimationCreated)
+      .setEventHandler[PrivilegedIntimationUpdated](processPrivilegedIntimationUpdated)
+      .setEventHandler[PrivilegedIntimationCancelled](processPrivilegedIntimationCancelled)
       .build()
 
   override def aggregateTags: Set[AggregateEventTag[EmployeeEvent]] = Set(EmployeeEvent.Tag)
@@ -125,6 +128,87 @@ class EmployeeEventProcessor(readSide: SlickReadSide, employeeRepository: Employ
 
   private def processIntimationCancelled(eventStreamElement: EventStreamElement[IntimationCancelled]): DBIO[List[Done]] = {
     log.info(s"EmployeeEventProcessor received IntimationCancelled event.")
+
+    val cancelled = eventStreamElement.event
+    val empId = cancelled.empId
+    val reason = cancelled.reason
+    val requests = cancelled.requests.toList.sortWith { case (rd1, rd2) => rd1.date.isBefore(rd2.date) }
+    val lastModified = cancelled.lastModified
+
+    if (requests.nonEmpty) {
+      val latestRequestDate = requests.last.date
+
+      val ie = IntimationEntity(empId, reason, latestRequestDate, lastModified)
+
+      intimationRepository.deleteIntimation(empId).flatMap { _ =>
+        intimationRepository.createIntimation(ie).flatMap { id =>
+          DBIO.sequence(requests.map { request =>
+            val date = request.date
+
+            val re = RequestEntity(date, request.firstHalf, request.secondHalf, id)
+            log.debug(s"RequestEntity = $re")
+
+            requestRepository.addRequest(re)
+          })
+        }
+      }
+    } else intimationRepository.deleteIntimation(empId).map(List(_))
+  }
+
+  private def processPrivilegedIntimationCreated(eventStreamElement: EventStreamElement[PrivilegedIntimationCreated]): DBIO[List[Done]] = {
+    log.info(s"EmployeeEventProcessor received PrivilegedIntimationCreated event.")
+
+    val created = eventStreamElement.event
+    val empId = created.empId
+    val reason = created.reason
+    val requests = created.requests.toList.sortWith { case (rd1, rd2) => rd1.date.isBefore(rd2.date) }
+
+    val latestRequestDate = requests.last.date
+    val lastModified = created.lastModified
+
+    val ie = IntimationEntity(empId, reason, latestRequestDate, lastModified)
+
+    intimationRepository.createIntimation(ie).flatMap { id =>
+      DBIO.sequence(requests.map { request =>
+        val date = request.date
+
+        val re = RequestEntity(date, request.firstHalf, request.secondHalf, id)
+        log.debug(s"RequestEntity = $re")
+
+        requestRepository.addRequest(re)
+      })
+    }
+  }
+
+  private def processPrivilegedIntimationUpdated(eventStreamElement: EventStreamElement[PrivilegedIntimationUpdated]): DBIO[List[Done]] = {
+    log.info(s"EmployeeEventProcessor received PrivilegedIntimationUpdated event.")
+
+    val updated = eventStreamElement.event
+    val empId = updated.empId
+    val reason = updated.reason
+    val requests = updated.requests.toList.sortWith { case (rd1, rd2) => rd1.date.isBefore(rd2.date) }
+
+    val latestRequestDate = requests.last.date
+    val lastModified = updated.lastModified
+
+    val ie = IntimationEntity(empId, reason, latestRequestDate, lastModified)
+
+    intimationRepository.deleteIntimation(empId).flatMap { _ =>
+      intimationRepository.createIntimation(ie).flatMap { id =>
+        DBIO.sequence(requests.map { request =>
+          val date = request.date
+
+          val re = RequestEntity(date, request.firstHalf, request.secondHalf, id)
+          log.debug(s"RequestEntity = $re")
+
+          requestRepository.addRequest(re)
+        })
+      }
+    }
+  }
+
+  private def processPrivilegedIntimationCancelled(eventStreamElement: EventStreamElement[PrivilegedIntimationCancelled]): DBIO[List[Done]] = {
+    log.info(s"EmployeeEventProcessor received PrivilegedIntimationCancelled event.")
 
     val cancelled = eventStreamElement.event
     val empId = cancelled.empId

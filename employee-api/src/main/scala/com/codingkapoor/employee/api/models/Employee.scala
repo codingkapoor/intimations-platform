@@ -58,7 +58,7 @@ object Request {
   implicit val format: Format[Request] = Json.format[Request]
 }
 
-case class Intimation(reason: String, lastModified: LocalDateTime, requests: Set[Request])
+case class Intimation(reason: String, requests: Set[Request], lastModified: LocalDateTime)
 
 object Intimation {
   implicit val format: Format[Intimation] = Json.format[Intimation]

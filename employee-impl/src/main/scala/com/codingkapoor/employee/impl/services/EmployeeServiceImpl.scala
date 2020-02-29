@@ -214,14 +214,23 @@ object EmployeeServiceImpl {
       case EmployeeDeleted(id) =>
         EmployeeDeletedKafkaEvent(id)
 
-      case IntimationCreated(empId, reason, lastModified, requests) =>
+      case IntimationCreated(empId, reason, requests, lastModified) =>
         IntimationCreatedKafkaEvent(empId, reason, lastModified, requests)
 
-      case IntimationUpdated(empId, reason, lastModified, requests) =>
+      case IntimationUpdated(empId, reason, requests, lastModified) =>
         IntimationUpdatedKafkaEvent(empId, reason, lastModified, requests)
 
-      case IntimationCancelled(empId, reason, lastModified, requests) =>
+      case IntimationCancelled(empId, reason, requests, lastModified) =>
         IntimationCancelledKafkaEvent(empId, reason, lastModified, requests)
+
+      case PrivilegedIntimationCreated(empId, privilegedIntimationType, start, end, reason, requests, lastModified) =>
+        PrivilegedIntimationCreatedKafkaEvent(empId, privilegedIntimationType, start, end, reason, requests, lastModified)
+
+      case PrivilegedIntimationUpdated(empId, privilegedIntimationType, start, end, reason, requests, lastModified) =>
+        PrivilegedIntimationUpdatedKafkaEvent(empId, privilegedIntimationType, start, end, reason, requests, lastModified)
+
+      case PrivilegedIntimationCancelled(empId, privilegedIntimationType, start, end, reason, requests, lastModified) =>
+        PrivilegedIntimationCancelledKafkaEvent(empId, privilegedIntimationType, start, end, reason, requests, lastModified)
 
       case LastLeavesSaved(empId, earned, currentYearEarned, sick, extra) =>
         LastLeavesSavedKafkaEvent(empId, earned, currentYearEarned, sick, extra)

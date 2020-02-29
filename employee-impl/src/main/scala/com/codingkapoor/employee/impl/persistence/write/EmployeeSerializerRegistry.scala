@@ -1,6 +1,6 @@
 package com.codingkapoor.employee.impl.persistence.write
 
-import com.codingkapoor.employee.impl.persistence.write.models.{AddEmployee, BalanceLeaves, CancelIntimation, CreateIntimation, CreditLeaves, DeleteEmployee, EmployeeAdded, EmployeeDeleted, EmployeeReleased, EmployeeState, EmployeeUpdated, IntimationCancelled, IntimationCreated, IntimationUpdated, LastLeavesSaved, LeavesBalanced, LeavesCredited, ReleaseEmployee, UpdateEmployee, UpdateIntimation}
+import com.codingkapoor.employee.impl.persistence.write.models.{AddEmployee, BalanceLeaves, CancelIntimation, CancelPrivilegedIntimation, CreateIntimation, CreatePrivilegedIntimation, CreditLeaves, DeleteEmployee, EmployeeAdded, EmployeeDeleted, EmployeeReleased, EmployeeState, EmployeeUpdated, IntimationCancelled, IntimationCreated, IntimationUpdated, LastLeavesSaved, LeavesBalanced, LeavesCredited, PrivilegedIntimationCancelled, PrivilegedIntimationCreated, PrivilegedIntimationUpdated, ReleaseEmployee, UpdateEmployee, UpdateIntimation, UpdatePrivilegedIntimation}
 import com.lightbend.lagom.scaladsl.playjson.{JsonSerializer, JsonSerializerRegistry}
 
 import scala.collection.immutable.Seq
@@ -22,6 +22,12 @@ object EmployeeSerializerRegistry extends JsonSerializerRegistry {
     JsonSerializer[IntimationUpdated],
     JsonSerializer[CancelIntimation],
     JsonSerializer[IntimationCancelled],
+    JsonSerializer[CreatePrivilegedIntimation],
+    JsonSerializer[PrivilegedIntimationCreated],
+    JsonSerializer[UpdatePrivilegedIntimation],
+    JsonSerializer[PrivilegedIntimationUpdated],
+    JsonSerializer[CancelPrivilegedIntimation],
+    JsonSerializer[PrivilegedIntimationCancelled],
     JsonSerializer[LastLeavesSaved],
     JsonSerializer[CreditLeaves],
     JsonSerializer[LeavesCredited],

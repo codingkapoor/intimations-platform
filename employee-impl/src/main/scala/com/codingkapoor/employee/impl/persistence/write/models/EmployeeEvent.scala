@@ -42,37 +42,40 @@ object EmployeeDeleted {
   implicit val format: Format[EmployeeDeleted] = Json.format[EmployeeDeleted]
 }
 
-case class IntimationCreated(empId: Long, reason: String, lastModified: LocalDateTime, requests: Set[Request]) extends EmployeeEvent
+case class IntimationCreated(empId: Long, reason: String, requests: Set[Request], lastModified: LocalDateTime) extends EmployeeEvent
 
 object IntimationCreated {
   implicit val format: Format[IntimationCreated] = Json.format[IntimationCreated]
 }
 
-case class IntimationUpdated(empId: Long, reason: String, lastModified: LocalDateTime, requests: Set[Request]) extends EmployeeEvent
+case class IntimationUpdated(empId: Long, reason: String, requests: Set[Request], lastModified: LocalDateTime) extends EmployeeEvent
 
 object IntimationUpdated {
   implicit val format: Format[IntimationUpdated] = Json.format[IntimationUpdated]
 }
 
-case class IntimationCancelled(empId: Long, reason: String, lastModified: LocalDateTime, requests: Set[Request]) extends EmployeeEvent
+case class IntimationCancelled(empId: Long, reason: String, requests: Set[Request], lastModified: LocalDateTime) extends EmployeeEvent
 
 object IntimationCancelled {
   implicit val format: Format[IntimationCancelled] = Json.format[IntimationCancelled]
 }
 
-case class PrivilegedIntimationCreated(empId: Long, privilegedIntimationType: PrivilegedIntimationType, start: LocalDate, end: LocalDate) extends EmployeeEvent
+case class PrivilegedIntimationCreated(empId: Long, privilegedIntimationType: PrivilegedIntimationType, start: LocalDate, end: LocalDate,
+                                       reason: String, requests: Set[Request], lastModified: LocalDateTime) extends EmployeeEvent
 
 object PrivilegedIntimationCreated {
   implicit val format: Format[PrivilegedIntimationCreated] = Json.format[PrivilegedIntimationCreated]
 }
 
-case class PrivilegedIntimationUpdated(empId: Long, privilegedIntimationType: PrivilegedIntimationType, start: LocalDate, end: LocalDate) extends EmployeeEvent
+case class PrivilegedIntimationUpdated(empId: Long, privilegedIntimationType: PrivilegedIntimationType, start: LocalDate, end: LocalDate,
+                                       reason: String, requests: Set[Request], lastModified: LocalDateTime) extends EmployeeEvent
 
 object PrivilegedIntimationUpdated {
   implicit val format: Format[PrivilegedIntimationUpdated] = Json.format[PrivilegedIntimationUpdated]
 }
 
-case class PrivilegedIntimationCancelled(empId: Long, privilegedIntimationType: PrivilegedIntimationType, start: LocalDate, end: LocalDate) extends EmployeeEvent
+case class PrivilegedIntimationCancelled(empId: Long, privilegedIntimationType: PrivilegedIntimationType, start: LocalDate, end: LocalDate,
+                                         reason: String, requests: Set[Request], lastModified: LocalDateTime) extends EmployeeEvent
 
 object PrivilegedIntimationCancelled {
   implicit val format: Format[PrivilegedIntimationCancelled] = Json.format[PrivilegedIntimationCancelled]
