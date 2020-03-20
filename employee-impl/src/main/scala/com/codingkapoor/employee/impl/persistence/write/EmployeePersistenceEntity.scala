@@ -190,6 +190,8 @@ class EmployeePersistenceEntity extends PersistentEntity {
           ctx.reply(Employee(e.id, e.name, e.gender, e.doj, e.dor, designation, e.pfn, contactInfo, location, e.leaves, roles)))
 
     }.onCommand[ReleaseEmployee, Done] {
+      // TODO: Update active and privileged intimations: End leaves on the release date
+      // TODO: ReleaseEmployee must trigger CreditLeaves
       case (ReleaseEmployee(_), ctx, state@Some(e)) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received ReleaseEmployee command.")
 
@@ -520,23 +522,22 @@ class EmployeePersistenceEntity extends PersistentEntity {
         lazy val activeIntimation = e.activeIntimationOpt.get
         lazy val latestRequestDate = activeIntimation.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
 
-        if (e.activeIntimationOpt.isDefined && latestRequestDate.isAfter(LocalDate.now())) {
-          val balanced = balanceExtra(e.lastLeaves.earned + earnedCredits, e.lastLeaves.currentYearEarned + earnedCredits, e.lastLeaves.sick + sickCredits, e.lastLeaves.extra)
-          val newLeaves = getNewLeaves(activeIntimation.requests, balanced)
-
-          ctx.thenPersistAll(
-            LastLeavesSaved(e.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
-            LeavesCredited(e.id, newLeaves.earned, newLeaves.currentYearEarned, newLeaves.sick, newLeaves.extra),
-            EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles)
-          )(() => ctx.reply(Done))
-
-        } else {
+        if (e.activeIntimationOpt.isEmpty || latestRequestDate.isBefore(LocalDate.now()) || already5(latestRequestDate)) {
           val balanced = balanceExtra(e.leaves.earned + earnedCredits, e.leaves.currentYearEarned + earnedCredits, e.leaves.sick + sickCredits, e.leaves.extra)
           val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
           ctx.thenPersistAll(
             LastLeavesSaved(e.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
             LeavesCredited(e.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+            EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles)
+          )(() => ctx.reply(Done))
+        } else {
+          val balanced = balanceExtra(e.lastLeaves.earned + earnedCredits, e.lastLeaves.currentYearEarned + earnedCredits, e.lastLeaves.sick + sickCredits, e.lastLeaves.extra)
+          val newLeaves = getNewLeaves(activeIntimation.requests, balanced)
+
+          ctx.thenPersistAll(
+            LastLeavesSaved(e.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+            LeavesCredited(e.id, newLeaves.earned, newLeaves.currentYearEarned, newLeaves.sick, newLeaves.extra),
             EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles)
           )(() => ctx.reply(Done))
         }
