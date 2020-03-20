@@ -522,7 +522,12 @@ class EmployeePersistenceEntity extends PersistentEntity {
         lazy val activeIntimation = e.activeIntimationOpt.get
         lazy val latestRequestDate = activeIntimation.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
 
-        if (e.activeIntimationOpt.isEmpty || latestRequestDate.isBefore(LocalDate.now()) || already5(latestRequestDate)) {
+        val hasNoActiveIntimationAvailable = e.activeIntimationOpt.isEmpty || latestRequestDate.isBefore(LocalDate.now()) || already5(latestRequestDate)
+        val hasActiveNonSabbaticalPrivilegedIntimation = e.privilegedIntimationOpt.isDefined &&
+          (e.privilegedIntimationOpt.get.privilegedIntimationType == PrivilegedIntimationType.Maternity ||
+            e.privilegedIntimationOpt.get.privilegedIntimationType == PrivilegedIntimationType.Paternity)
+
+        if (hasNoActiveIntimationAvailable && (e.privilegedIntimationOpt.isEmpty || hasActiveNonSabbaticalPrivilegedIntimation)) {
           val balanced = balanceExtra(e.leaves.earned + earnedCredits, e.leaves.currentYearEarned + earnedCredits, e.leaves.sick + sickCredits, e.leaves.extra)
           val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
