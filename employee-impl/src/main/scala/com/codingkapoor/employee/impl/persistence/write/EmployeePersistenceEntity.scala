@@ -161,7 +161,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
     }.onEvent {
       case (EmployeeAdded(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles), _) =>
-        Some(EmployeeState(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles, None, None, Leaves(), creditsPaused = false))
+        Some(EmployeeState(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles, None, None, Leaves()))
     }
 
   private val employeeAdded: Actions =
@@ -515,8 +515,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
       case (CreditLeaves(empId), ctx, state@Some(e)) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received ${CreditLeaves(empId)} command.")
 
-        // TODO: It cannot be bluntly 0,0. They have to be computed on a prorata basis. Besides DOJ, computeCredits needs to work also on PrivilegedLeaves "starDate" and DOR
-        val (earnedCredits, sickCredits) = if (e.creditsPaused) (0.0, 0.0) else computeCredits(e.doj)
+        val (earnedCredits, sickCredits) = computeCredits(e)
 
         lazy val activeIntimation = e.activeIntimationOpt.get
         lazy val latestRequestDate = activeIntimation.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
@@ -562,7 +561,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
     }.onEvent {
       case (EmployeeUpdated(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles), Some(e)) =>
-        Some(EmployeeState(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles, e.activeIntimationOpt, e.privilegedIntimationOpt, e.lastLeaves, e.creditsPaused))
+        Some(EmployeeState(id, name, gender, doj, dor, designation, pfn, contactInfo, location, leaves, roles, e.activeIntimationOpt, e.privilegedIntimationOpt, e.lastLeaves))
 
       case (EmployeeReleased(_, dor), Some(e)) =>
         Some(e.copy(dor = Some(dor)))
@@ -590,9 +589,9 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
       case (PrivilegedIntimationCreated(_, privilegedType, start, end, _, _, _), Some(e)) =>
         privilegedType match {
-          case Maternity => Some(e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(privilegedType, start, end)), creditsPaused = true))
-          case Paternity => Some(e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(privilegedType, start, end)), creditsPaused = false))
-          case Sabbatical => Some(e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(privilegedType, start, end)), creditsPaused = true))
+          case Maternity => Some(e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(privilegedType, start, end))))
+          case Paternity => Some(e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(privilegedType, start, end))))
+          case Sabbatical => Some(e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(privilegedType, start, end))))
         }
 
       case (PrivilegedIntimationUpdated(_, privilegedType, start, end, _, _, _), Some(e)) =>
@@ -795,14 +794,35 @@ object EmployeePersistenceEntity {
     }
   }
 
-  private def computeCredits(doj: LocalDate): (Double, Double) = {
-    val today = LocalDate.now()
+  private def computeCredits(state: EmployeeState): (Double, Double) = {
 
-    if (today.getMonthValue == doj.getMonthValue && today.getYear == doj.getYear) {
-      if (today.getDayOfMonth - doj.getDayOfMonth >= 15) (1.5, 0.5)
-      else if (today.getDayOfMonth - doj.getDayOfMonth >= 10) (1.0, 0.0)
-      else (0.0, 0.0)
-    } else (1.5, 0.5)
+    val today = LocalDate.now
+
+    val doj = state.doj
+
+    val j = if (doj.getMonthValue == today.getMonthValue && doj.getYear == today.getYear) doj.getDayOfMonth else 1
+    val r = if (state.dor.isDefined) state.dor.get.getDayOfMonth else 31
+
+    val (s, e) = if (state.privilegedIntimationOpt.isEmpty) (0, 0) else {
+      val privilegedIntimationType = state.privilegedIntimationOpt.get.privilegedIntimationType
+      val pStart = state.privilegedIntimationOpt.get.start
+      val pEnd = state.privilegedIntimationOpt.get.end
+
+      if (privilegedIntimationType.equals(PrivilegedIntimationType.Paternity) ||
+        (today.getMonthValue < pStart.getMonthValue && today.getYear < pStart.getYear) ||
+        (today.getMonthValue > pEnd.getMonthValue && today.getYear > pEnd.getYear)) (0, 0)
+      else (
+        if (pStart.getMonthValue == today.getMonthValue && pStart.getYear == today.getYear) pStart.getDayOfMonth else 1,
+        if (pEnd.getMonthValue == today.getMonthValue && pEnd.getYear == today.getYear && pEnd.getDayOfMonth < r) pEnd.getDayOfMonth else r
+      )
+    }
+
+    val prorata = if (e == 0 && s == 0) r - j + 1 else (r - j) - (e - s)
+
+    val el = if (prorata >= 22) 1.5 else if (prorata >= 16) 1 else if (prorata >= 10) 0.5 else 0
+    val sl = if (prorata >= 15) 0.5 else 0
+
+    (el, sl)
   }
 
 }
