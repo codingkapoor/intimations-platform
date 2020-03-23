@@ -8,7 +8,7 @@ import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
 import org.slf4j.LoggerFactory
 import com.codingkapoor.employee.api.models.{Employee, Intimation, Leaves, PrivilegedIntimation, PrivilegedIntimationType, Request, RequestType, Role}
 import com.codingkapoor.employee.api.models.PrivilegedIntimationType._
-import com.codingkapoor.employee.impl.persistence.write.models.{LastLeavesSaved, _}
+import com.codingkapoor.employee.impl.persistence.write.models.{EmployeeReleased, LastLeavesSaved, _}
 
 class EmployeePersistenceEntity extends PersistentEntity {
 
@@ -190,8 +190,6 @@ class EmployeePersistenceEntity extends PersistentEntity {
           ctx.reply(Employee(e.id, e.name, e.gender, e.doj, e.dor, designation, e.pfn, contactInfo, location, e.leaves, roles)))
 
     }.onCommand[ReleaseEmployee, Done] {
-      // TODO: Update active and privileged intimations: End leaves on the release date
-      // TODO: ReleaseEmployee must trigger CreditLeaves
       case (ReleaseEmployee(_), ctx, state@Some(e)) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received ReleaseEmployee command.")
 
@@ -203,7 +201,146 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
           ctx.done
 
-        } else ctx.thenPersist(EmployeeReleased(e.id, LocalDate.now()))(_ => ctx.reply(Done))
+        } else {
+          var newEmployeeState@e1 = e
+          val today = LocalDate.now()
+
+          if (e.activeIntimationOpt.isDefined || e.privilegedIntimationOpt.isDefined) {
+            if (e.activeIntimationOpt.isDefined) {
+              val reason = e.activeIntimationOpt.get.reason
+              val requests = e.activeIntimationOpt.get.requests
+
+              val orderedRequests = requests.map(_.date).toList.sortWith(_.isBefore(_))
+              val firstRequestDate = orderedRequests.head
+              val latestRequestDate = orderedRequests.last
+
+              if (firstRequestDate.isBefore(today) && latestRequestDate.isAfter(today)) {
+                val newRequests = requests.filterNot(r => r.date.isAfter(today))
+                val newLeaves = getNewLeaves(newRequests, lastLeaves = Leaves(e.lastLeaves.earned, e.lastLeaves.currentYearEarned, e.lastLeaves.sick, e.lastLeaves.extra))
+
+                val now = LocalDateTime.now()
+                newEmployeeState = e.copy(leaves = newLeaves, activeIntimationOpt = Some(Intimation(reason, newRequests, now)))
+
+                logger.info(s"On going active intimation = ${e.activeIntimationOpt.get} is ended at release date for employee = ${e.id} and leaves = $newLeaves are updated accordingly.")
+
+                ctx.thenPersistAll(
+                  IntimationUpdated(e.id, reason, newRequests, now),
+                  EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles)
+                )
+              } else if (firstRequestDate.isAfter(today) && latestRequestDate.isAfter(today)) {
+                val newRequests = Set.empty[Request]
+                val newLeaves = getNewLeaves(newRequests, lastLeaves = Leaves(e.lastLeaves.earned, e.lastLeaves.currentYearEarned, e.lastLeaves.sick, e.lastLeaves.extra))
+
+                newEmployeeState = e.copy(leaves = newLeaves, activeIntimationOpt = None)
+
+                logger.info(s"Planned intimation = ${e.activeIntimationOpt.get} is cancelled for employee = ${e.id} and leaves = $newLeaves are updated accordingly.")
+
+                ctx.thenPersistAll(
+                  IntimationCancelled(e.id, reason, newRequests, LocalDateTime.now()),
+                  EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles)
+                )
+              }
+            }
+
+            if (e.privilegedIntimationOpt.isDefined) {
+              val privilegedIntimation = e.privilegedIntimationOpt.get
+
+              val now = LocalDateTime.now()
+              val startDate = privilegedIntimation.start
+              val endDate = today
+
+              if (privilegedIntimation.start.isBefore(today) && privilegedIntimation.end.isAfter(today)) {
+
+                val newRequests = between(startDate, endDate).filterNot(isWeekend).map(dt => Request(dt, RequestType.Leave, RequestType.Leave)).toSet
+
+                privilegedIntimation.privilegedIntimationType match {
+                  case Maternity =>
+                    newEmployeeState = e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(Maternity, startDate, endDate)))
+                    logger.info(s"On going privileged intimation = ${e.activeIntimationOpt.get} is ended at release date for employee = ${e.id}.")
+
+                    ctx.thenPersist(PrivilegedIntimationUpdated(e.id, Maternity, startDate, endDate, s"$Maternity Leave", newRequests, now))
+
+                  case Paternity =>
+                    newEmployeeState = e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(Maternity, startDate, endDate)))
+                    logger.info(s"On going privileged intimation = ${e.activeIntimationOpt.get} is ended at release date for employee = ${e.id}.")
+
+                    ctx.thenPersist(PrivilegedIntimationUpdated(e.id, Paternity, startDate, endDate, s"$Paternity Leave", newRequests, now))
+
+                  case Sabbatical =>
+                    val newLeaves = getNewLeaves(newRequests, lastLeaves = Leaves(e.lastLeaves.earned, e.lastLeaves.currentYearEarned, e.lastLeaves.sick, e.lastLeaves.extra))
+
+                    newEmployeeState = e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(Maternity, startDate, endDate)), leaves = newLeaves)
+                    logger.info(s"On going privileged intimation = ${e.activeIntimationOpt.get} is ended at release date for employee = ${e.id} and leaves = $newLeaves are updated accordingly.")
+
+                    ctx.thenPersistAll(
+                      PrivilegedIntimationUpdated(e.id, Sabbatical, startDate, endDate, s"$Sabbatical Leave", newRequests, now),
+                      EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles)
+                    )
+                }
+              } else if (privilegedIntimation.start.isAfter(today) && privilegedIntimation.start.isAfter(today)) {
+
+                val newRequests = Set.empty[Request]
+
+                privilegedIntimation.privilegedIntimationType match {
+                  case Maternity =>
+                    newEmployeeState = e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(Maternity, startDate, endDate)))
+                    logger.info(s"Planned privileged intimation = ${e.activeIntimationOpt.get} is cancelled for employee = ${e.id}.")
+
+                    ctx.thenPersist(PrivilegedIntimationCancelled(e.id, Maternity, startDate, endDate, s"$Maternity Leave", newRequests, now))
+
+                  case Paternity =>
+                    newEmployeeState = e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(Maternity, startDate, endDate)))
+                    logger.info(s"Planned privileged intimation = ${e.activeIntimationOpt.get} is cancelled for employee = ${e.id}.")
+
+                    ctx.thenPersist(PrivilegedIntimationUpdated(e.id, Paternity, startDate, endDate, s"$Paternity Leave", newRequests, now))
+
+                  case Sabbatical =>
+                    val newLeaves = getNewLeaves(newRequests, lastLeaves = Leaves(e.lastLeaves.earned, e.lastLeaves.currentYearEarned, e.lastLeaves.sick, e.lastLeaves.extra))
+
+                    newEmployeeState = e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(Maternity, startDate, endDate)), leaves = newLeaves)
+                    logger.info(s"Planned privileged intimation = ${e.activeIntimationOpt.get} is cancelled for employee = ${e.id} and leaves = $newLeaves are updated accordingly.")
+
+                    ctx.thenPersistAll(
+                      PrivilegedIntimationCancelled(e.id, Sabbatical, startDate, endDate, s"$Sabbatical Leave", newRequests, now),
+                      EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles)
+                    )
+                }
+              }
+            }
+          }
+
+          val (earnedCredits, sickCredits) = computeCredits(e1)
+
+          lazy val activeIntimation = e1.activeIntimationOpt.get
+          lazy val latestRequestDate = activeIntimation.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
+
+          val hasNoActiveIntimationAvailable = e1.activeIntimationOpt.isEmpty || latestRequestDate.isBefore(LocalDate.now()) || already5(latestRequestDate)
+          val hasActiveNonSabbaticalPrivilegedIntimation = e1.privilegedIntimationOpt.isDefined &&
+            (e1.privilegedIntimationOpt.get.privilegedIntimationType == PrivilegedIntimationType.Maternity ||
+              e1.privilegedIntimationOpt.get.privilegedIntimationType == PrivilegedIntimationType.Paternity)
+
+          if (hasNoActiveIntimationAvailable && (e1.privilegedIntimationOpt.isEmpty || hasActiveNonSabbaticalPrivilegedIntimation)) {
+            val balanced = balanceExtra(e1.leaves.earned + earnedCredits, e1.leaves.currentYearEarned + earnedCredits, e1.leaves.sick + sickCredits, e1.leaves.extra)
+            val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
+
+            ctx.thenPersistAll(
+              LastLeavesSaved(e1.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+              LeavesCredited(e1.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+              EmployeeUpdated(e1.id, e1.name, e1.gender, e1.doj, e1.dor, e1.designation, e1.pfn, e1.contactInfo, e1.location, newLeaves, e1.roles),
+              EmployeeReleased(e1.id, today)
+            )(() => ctx.reply(Done))
+          } else {
+            val balanced = balanceExtra(e1.lastLeaves.earned + earnedCredits, e1.lastLeaves.currentYearEarned + earnedCredits, e1.lastLeaves.sick + sickCredits, e1.lastLeaves.extra)
+            val newLeaves = getNewLeaves(activeIntimation.requests, balanced)
+
+            ctx.thenPersistAll(
+              LastLeavesSaved(e1.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+              LeavesCredited(e1.id, newLeaves.earned, newLeaves.currentYearEarned, newLeaves.sick, newLeaves.extra),
+              EmployeeUpdated(e1.id, e1.name, e1.gender, e1.doj, e1.dor, e1.designation, e1.pfn, e1.contactInfo, e1.location, newLeaves, e1.roles),
+              EmployeeReleased(e1.id, today)
+            )(() => ctx.reply(Done))
+          }
+        }
 
     }.onCommand[DeleteEmployee, Done] {
       case (DeleteEmployee(id), ctx, state@Some(e)) =>
@@ -223,8 +360,12 @@ class EmployeePersistenceEntity extends PersistentEntity {
       case (CreateIntimation(empId, intimationReq), ctx, state@Some(e)) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received CreateIntimation command.")
 
+        lazy val today = LocalDate.now
+
         lazy val activeIntimation = e.activeIntimationOpt.get
         lazy val latestRequestDate = activeIntimation.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
+
+        lazy val privilegedIntimation = e.privilegedIntimationOpt.get
 
         if (intimationReq.requests.isEmpty || intimationReq.reason.trim == "") {
           val msg = "Intimation can't be created without any requests or a reason"
@@ -234,7 +375,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
           ctx.done
 
-        } else if (intimationReq.requests.exists(_.date.isBefore(LocalDate.now())) || intimationReq.requests.exists(r => already5(r.date))) {
+        } else if (intimationReq.requests.exists(_.date.isBefore(today)) || intimationReq.requests.exists(r => already5(r.date))) {
           val msg = s"Intimation can't be created for dates in the past"
 
           ctx.invalidCommand(msg)
@@ -250,7 +391,8 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
           ctx.done
 
-        } else if (e.privilegedIntimationOpt.isDefined && e.privilegedIntimationOpt.get.end.isAfter(LocalDate.now())) {
+        } else if (e.privilegedIntimationOpt.isDefined &&
+          (privilegedIntimation.end.isAfter(today) || (privilegedIntimation.end.isEqual(today) && !already5(privilegedIntimation.end)))) {
           val msg = s"There already is an existing privileged intimation. Cancel the same in order to create a new one."
 
           ctx.invalidCommand(msg)
@@ -258,7 +400,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
           ctx.done
 
-        } else if (e.activeIntimationOpt.isEmpty || latestRequestDate.isBefore(LocalDate.now()) || already5(latestRequestDate)) {
+        } else if (e.activeIntimationOpt.isEmpty || latestRequestDate.isBefore(today) || already5(latestRequestDate)) {
           val newLeaves = getNewLeaves(intimationReq.requests, lastLeaves = Leaves(e.leaves.earned, e.leaves.currentYearEarned, e.leaves.sick, e.leaves.extra))
 
           ctx.thenPersistAll(
@@ -594,18 +736,10 @@ class EmployeePersistenceEntity extends PersistentEntity {
         Some(e.copy(leaves = Leaves(earned)))
 
       case (PrivilegedIntimationCreated(_, privilegedType, start, end, _, _, _), Some(e)) =>
-        privilegedType match {
-          case Maternity => Some(e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(privilegedType, start, end))))
-          case Paternity => Some(e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(privilegedType, start, end))))
-          case Sabbatical => Some(e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(privilegedType, start, end))))
-        }
+        Some(e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(privilegedType, start, end))))
 
       case (PrivilegedIntimationUpdated(_, privilegedType, start, end, _, _, _), Some(e)) =>
-        privilegedType match {
-          case Maternity => Some(e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(privilegedType, start, end))))
-          case Paternity => Some(e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(privilegedType, start, end))))
-          case Sabbatical => Some(e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(privilegedType, start, end))))
-        }
+        Some(e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(privilegedType, start, end))))
 
       case (PrivilegedIntimationCancelled(_, _, _, _, _, _, _), Some(e)) =>
         Some(e.copy(privilegedIntimationOpt = None))
