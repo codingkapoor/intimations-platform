@@ -5,8 +5,9 @@ import java.time.LocalDate
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
 import com.codingkapoor.employee.api.models.{ContactInfo, Employee, EmployeeInfo, IntimationReq, Leaves, Location, Request, RequestType, Role}
+import com.codingkapoor.employee.impl.persistence.write.EmployeePersistenceEntity.{balanceExtra, computeCredits}
 import com.codingkapoor.employee.impl.persistence.write.{EmployeePersistenceEntity, EmployeeSerializerRegistry}
-import com.codingkapoor.employee.impl.persistence.write.models.{AddEmployee, BalanceLeaves, CancelIntimation, CreateIntimation, CreditLeaves, DeleteEmployee, EmployeeAdded, EmployeeCommand, EmployeeDeleted, EmployeeEvent, EmployeeState, ReleaseEmployee, UpdateEmployee, UpdateIntimation}
+import com.codingkapoor.employee.impl.persistence.write.models.{AddEmployee, BalanceLeaves, CancelIntimation, CreateIntimation, CreditLeaves, DeleteEmployee, EmployeeAdded, EmployeeCommand, EmployeeDeleted, EmployeeEvent, EmployeeReleased, EmployeeState, EmployeeUpdated, LastLeavesSaved, LeavesCredited, ReleaseEmployee, UpdateEmployee, UpdateIntimation}
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.InvalidCommandException
 import com.lightbend.lagom.scaladsl.playjson.JsonSerializerRegistry
 import com.lightbend.lagom.scaladsl.testkit.PersistentEntityTestDriver
@@ -38,11 +39,12 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
 
   "Employee persistence entity" should {
 
+    // Test cases for initial state of the persistent entity
     "add an employee that doesn't already exists against a given employee id" in withDriver { driver =>
       val outcome = driver.run(AddEmployee(employee))
 
       outcome.events should contain only EmployeeAdded(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, e.leaves, e.roles)
-      outcome.state should ===(Some(EmployeeState(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, e.leaves, e.roles, None, None, Leaves(), creditsPaused = false)))
+      outcome.state should ===(Some(EmployeeState(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, e.leaves, e.roles, None, None, Leaves())))
       outcome.issues should be(Nil)
     }
 
@@ -114,8 +116,36 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome.issues should be(Nil)
     }
 
-    // TODO: non released employee
+    // Test cases when an employee is already added
+    "invalidate release of an employee that has admin privilege" in withDriver { driver =>
+      val e1 = e.copy(roles = List(Role.Admin, Role.Employee))
+      driver.run(AddEmployee(employee))
 
+    }
+
+    "release and credit leaves for an employee that has no ongoing intimations" in withDriver { driver =>
+      driver.run(AddEmployee(employee))
+
+      val outcome = driver.run(ReleaseEmployee(empId))
+
+      val state = EmployeeState(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, e.leaves, e.roles, None, None, Leaves())
+
+      val (earnedCredits, sickCredits) = EmployeePersistenceEntity.computeCredits(state)
+      val balanced = balanceExtra(state.leaves.earned + earnedCredits, state.leaves.currentYearEarned + earnedCredits, state.leaves.sick + sickCredits, state.leaves.extra)
+      val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
+
+      val today = LocalDate.now()
+
+      outcome.events should ===(
+        List(
+          LastLeavesSaved(state.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+          LeavesCredited(state.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+          EmployeeUpdated(state.id, state.name, state.gender, state.doj, state.dor, state.designation, state.pfn, state.contactInfo, state.location, newLeaves, state.roles),
+          EmployeeReleased(state.id, today))
+      )
+    }
+
+    // Test cases for an employee that has already been released
     "invalidate adding an employee that already exists but has been released" in withDriver { driver =>
       driver.run(AddEmployee(employee))
       driver.run(ReleaseEmployee(empId))
