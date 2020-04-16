@@ -119,8 +119,14 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
     // Test cases when an employee is already added
     "invalidate release of an employee that has admin privilege" in withDriver { driver =>
       val e1 = e.copy(roles = List(Role.Admin, Role.Employee))
-      driver.run(AddEmployee(employee))
 
+      driver.run(AddEmployee(e1))
+
+      val outcome = driver.run(ReleaseEmployee(empId))
+
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome.events.size should ===(0)
+      outcome.issues should be(Nil)
     }
 
     "release and credit leaves for an employee that has no ongoing intimations" in withDriver { driver =>
