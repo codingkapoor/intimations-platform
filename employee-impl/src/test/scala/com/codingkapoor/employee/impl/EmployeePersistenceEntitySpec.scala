@@ -7,7 +7,7 @@ import akka.testkit.TestKit
 import com.codingkapoor.employee.api.models.{ContactInfo, Employee, EmployeeInfo, Intimation, IntimationReq, Leaves, Location, Request, RequestType, Role}
 import com.codingkapoor.employee.impl.persistence.write.EmployeePersistenceEntity.{balanceExtra, computeCredits, getNewLeaves}
 import com.codingkapoor.employee.impl.persistence.write.{EmployeePersistenceEntity, EmployeeSerializerRegistry}
-import com.codingkapoor.employee.impl.persistence.write.models.{AddEmployee, BalanceLeaves, CancelIntimation, CreateIntimation, CreditLeaves, DeleteEmployee, EmployeeAdded, EmployeeCommand, EmployeeDeleted, EmployeeEvent, EmployeeReleased, EmployeeState, EmployeeUpdated, IntimationUpdated, LastLeavesSaved, LeavesCredited, ReleaseEmployee, UpdateEmployee, UpdateIntimation}
+import com.codingkapoor.employee.impl.persistence.write.models.{AddEmployee, BalanceLeaves, CancelIntimation, CreateIntimation, CreditLeaves, DeleteEmployee, EmployeeAdded, EmployeeCommand, EmployeeDeleted, EmployeeEvent, EmployeeReleased, EmployeeState, EmployeeUpdated, IntimationCancelled, IntimationUpdated, LastLeavesSaved, LeavesCredited, ReleaseEmployee, UpdateEmployee, UpdateIntimation}
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.InvalidCommandException
 import com.lightbend.lagom.scaladsl.playjson.JsonSerializerRegistry
 import com.lightbend.lagom.scaladsl.testkit.PersistentEntityTestDriver
@@ -165,7 +165,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
           Request(releaseDate.plusDays(2), RequestType.Leave, RequestType.Leave)
         )
       val activeIntimation = Intimation("Visiting my native", requests, LocalDateTime.parse("2020-01-12T10:15:30"))
-      val initialState = state.copy(leaves = Leaves(extra = 4.0), activeIntimationOpt = Some(activeIntimation))
+      val initialState = state.copy(leaves = Leaves(extra = 5.0), activeIntimationOpt = Some(activeIntimation))
 
       driver.initialize(Some(Some(initialState)))
 
@@ -251,7 +251,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
           Request(releaseDate, RequestType.Leave, RequestType.Leave)
         )
       val activeIntimation = Intimation("Visiting my native", requests, LocalDateTime.parse("2020-01-12T10:15:30"))
-      val initialState = state.copy(leaves = Leaves(extra = 4.0), activeIntimationOpt = Some(activeIntimation))
+      val initialState = state.copy(leaves = Leaves(extra = 3.0), activeIntimationOpt = Some(activeIntimation))
 
       driver.initialize(Some(Some(initialState)))
 
@@ -287,7 +287,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
           Request(releaseDate.plusDays(2), RequestType.Leave, RequestType.Leave)
         )
       val activeIntimation = Intimation("Visiting my native", requests, LocalDateTime.parse("2020-01-12T10:15:30"))
-      val initialState = state.copy(leaves = Leaves(extra = 4.0), activeIntimationOpt = Some(activeIntimation))
+      val initialState = state.copy(leaves = Leaves(extra = 3.0), activeIntimationOpt = Some(activeIntimation))
 
       driver.initialize(Some(Some(initialState)))
 
@@ -309,6 +309,46 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcomeIntimationUpdated :: outcome.events.toList.tail should ===(
         List(
           IntimationUpdated(e.id, initialState.activeIntimationOpt.get.reason, newRequests, now),
+          EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles),
+          LastLeavesSaved(newState.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+          LeavesCredited(newState.id, newLeaves2.earned, newLeaves2.currentYearEarned, newLeaves2.sick, newLeaves2.extra),
+          EmployeeUpdated(newState.id, newState.name, newState.gender, newState.doj, newState.dor, newState.designation, newState.pfn, newState.contactInfo, newState.location, newLeaves2, newState.roles),
+          EmployeeReleased(newState.id, releaseDate)
+        )
+      )
+    }
+
+    "release and credit leaves for an employee that has on ongoing active intimation that has all request dates in future" in withDriver { driver =>
+      val releaseDate = LocalDate.now()
+
+      val requests =
+        Set(
+          Request(releaseDate.plusDays(1), RequestType.Leave, RequestType.Leave),
+          Request(releaseDate.plusDays(2), RequestType.Leave, RequestType.Leave)
+        )
+      val activeIntimation = Intimation("Visiting my native", requests, LocalDateTime.parse("2020-01-12T10:15:30"))
+      val initialState = state.copy(leaves = Leaves(extra = 2.0), activeIntimationOpt = Some(activeIntimation))
+
+      driver.initialize(Some(Some(initialState)))
+
+      val outcome = driver.run(ReleaseEmployee(empId))
+
+      val newRequests = requests.filterNot(r => r.date.isAfter(releaseDate))
+      val newLeaves = getNewLeaves(newRequests, lastLeaves = Leaves(initialState.lastLeaves.earned, initialState.lastLeaves.currentYearEarned, initialState.lastLeaves.sick, initialState.lastLeaves.extra))
+
+      val now = LocalDateTime.now()
+      val newState = initialState.copy(leaves = newLeaves, activeIntimationOpt = Some(Intimation(initialState.activeIntimationOpt.get.reason, newRequests, now)))
+
+      val (earnedCredits, sickCredits) = computeCredits(newState)
+      val balanced = balanceExtra(newState.lastLeaves.earned + earnedCredits, newState.lastLeaves.currentYearEarned + earnedCredits, newState.lastLeaves.sick + sickCredits, newState.lastLeaves.extra)
+      val newLeaves2 = getNewLeaves(newState.activeIntimationOpt.get.requests, balanced)
+
+      val iu = outcome.events.toList.head.asInstanceOf[IntimationCancelled]
+      val outcomeIntimationCancelled = IntimationCancelled(iu.empId, iu.reason, iu.requests, now)
+
+      outcomeIntimationCancelled :: outcome.events.toList.tail should ===(
+        List(
+          IntimationCancelled(e.id, initialState.activeIntimationOpt.get.reason, newRequests, now),
           EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles),
           LastLeavesSaved(newState.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
           LeavesCredited(newState.id, newLeaves2.earned, newLeaves2.currentYearEarned, newLeaves2.sick, newLeaves2.extra),
