@@ -243,6 +243,43 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       )
     }
 
+    // Release date as latest requested dates means that no update/cancel would be required for active intimation
+    "release and credit leaves for an employee that has on ongoing active intimation that has few dates that are already consumed and having release date as the latest requested dates" in withDriver { driver =>
+      val releaseDate = LocalDate.now()
+
+      val requests =
+        Set(
+          Request(releaseDate.minusDays(2), RequestType.Leave, RequestType.Leave),
+          Request(releaseDate.minusDays(1), RequestType.Leave, RequestType.Leave),
+          Request(releaseDate, RequestType.Leave, RequestType.Leave)
+        )
+      val activeIntimation = Intimation("Visiting my native", requests, LocalDateTime.parse("2020-01-12T10:15:30"))
+      val initialState = state.copy(leaves = Leaves(extra = 4.0), activeIntimationOpt = Some(activeIntimation))
+
+      driver.initialize(Some(Some(initialState)))
+
+      val outcome = driver.run(ReleaseEmployee(empId))
+
+      val newRequests = requests.filterNot(r => r.date.isAfter(releaseDate))
+      val newLeaves = getNewLeaves(newRequests, lastLeaves = Leaves(initialState.lastLeaves.earned, initialState.lastLeaves.currentYearEarned, initialState.lastLeaves.sick, initialState.lastLeaves.extra))
+
+      val now = LocalDateTime.now()
+      val newState = initialState.copy(leaves = newLeaves, activeIntimationOpt = Some(Intimation(initialState.activeIntimationOpt.get.reason, newRequests, now)))
+
+      val (earnedCredits, sickCredits) = computeCredits(newState)
+      val balanced = balanceExtra(newState.lastLeaves.earned + earnedCredits, newState.lastLeaves.currentYearEarned + earnedCredits, newState.lastLeaves.sick + sickCredits, newState.lastLeaves.extra)
+      val newLeaves2 = getNewLeaves(newState.activeIntimationOpt.get.requests, balanced)
+
+      outcome.events should ===(
+        List(
+          LastLeavesSaved(newState.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+          LeavesCredited(newState.id, newLeaves2.earned, newLeaves2.currentYearEarned, newLeaves2.sick, newLeaves2.extra),
+          EmployeeUpdated(newState.id, newState.name, newState.gender, newState.doj, newState.dor, newState.designation, newState.pfn, newState.contactInfo, newState.location, newLeaves2, newState.roles),
+          EmployeeReleased(newState.id, releaseDate)
+        )
+      )
+    }
+
     // Test cases for an employee that has already been released
     "invalidate adding an employee that already exists but has been released" in withDriver { driver =>
       driver.run(AddEmployee(employee))
