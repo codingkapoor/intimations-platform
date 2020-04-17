@@ -14,8 +14,6 @@ import com.lightbend.lagom.scaladsl.testkit.PersistentEntityTestDriver
 import org.scalactic.TypeCheckedTripleEquals
 import org.scalatest.{BeforeAndAfterAll, Matchers, OptionValues, WordSpec}
 
-import scala.collection.immutable
-
 class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAndAfterAll with OptionValues with TypeCheckedTripleEquals {
 
   private val system = ActorSystem("EmployeePersistenceEntitySpec", JsonSerializerRegistry.actorSystemSetupFor(EmployeeSerializerRegistry))
