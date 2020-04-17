@@ -208,41 +208,41 @@ class EmployeePersistenceEntity extends PersistentEntity {
           val eventsToPersist: List[EmployeeEvent] =
             if (e.activeIntimationOpt.isDefined || e.privilegedIntimationOpt.isDefined) {
               (if (e.activeIntimationOpt.isDefined) {
-                  val reason = e.activeIntimationOpt.get.reason
-                  val requests = e.activeIntimationOpt.get.requests
+                val reason = e.activeIntimationOpt.get.reason
+                val requests = e.activeIntimationOpt.get.requests
 
-                  val orderedRequests = requests.map(_.date).toList.sortWith(_.isBefore(_))
-                  val firstRequestDate = orderedRequests.head
-                  val latestRequestDate = orderedRequests.last
+                val orderedRequests = requests.map(_.date).toList.sortWith(_.isBefore(_))
+                val firstRequestDate = orderedRequests.head
+                val latestRequestDate = orderedRequests.last
 
-                  if (firstRequestDate.isBefore(today) && latestRequestDate.isAfter(today)) {
-                    val newRequests = requests.filterNot(r => r.date.isAfter(today))
-                    val newLeaves = getNewLeaves(newRequests, lastLeaves = Leaves(e.lastLeaves.earned, e.lastLeaves.currentYearEarned, e.lastLeaves.sick, e.lastLeaves.extra))
+                if (firstRequestDate.isBefore(today) && latestRequestDate.isAfter(today)) {
+                  val newRequests = requests.filterNot(r => r.date.isAfter(today))
+                  val newLeaves = getNewLeaves(newRequests, lastLeaves = Leaves(e.lastLeaves.earned, e.lastLeaves.currentYearEarned, e.lastLeaves.sick, e.lastLeaves.extra))
 
-                    val now = LocalDateTime.now()
-                    newState = e.copy(leaves = newLeaves, activeIntimationOpt = Some(Intimation(reason, newRequests, now)))
+                  val now = LocalDateTime.now()
+                  newState = e.copy(leaves = newLeaves, activeIntimationOpt = Some(Intimation(reason, newRequests, now)))
 
-                    logger.info(s"On going active intimation = ${e.activeIntimationOpt.get} is ended at release date for employee = ${e.id} and leaves = $newLeaves are updated accordingly.")
+                  logger.info(s"On going active intimation = ${e.activeIntimationOpt.get} is ended at release date for employee = ${e.id} and leaves = $newLeaves are updated accordingly.")
 
-                    List(
-                      IntimationUpdated(e.id, reason, newRequests, now),
-                      EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles)
-                    )
+                  List(
+                    IntimationUpdated(e.id, reason, newRequests, now),
+                    EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles)
+                  )
 
-                  } else if (firstRequestDate.isAfter(today) && latestRequestDate.isAfter(today)) {
-                    val newRequests = Set.empty[Request]
-                    val newLeaves = getNewLeaves(newRequests, lastLeaves = Leaves(e.lastLeaves.earned, e.lastLeaves.currentYearEarned, e.lastLeaves.sick, e.lastLeaves.extra))
+                } else if (firstRequestDate.isAfter(today) && latestRequestDate.isAfter(today)) {
+                  val newRequests = Set.empty[Request]
+                  val newLeaves = getNewLeaves(newRequests, lastLeaves = Leaves(e.lastLeaves.earned, e.lastLeaves.currentYearEarned, e.lastLeaves.sick, e.lastLeaves.extra))
 
-                    newState = e.copy(leaves = newLeaves, activeIntimationOpt = None)
+                  newState = e.copy(leaves = newLeaves, activeIntimationOpt = None)
 
-                    logger.info(s"Planned intimation = ${e.activeIntimationOpt.get} is cancelled for employee = ${e.id} and leaves = $newLeaves are updated accordingly.")
+                  logger.info(s"Planned intimation = ${e.activeIntimationOpt.get} is cancelled for employee = ${e.id} and leaves = $newLeaves are updated accordingly.")
 
-                    List(
-                      IntimationCancelled(e.id, reason, newRequests, LocalDateTime.now()),
-                      EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles)
-                    )
-                  } else Nil
-                } else Nil) ++
+                  List(
+                    IntimationCancelled(e.id, reason, newRequests, LocalDateTime.now()),
+                    EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles)
+                  )
+                } else Nil
+              } else Nil) ++
                 (if (e.privilegedIntimationOpt.isDefined) {
                   val privilegedIntimation = e.privilegedIntimationOpt.get
 
@@ -326,10 +326,12 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
             ctx.thenPersistAll(
               eventsToPersist ++
-                List(LastLeavesSaved(newState.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+                List(
+                  LastLeavesSaved(newState.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
                   LeavesCredited(newState.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
                   EmployeeUpdated(newState.id, newState.name, newState.gender, newState.doj, newState.dor, newState.designation, newState.pfn, newState.contactInfo, newState.location, newLeaves, newState.roles),
-                  EmployeeReleased(newState.id, today)): _*
+                  EmployeeReleased(newState.id, today)
+                ): _*
             )(() => ctx.reply(Done))
           } else {
             val balanced = balanceExtra(newState.lastLeaves.earned + earnedCredits, newState.lastLeaves.currentYearEarned + earnedCredits, newState.lastLeaves.sick + sickCredits, newState.lastLeaves.extra)
@@ -337,10 +339,12 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
             ctx.thenPersistAll(
               eventsToPersist ++
-                List(LastLeavesSaved(newState.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+                List(
+                  LastLeavesSaved(newState.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
                   LeavesCredited(newState.id, newLeaves.earned, newLeaves.currentYearEarned, newLeaves.sick, newLeaves.extra),
                   EmployeeUpdated(newState.id, newState.name, newState.gender, newState.doj, newState.dor, newState.designation, newState.pfn, newState.contactInfo, newState.location, newLeaves, newState.roles),
-                  EmployeeReleased(newState.id, today)): _*
+                  EmployeeReleased(newState.id, today)
+                ): _*
             )(() => ctx.reply(Done))
           }
         }
