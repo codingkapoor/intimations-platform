@@ -1,18 +1,21 @@
 package com.codingkapoor.employee.impl
 
-import java.time.LocalDate
+import java.time.{LocalDate, LocalDateTime}
 
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
-import com.codingkapoor.employee.api.models.{ContactInfo, Employee, EmployeeInfo, IntimationReq, Leaves, Location, Request, RequestType, Role}
-import com.codingkapoor.employee.impl.persistence.write.EmployeePersistenceEntity.{balanceExtra, computeCredits}
+import com.codingkapoor.employee.api.models.RequestType.RequestType
+import com.codingkapoor.employee.api.models.{ContactInfo, Employee, EmployeeInfo, Intimation, IntimationReq, Leaves, Location, Request, RequestType, Role}
+import com.codingkapoor.employee.impl.persistence.write.EmployeePersistenceEntity.{balanceExtra, computeCredits, getNewLeaves}
 import com.codingkapoor.employee.impl.persistence.write.{EmployeePersistenceEntity, EmployeeSerializerRegistry}
-import com.codingkapoor.employee.impl.persistence.write.models.{AddEmployee, BalanceLeaves, CancelIntimation, CreateIntimation, CreditLeaves, DeleteEmployee, EmployeeAdded, EmployeeCommand, EmployeeDeleted, EmployeeEvent, EmployeeReleased, EmployeeState, EmployeeUpdated, LastLeavesSaved, LeavesCredited, ReleaseEmployee, UpdateEmployee, UpdateIntimation}
+import com.codingkapoor.employee.impl.persistence.write.models.{AddEmployee, BalanceLeaves, CancelIntimation, CreateIntimation, CreditLeaves, DeleteEmployee, EmployeeAdded, EmployeeCommand, EmployeeDeleted, EmployeeEvent, EmployeeReleased, EmployeeState, EmployeeUpdated, IntimationUpdated, LastLeavesSaved, LeavesCredited, ReleaseEmployee, UpdateEmployee, UpdateIntimation}
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.InvalidCommandException
 import com.lightbend.lagom.scaladsl.playjson.JsonSerializerRegistry
 import com.lightbend.lagom.scaladsl.testkit.PersistentEntityTestDriver
 import org.scalactic.TypeCheckedTripleEquals
-import org.scalatest.{BeforeAndAfterAll, Matchers, OptionValues, WordSpec}
+import org.scalatest.{BeforeAndAfterAll, Ignore, Matchers, OptionValues, WordSpec}
+
+import scala.collection.immutable
 
 class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAndAfterAll with OptionValues with TypeCheckedTripleEquals {
 
@@ -26,6 +29,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
   val employee@e = Employee(empId, "John Doe", "M", LocalDate.parse("2018-01-16"), None, "System Engineer", "PFN001",
     ContactInfo("+91-9912345678", "mail@johndoe.com"), Location(), Leaves(), List(Role.Employee))
   val employeeInfo@ei = EmployeeInfo(Some("Sr. System Engineer"), Some(ContactInfo("+91-9912345679", "mail1@johndoe.com")), Some(Location("Chennai", "Tamil Nadu")), Some(List(Role.Employee)))
+  val state: EmployeeState = EmployeeState(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, Leaves(), e.roles, None, None, Leaves())
 
   private def withDriver[T](block: PersistentEntityTestDriver[EmployeeCommand[_], EmployeeEvent, Option[EmployeeState]] => T): T = {
     val driver = new PersistentEntityTestDriver(system, new EmployeePersistenceEntity, empId.toString)
@@ -118,7 +122,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
 
     // Test cases when an employee is already added
     "invalidate release of an employee that has admin privilege" in withDriver { driver =>
-      val e1 = e.copy(roles = List(Role.Admin, Role.Employee))
+      val e1 = employee.copy(roles = List(Role.Admin, Role.Employee))
 
       driver.run(AddEmployee(e1))
 
@@ -134,9 +138,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
 
       val outcome = driver.run(ReleaseEmployee(empId))
 
-      val state = EmployeeState(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, e.leaves, e.roles, None, None, Leaves())
-
-      val (earnedCredits, sickCredits) = EmployeePersistenceEntity.computeCredits(state)
+      val (earnedCredits, sickCredits) = computeCredits(state)
       val balanced = balanceExtra(state.leaves.earned + earnedCredits, state.leaves.currentYearEarned + earnedCredits, state.leaves.sick + sickCredits, state.leaves.extra)
       val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
@@ -147,7 +149,53 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
           LastLeavesSaved(state.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
           LeavesCredited(state.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
           EmployeeUpdated(state.id, state.name, state.gender, state.doj, state.dor, state.designation, state.pfn, state.contactInfo, state.location, newLeaves, state.roles),
-          EmployeeReleased(state.id, today))
+          EmployeeReleased(state.id, today)
+        )
+      )
+    }
+
+    // Few dates already consumed would mean that active intimation would require to be updated instead of getting cancelled and
+    // release date as one of requested dates would mean that active intimation update wouldn't render active intimation as inactive
+    "release and credit leaves for an employee that has on ongoing active intimation that has few dates that are already consumed and has release date as one of the requested dates" in withDriver { driver =>
+      val releaseDate = LocalDate.now()
+
+      val requests =
+        Set(
+          Request(releaseDate.minusDays(2), RequestType.Leave, RequestType.Leave),
+          Request(releaseDate.minusDays(1), RequestType.Leave, RequestType.Leave),
+          Request(releaseDate, RequestType.Leave, RequestType.Leave),
+          Request(releaseDate.plusDays(1), RequestType.Leave, RequestType.Leave),
+          Request(releaseDate.plusDays(2), RequestType.Leave, RequestType.Leave)
+        )
+      val activeIntimation = Intimation("Visiting my native", requests, LocalDateTime.parse("2020-01-12T10:15:30"))
+      val initialState = state.copy(leaves = Leaves(extra = 4.0), activeIntimationOpt = Some(activeIntimation))
+
+      driver.initialize(Some(Some(initialState)))
+
+      val outcome = driver.run(ReleaseEmployee(empId))
+
+      val newRequests = requests.filterNot(r => r.date.isAfter(releaseDate))
+      val newLeaves = getNewLeaves(newRequests, lastLeaves = Leaves(initialState.lastLeaves.earned, initialState.lastLeaves.currentYearEarned, initialState.lastLeaves.sick, initialState.lastLeaves.extra))
+
+      val now = LocalDateTime.now()
+      val newState = initialState.copy(leaves = newLeaves, activeIntimationOpt = Some(Intimation(initialState.activeIntimationOpt.get.reason, newRequests, now)))
+
+      val (earnedCredits, sickCredits) = computeCredits(newState)
+      val balanced = balanceExtra(newState.lastLeaves.earned + earnedCredits, newState.lastLeaves.currentYearEarned + earnedCredits, newState.lastLeaves.sick + sickCredits, newState.lastLeaves.extra)
+      val newLeaves2 = getNewLeaves(newState.activeIntimationOpt.get.requests, balanced)
+
+      val iu = outcome.events.toList.head.asInstanceOf[IntimationUpdated]
+      val outcomeIntimationUpdated = IntimationUpdated(iu.empId, iu.reason, iu.requests, now)
+
+      outcomeIntimationUpdated :: outcome.events.toList.tail should ===(
+        List(
+          IntimationUpdated(e.id, initialState.activeIntimationOpt.get.reason, newRequests, now),
+          EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles),
+          LastLeavesSaved(newState.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+          LeavesCredited(newState.id, newLeaves2.earned, newLeaves2.currentYearEarned, newLeaves2.sick, newLeaves2.extra),
+          EmployeeUpdated(newState.id, newState.name, newState.gender, newState.doj, newState.dor, newState.designation, newState.pfn, newState.contactInfo, newState.location, newLeaves2, newState.roles),
+          EmployeeReleased(newState.id, releaseDate)
+        )
       )
     }
 
