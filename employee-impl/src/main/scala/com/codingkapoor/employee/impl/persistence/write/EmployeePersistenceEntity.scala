@@ -215,7 +215,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
                 val firstRequestDate = orderedRequests.head
                 val latestRequestDate = orderedRequests.last
 
-                if (firstRequestDate.isBefore(today) && latestRequestDate.isAfter(today)) {
+                if ((firstRequestDate.isBefore(today) || firstRequestDate.isEqual(today)) && latestRequestDate.isAfter(today)) {
                   val newRequests = requests.filterNot(r => r.date.isAfter(today))
                   val newLeaves = getNewLeaves(newRequests, lastLeaves = Leaves(e.lastLeaves.earned, e.lastLeaves.currentYearEarned, e.lastLeaves.sick, e.lastLeaves.extra))
 
