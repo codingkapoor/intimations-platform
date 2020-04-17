@@ -4,7 +4,6 @@ import java.time.{LocalDate, LocalDateTime}
 
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
-import com.codingkapoor.employee.api.models.RequestType.RequestType
 import com.codingkapoor.employee.api.models.{ContactInfo, Employee, EmployeeInfo, Intimation, IntimationReq, Leaves, Location, Request, RequestType, Role}
 import com.codingkapoor.employee.impl.persistence.write.EmployeePersistenceEntity.{balanceExtra, computeCredits, getNewLeaves}
 import com.codingkapoor.employee.impl.persistence.write.{EmployeePersistenceEntity, EmployeeSerializerRegistry}
@@ -13,7 +12,7 @@ import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.InvalidCommandE
 import com.lightbend.lagom.scaladsl.playjson.JsonSerializerRegistry
 import com.lightbend.lagom.scaladsl.testkit.PersistentEntityTestDriver
 import org.scalactic.TypeCheckedTripleEquals
-import org.scalatest.{BeforeAndAfterAll, Ignore, Matchers, OptionValues, WordSpec}
+import org.scalatest.{BeforeAndAfterAll, Matchers, OptionValues, WordSpec}
 
 import scala.collection.immutable
 
