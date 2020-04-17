@@ -199,6 +199,50 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       )
     }
 
+    // Few dates already consumed would mean that active intimation would require to be updated instead of getting cancelled and
+    // release date as not one of requested dates would mean that active intimation update would render active intimation as inactive
+    "release and credit leaves for an employee that has on ongoing active intimation that has few dates that are already consumed and not having release date as one of the requested dates" in withDriver { driver =>
+      val releaseDate = LocalDate.now()
+
+      val requests =
+        Set(
+          Request(releaseDate.minusDays(2), RequestType.Leave, RequestType.Leave),
+          Request(releaseDate.minusDays(1), RequestType.Leave, RequestType.Leave),
+          Request(releaseDate.plusDays(1), RequestType.Leave, RequestType.Leave),
+          Request(releaseDate.plusDays(2), RequestType.Leave, RequestType.Leave)
+        )
+      val activeIntimation = Intimation("Visiting my native", requests, LocalDateTime.parse("2020-01-12T10:15:30"))
+      val initialState = state.copy(leaves = Leaves(extra = 4.0), activeIntimationOpt = Some(activeIntimation))
+
+      driver.initialize(Some(Some(initialState)))
+
+      val outcome = driver.run(ReleaseEmployee(empId))
+
+      val newRequests = requests.filterNot(r => r.date.isAfter(releaseDate))
+      val newLeaves = getNewLeaves(newRequests, lastLeaves = Leaves(initialState.lastLeaves.earned, initialState.lastLeaves.currentYearEarned, initialState.lastLeaves.sick, initialState.lastLeaves.extra))
+
+      val now = LocalDateTime.now()
+      val newState = initialState.copy(leaves = newLeaves, activeIntimationOpt = Some(Intimation(initialState.activeIntimationOpt.get.reason, newRequests, now)))
+
+      val (earnedCredits, sickCredits) = computeCredits(newState)
+      val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
+      val newLeaves2 = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
+
+      val iu = outcome.events.toList.head.asInstanceOf[IntimationUpdated]
+      val outcomeIntimationUpdated = IntimationUpdated(iu.empId, iu.reason, iu.requests, now)
+
+      outcomeIntimationUpdated :: outcome.events.toList.tail should ===(
+        List(
+          IntimationUpdated(e.id, initialState.activeIntimationOpt.get.reason, newRequests, now),
+          EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles),
+          LastLeavesSaved(newState.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+          LeavesCredited(newState.id, newLeaves2.earned, newLeaves2.currentYearEarned, newLeaves2.sick, newLeaves2.extra),
+          EmployeeUpdated(newState.id, newState.name, newState.gender, newState.doj, newState.dor, newState.designation, newState.pfn, newState.contactInfo, newState.location, newLeaves2, newState.roles),
+          EmployeeReleased(newState.id, releaseDate)
+        )
+      )
+    }
+
     // Test cases for an employee that has already been released
     "invalidate adding an employee that already exists but has been released" in withDriver { driver =>
       driver.run(AddEmployee(employee))
