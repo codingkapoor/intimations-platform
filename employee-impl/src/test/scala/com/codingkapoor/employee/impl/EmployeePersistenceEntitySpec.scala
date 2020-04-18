@@ -178,12 +178,21 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val now = LocalDateTime.now()
       val newState = initialState.copy(leaves = newLeaves, activeIntimationOpt = Some(Intimation(initialState.activeIntimationOpt.get.reason, newRequests, now)))
 
-      val (earnedCredits, sickCredits) = computeCredits(newState)
-      val balanced = balanceExtra(newState.lastLeaves.earned + earnedCredits, newState.lastLeaves.currentYearEarned + earnedCredits, newState.lastLeaves.sick + sickCredits, newState.lastLeaves.extra)
-      val newLeaves2 = getNewLeaves(newState.activeIntimationOpt.get.requests, balanced)
-
       val iu = outcome.events.toList.head.asInstanceOf[IntimationUpdated]
       val outcomeIntimationUpdated = IntimationUpdated(iu.empId, iu.reason, iu.requests, now)
+
+      val (earnedCredits, sickCredits) = computeCredits(newState)
+
+      val latestRequestDate = newRequests.map(_.date).toList.sortWith(_.isBefore(_)).last
+      val hasNoActiveIntimationAvailable = newState.activeIntimationOpt.isEmpty || latestRequestDate.isBefore(releaseDate) || already5(latestRequestDate)
+
+      val (balanced, newLeaves2) = if (hasNoActiveIntimationAvailable) {
+        val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
+        (balanced, Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra))
+      } else {
+        val balanced = balanceExtra(newState.lastLeaves.earned + earnedCredits, newState.lastLeaves.currentYearEarned + earnedCredits, newState.lastLeaves.sick + sickCredits, newState.lastLeaves.extra)
+        (balanced, getNewLeaves(newState.activeIntimationOpt.get.requests, balanced))
+      }
 
       outcomeIntimationUpdated :: outcome.events.toList.tail should ===(
         List(
@@ -265,8 +274,17 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val newState = initialState.copy(leaves = newLeaves, activeIntimationOpt = Some(Intimation(initialState.activeIntimationOpt.get.reason, newRequests, now)))
 
       val (earnedCredits, sickCredits) = computeCredits(newState)
-      val balanced = balanceExtra(newState.lastLeaves.earned + earnedCredits, newState.lastLeaves.currentYearEarned + earnedCredits, newState.lastLeaves.sick + sickCredits, newState.lastLeaves.extra)
-      val newLeaves2 = getNewLeaves(newState.activeIntimationOpt.get.requests, balanced)
+
+      val latestRequestDate = newRequests.map(_.date).toList.sortWith(_.isBefore(_)).last
+      val hasNoActiveIntimationAvailable = newState.activeIntimationOpt.isEmpty || latestRequestDate.isBefore(releaseDate) || already5(latestRequestDate)
+
+      val (balanced, newLeaves2) = if (hasNoActiveIntimationAvailable) {
+        val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
+        (balanced, Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra))
+      } else {
+        val balanced = balanceExtra(newState.lastLeaves.earned + earnedCredits, newState.lastLeaves.currentYearEarned + earnedCredits, newState.lastLeaves.sick + sickCredits, newState.lastLeaves.extra)
+        (balanced, getNewLeaves(newState.activeIntimationOpt.get.requests, balanced))
+      }
 
       outcome.events should ===(
         List(
@@ -301,8 +319,17 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val newState = initialState.copy(leaves = newLeaves, activeIntimationOpt = Some(Intimation(initialState.activeIntimationOpt.get.reason, newRequests, now)))
 
       val (earnedCredits, sickCredits) = computeCredits(newState)
-      val balanced = balanceExtra(newState.lastLeaves.earned + earnedCredits, newState.lastLeaves.currentYearEarned + earnedCredits, newState.lastLeaves.sick + sickCredits, newState.lastLeaves.extra)
-      val newLeaves2 = getNewLeaves(newState.activeIntimationOpt.get.requests, balanced)
+
+      val latestRequestDate = newRequests.map(_.date).toList.sortWith(_.isBefore(_)).last
+      val hasNoActiveIntimationAvailable = newState.activeIntimationOpt.isEmpty || latestRequestDate.isBefore(releaseDate) || already5(latestRequestDate)
+
+      val (balanced, newLeaves2) = if (hasNoActiveIntimationAvailable) {
+        val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
+        (balanced, Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra))
+      } else {
+        val balanced = balanceExtra(newState.lastLeaves.earned + earnedCredits, newState.lastLeaves.currentYearEarned + earnedCredits, newState.lastLeaves.sick + sickCredits, newState.lastLeaves.extra)
+        (balanced, getNewLeaves(newState.activeIntimationOpt.get.requests, balanced))
+      }
 
       val iu = outcome.events.toList.head.asInstanceOf[IntimationUpdated]
       val outcomeIntimationUpdated = IntimationUpdated(iu.empId, iu.reason, iu.requests, now)
@@ -370,13 +397,13 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
 
       val outcome = driver.run(ReleaseEmployee(empId))
 
-      val newRequests = EmployeePersistenceEntity.between(startDate, endDate).filterNot(isWeekend).map(dt => Request(dt, RequestType.Leave, RequestType.Leave)).toSet
-
       val newState = initialState.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(Maternity, startDate, endDate)))
-      val (earnedCredits, sickCredits) = computeCredits(newState)
 
+      val (earnedCredits, sickCredits) = computeCredits(newState)
       val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
       val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
+
+      val newRequests = EmployeePersistenceEntity.between(startDate, endDate).filterNot(isWeekend).map(dt => Request(dt, RequestType.Leave, RequestType.Leave)).toSet
 
       val now = LocalDateTime.now()
       val piu = outcome.events.toList.head.asInstanceOf[PrivilegedIntimationUpdated]
