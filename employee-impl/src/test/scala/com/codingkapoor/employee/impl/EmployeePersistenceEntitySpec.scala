@@ -464,12 +464,11 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val releaseDate = LocalDate.now()
 
       val startDate = releaseDate.plusDays(2)
-      val endDate = releaseDate.plusDays(4)
+      val endDate = releaseDate.plusDays(8)
       val extra = EmployeePersistenceEntity.between(startDate, endDate).filterNot(isWeekend).size
 
       val privilegedIntimation = PrivilegedIntimation(Maternity, startDate, endDate)
       val initialState = state.copy(leaves = Leaves(extra = extra), privilegedIntimationOpt = Some(privilegedIntimation))
-      println(s"sk: leaves size = $extra")
 
       driver.initialize(Some(Some(initialState)))
 
@@ -502,12 +501,11 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val releaseDate = LocalDate.now()
 
       val startDate = releaseDate.plusDays(2)
-      val endDate = releaseDate.plusDays(4)
+      val endDate = releaseDate.plusDays(8)
       val extra = EmployeePersistenceEntity.between(startDate, endDate).filterNot(isWeekend).size
 
       val privilegedIntimation = PrivilegedIntimation(Paternity, startDate, endDate)
       val initialState = state.copy(leaves = Leaves(extra = extra), privilegedIntimationOpt = Some(privilegedIntimation))
-      println(s"sk: leaves size = $extra")
 
       driver.initialize(Some(Some(initialState)))
 
