@@ -7,6 +7,12 @@ import play.api.libs.json.{Format, Json}
 import com.codingkapoor.employee.api.models.RequestType.RequestType
 import com.codingkapoor.employee.api.models.Role.Role
 
+case class ReleaseDate(dor: LocalDate)
+
+object ReleaseDate {
+  implicit val format: Format[ReleaseDate] = Json.format[ReleaseDate]
+}
+
 case class ContactInfo(phone: String, email: String)
 
 object ContactInfo {

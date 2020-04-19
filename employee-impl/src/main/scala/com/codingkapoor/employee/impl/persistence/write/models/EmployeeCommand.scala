@@ -1,5 +1,7 @@
 package com.codingkapoor.employee.impl.persistence.write.models
 
+import java.time.LocalDate
+
 import akka.Done
 import com.codingkapoor.employee.api.models.{Employee, EmployeeInfo, IntimationReq, Leaves, PrivilegedIntimation}
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.ReplyType
@@ -19,7 +21,7 @@ object UpdateEmployee {
   implicit val format: Format[UpdateEmployee] = Json.format[UpdateEmployee]
 }
 
-case class ReleaseEmployee(id: Long) extends EmployeeCommand[Done]
+case class ReleaseEmployee(id: Long, dor: LocalDate) extends EmployeeCommand[Done]
 
 object ReleaseEmployee {
   implicit val format: Format[ReleaseEmployee] = Json.format[ReleaseEmployee]

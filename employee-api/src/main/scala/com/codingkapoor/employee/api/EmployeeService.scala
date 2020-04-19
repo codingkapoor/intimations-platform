@@ -7,7 +7,7 @@ import com.lightbend.lagom.scaladsl.api.broker.Topic
 import com.lightbend.lagom.scaladsl.api.broker.kafka.{KafkaProperties, PartitionKeyStrategy}
 import com.lightbend.lagom.scaladsl.api.transport.Method
 import com.lightbend.lagom.scaladsl.api.{Descriptor, Service, ServiceCall}
-import com.codingkapoor.employee.api.models.{ActiveIntimation, Employee, EmployeeInfo, EmployeeKafkaEvent, InactiveIntimation, IntimationReq, Leaves, PrivilegedIntimation}
+import com.codingkapoor.employee.api.models.{ActiveIntimation, ReleaseDate, Employee, EmployeeInfo, EmployeeKafkaEvent, InactiveIntimation, IntimationReq, Leaves, PrivilegedIntimation}
 
 object EmployeeService {
   val TOPIC_NAME = "employee"
@@ -19,7 +19,7 @@ trait EmployeeService extends Service with EmployeePathParamSerializer {
 
   def updateEmployee(id: Long): ServiceCall[EmployeeInfo, Employee]
 
-  def releaseEmployee(id: Long): ServiceCall[NotUsed, Done]
+  def releaseEmployee(id: Long): ServiceCall[ReleaseDate, Done]
 
   def getEmployees(email: Option[String]): ServiceCall[NotUsed, Seq[Employee]]
 

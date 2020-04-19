@@ -64,13 +64,13 @@ class EmployeeServiceImpl(override val securityConfig: Config, persistentEntityR
       }
     )
 
-  override def releaseEmployee(id: Long): ServiceCall[NotUsed, Done] =
+  override def releaseEmployee(id: Long): ServiceCall[ReleaseDate, Done] =
     authorize(requireAllRoles[CommonProfile](Role.Admin.toString), (profile: CommonProfile) =>
-      ServerServiceCall { _: NotUsed =>
+      ServerServiceCall { releaseDate: ReleaseDate =>
         validateTokenType(profile)
         validateIfProfileBelongsToAdmin(profile)
 
-        entityRef(id).ask(ReleaseEmployee(id)).recover {
+        entityRef(id).ask(ReleaseEmployee(id, releaseDate.dor)).recover {
           case e: InvalidCommandException => throw BadRequest(e.getMessage)
         }
       }
