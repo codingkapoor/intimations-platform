@@ -287,13 +287,13 @@ class EmployeePersistenceEntity extends PersistentEntity {
                     privilegedIntimation.privilegedIntimationType match {
                       case Maternity =>
                         newState = e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(Maternity, startDate, endDate)))
-                        logger.info(s"Planned privileged intimation = ${e.activeIntimationOpt.get} is cancelled for employee = ${e.id}.")
+                        logger.info(s"Planned privileged intimation = ${e.privilegedIntimationOpt.get} is cancelled for employee = ${e.id}.")
 
                         List(PrivilegedIntimationCancelled(e.id, Maternity, startDate, endDate, s"$Maternity Leave", newRequests, now))
 
                       case Paternity =>
                         newState = e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(Maternity, startDate, endDate)))
-                        logger.info(s"Planned privileged intimation = ${e.activeIntimationOpt.get} is cancelled for employee = ${e.id}.")
+                        logger.info(s"Planned privileged intimation = ${e.privilegedIntimationOpt.get} is cancelled for employee = ${e.id}.")
 
                         List(PrivilegedIntimationCancelled(e.id, Paternity, startDate, endDate, s"$Paternity Leave", newRequests, now))
 
@@ -301,7 +301,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
                         val newLeaves = getNewLeaves(newRequests, lastLeaves = Leaves(e.lastLeaves.earned, e.lastLeaves.currentYearEarned, e.lastLeaves.sick, e.lastLeaves.extra))
 
                         newState = e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(Maternity, startDate, endDate)), leaves = newLeaves)
-                        logger.info(s"Planned privileged intimation = ${e.activeIntimationOpt.get} is cancelled for employee = ${e.id} and leaves = $newLeaves are updated accordingly.")
+                        logger.info(s"Planned privileged intimation = ${e.privilegedIntimationOpt.get} is cancelled for employee = ${e.id} and leaves = $newLeaves are updated accordingly.")
 
                         List(
                           PrivilegedIntimationCancelled(e.id, Sabbatical, startDate, endDate, s"$Sabbatical Leave", newRequests, now),
