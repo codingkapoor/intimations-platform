@@ -423,13 +423,52 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
 
       val outcome = driver.run(ReleaseEmployee(empId, dor))
 
+      val newRequests = EmployeePersistenceEntity.between(startDate, dor).filterNot(isWeekend).map(dt => Request(dt, RequestType.Leave, RequestType.Leave)).toSet
+
       val newState = initialState.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(Maternity, startDate, dor)))
 
       val (earnedCredits, sickCredits) = computeCredits(newState)
       val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
       val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
-      val newRequests = EmployeePersistenceEntity.between(startDate, dor).filterNot(isWeekend).map(dt => Request(dt, RequestType.Leave, RequestType.Leave)).toSet
+      val now = LocalDateTime.now()
+      val piu = outcome.events.toList.head.asInstanceOf[PrivilegedIntimationUpdated]
+      val outcomePrivilegedIntimationUpdated = PrivilegedIntimationUpdated(piu.empId, piu.privilegedIntimationType, piu.start, piu.end, piu.reason, piu.requests, now)
+
+      outcomePrivilegedIntimationUpdated :: outcome.events.toList.tail should ===(
+        List(
+          PrivilegedIntimationUpdated(e.id, Maternity, startDate, dor, s"$Maternity Leave", newRequests, now),
+          LastLeavesSaved(newState.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+          LeavesCredited(newState.id, newLeaves.earned, newLeaves.currentYearEarned, newLeaves.sick, newLeaves.extra),
+          EmployeeUpdated(newState.id, newState.name, newState.gender, newState.doj, newState.dor, newState.designation, newState.pfn, newState.contactInfo, newState.location, newLeaves, newState.roles),
+          EmployeeReleased(newState.id, dor)
+        )
+      )
+    }
+
+    "release and credit leaves for an employee that has on ongoing privileged maternity intimation that has first date as the release date" in withDriver { driver =>
+      val today = LocalDate.now()
+
+      val dor = if (isWeekend(today)) today.plusDays(2) else today
+
+      val startDate = dor
+      val endDate = dor.plusDays(2)
+      val extra = EmployeePersistenceEntity.between(startDate, endDate).filterNot(isWeekend).size
+
+      val privilegedIntimation = PrivilegedIntimation(Maternity, startDate, endDate)
+      val initialState = state.copy(leaves = Leaves(extra = extra), privilegedIntimationOpt = Some(privilegedIntimation))
+
+      driver.initialize(Some(Some(initialState)))
+
+      val outcome = driver.run(ReleaseEmployee(empId, dor))
+
+      val newRequests = Set(Request(dor, RequestType.Leave, RequestType.Leave))
+
+      val newState = initialState.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(Maternity, startDate, dor)))
+
+      val (earnedCredits, sickCredits) = computeCredits(newState)
+      val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
+      val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
       val now = LocalDateTime.now()
       val piu = outcome.events.toList.head.asInstanceOf[PrivilegedIntimationUpdated]
