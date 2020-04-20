@@ -126,7 +126,9 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
 
       driver.run(AddEmployee(e1))
 
-      val dor = LocalDate.parse("2020-04-17")
+      val today = LocalDate.now()
+
+      val dor = if (isWeekend(today)) today.plusDays(2) else today
 
       val outcome = driver.run(ReleaseEmployee(empId, dor))
 
@@ -138,15 +140,15 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
     "release and credit leaves for an employee that has no ongoing intimations" in withDriver { driver =>
       driver.run(AddEmployee(employee))
 
-      val dor = LocalDate.parse("2020-04-17")
+      val today = LocalDate.now()
+
+      val dor = if (isWeekend(today)) today.plusDays(2) else today
 
       val outcome = driver.run(ReleaseEmployee(empId, dor))
 
       val (earnedCredits, sickCredits) = computeCredits(state)
       val balanced = balanceExtra(state.leaves.earned + earnedCredits, state.leaves.currentYearEarned + earnedCredits, state.leaves.sick + sickCredits, state.leaves.extra)
       val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
-
-      val today = LocalDate.now()
 
       outcome.events should ===(
         List(
@@ -161,7 +163,9 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
     // Few dates already consumed would mean that active intimation would require to be updated instead of getting cancelled and
     // release date as one of requested dates would mean that active intimation update wouldn't render active intimation as inactive
     "release and credit leaves for an employee that has on ongoing active intimation that has few dates that are already consumed and has release date as one of the requested dates" in withDriver { driver =>
-      val dor = LocalDate.parse("2020-04-17")
+      val today = LocalDate.now()
+
+      val dor = if (isWeekend(today)) today.plusDays(2) else today
 
       val requests =
         Set(
@@ -190,7 +194,8 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val (earnedCredits, sickCredits) = computeCredits(newState)
 
       val latestRequestDate = newRequests.map(_.date).toList.sortWith(_.isBefore(_)).last
-      val hasNoActiveIntimationAvailable = newState.activeIntimationOpt.isEmpty || latestRequestDate.isBefore(dor) || already5(latestRequestDate)
+      val hasNoActiveIntimationAvailable = newState.activeIntimationOpt.isEmpty || latestRequestDate.isBefore(dor) ||
+        (if (dor.isEqual(today)) already5(latestRequestDate) else false)
 
       val (balanced, newLeaves2) = if (hasNoActiveIntimationAvailable) {
         val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
@@ -215,7 +220,9 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
     // Few dates already consumed would mean that active intimation would require to be updated instead of getting cancelled and
     // release date as not one of requested dates would mean that active intimation update would render active intimation as inactive
     "release and credit leaves for an employee that has on ongoing active intimation that has few dates that are already consumed and not having release date as one of the requested dates" in withDriver { driver =>
-      val dor = LocalDate.parse("2020-04-17")
+      val today = LocalDate.now()
+
+      val dor = if (isWeekend(today)) today.plusDays(2) else today
 
       val requests =
         Set(
@@ -258,7 +265,9 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
 
     // Release date as latest requested dates means that no update/cancel would be required for active intimation
     "release and credit leaves for an employee that has on ongoing active intimation that has few dates that are already consumed and having release date as the latest requested dates" in withDriver { driver =>
-      val dor = LocalDate.parse("2020-04-17")
+      val today = LocalDate.now()
+
+      val dor = if (isWeekend(today)) today.plusDays(2) else today
 
       val requests =
         Set(
@@ -282,7 +291,8 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val (earnedCredits, sickCredits) = computeCredits(newState)
 
       val latestRequestDate = newRequests.map(_.date).toList.sortWith(_.isBefore(_)).last
-      val hasNoActiveIntimationAvailable = newState.activeIntimationOpt.isEmpty || latestRequestDate.isBefore(dor) || already5(latestRequestDate)
+      val hasNoActiveIntimationAvailable = newState.activeIntimationOpt.isEmpty || latestRequestDate.isBefore(dor) ||
+        (if (dor.isEqual(today)) already5(latestRequestDate) else false)
 
       val (balanced, newLeaves2) = if (hasNoActiveIntimationAvailable) {
         val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
@@ -303,7 +313,9 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
     }
 
     "release and credit leaves for an employee that has on ongoing active intimation that has first request date as release date" in withDriver { driver =>
-      val dor = LocalDate.parse("2020-04-17")
+      val today = LocalDate.now()
+
+      val dor = if (isWeekend(today)) today.plusDays(2) else today
 
       val requests =
         Set(
@@ -327,7 +339,8 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val (earnedCredits, sickCredits) = computeCredits(newState)
 
       val latestRequestDate = newRequests.map(_.date).toList.sortWith(_.isBefore(_)).last
-      val hasNoActiveIntimationAvailable = newState.activeIntimationOpt.isEmpty || latestRequestDate.isBefore(dor) || already5(latestRequestDate)
+      val hasNoActiveIntimationAvailable = newState.activeIntimationOpt.isEmpty || latestRequestDate.isBefore(dor) ||
+        (if (dor.isEqual(today)) already5(latestRequestDate) else false)
 
       val (balanced, newLeaves2) = if (hasNoActiveIntimationAvailable) {
         val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
@@ -353,7 +366,9 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
     }
 
     "release and credit leaves for an employee that has on ongoing active intimation that has all request dates in future" in withDriver { driver =>
-      val dor = LocalDate.parse("2020-04-17")
+      val today = LocalDate.now()
+
+      val dor = if (isWeekend(today)) today.plusDays(2) else today
 
       val requests =
         Set(
@@ -393,7 +408,9 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
     }
 
     "release and credit leaves for an employee that has on ongoing privileged maternity intimation that has few dates that are already consumed" in withDriver { driver =>
-      val dor = LocalDate.parse("2020-04-17")
+      val today = LocalDate.now()
+
+      val dor = if (isWeekend(today)) today.plusDays(2) else today
 
       val startDate = dor.minusDays(2)
       val endDate = dor.plusDays(2)
@@ -430,7 +447,9 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
     }
 
     "release and credit leaves for an employee that has on ongoing privileged paternity intimation that has few dates that are already consumed" in withDriver { driver =>
-      val dor = LocalDate.parse("2020-04-17")
+      val today = LocalDate.now()
+
+      val dor = if (isWeekend(today)) today.plusDays(2) else today
 
       val startDate = dor.minusDays(2)
       val endDate = dor.plusDays(2)
@@ -467,7 +486,9 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
     }
 
     "release and credit leaves for an employee that has on ongoing privileged maternity intimation that has all request dates in future" in withDriver { driver =>
-      val dor = LocalDate.parse("2020-04-17")
+      val today = LocalDate.now()
+
+      val dor = if (isWeekend(today)) today.plusDays(2) else today
 
       val startDate = dor.plusDays(2)
       val endDate = dor.plusDays(8)
@@ -504,7 +525,9 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
     }
 
     "release and credit leaves for an employee that has on ongoing privileged paternity intimation that has all request dates in future" in withDriver { driver =>
-      val dor = LocalDate.parse("2020-04-17")
+      val today = LocalDate.now()
+
+      val dor = if (isWeekend(today)) today.plusDays(2) else today
 
       val startDate = dor.plusDays(2)
       val endDate = dor.plusDays(8)
@@ -540,9 +563,62 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       )
     }
 
+    "release and credit leaves for an employee that has on ongoing privileged sabbatical intimation that has few dates that are already consumed" in withDriver { driver =>
+      val today = LocalDate.now()
+
+      val dor = if (isWeekend(today)) today.plusDays(2) else today
+
+      val startDate = dor.minusDays(2)
+      val endDate = dor.plusDays(2)
+      val extra = EmployeePersistenceEntity.between(startDate, endDate).filterNot(isWeekend).size
+
+      val privilegedIntimation = PrivilegedIntimation(Sabbatical, startDate, endDate)
+      val initialState = state.copy(leaves = Leaves(extra = extra), privilegedIntimationOpt = Some(privilegedIntimation))
+
+      driver.initialize(Some(Some(initialState)))
+
+      val outcome = driver.run(ReleaseEmployee(empId, dor))
+
+      val newRequests = EmployeePersistenceEntity.between(startDate, dor).filterNot(isWeekend).map(dt => Request(dt, RequestType.Leave, RequestType.Leave)).toSet
+      val newLeaves = getNewLeaves(newRequests, lastLeaves = Leaves(initialState.lastLeaves.earned, initialState.lastLeaves.currentYearEarned, initialState.lastLeaves.sick, initialState.lastLeaves.extra))
+
+      val newState = initialState.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(Sabbatical, startDate, dor)))
+
+      val (earnedCredits, sickCredits) = computeCredits(newState)
+
+      val hasActiveSabbaticalPrivilegedIntimation = newState.privilegedIntimationOpt.isDefined &&
+        newState.privilegedIntimationOpt.get.privilegedIntimationType == PrivilegedIntimationType.Sabbatical &&
+        newRequests.last.date.isEqual(dor) && (if (dor.isEqual(today)) !already5(newRequests.last.date) else true)
+
+      val (balanced, newLeaves2) = if (!hasActiveSabbaticalPrivilegedIntimation) {
+        val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
+        (balanced, Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra))
+      } else {
+        val balanced = balanceExtra(newState.lastLeaves.earned + earnedCredits, newState.lastLeaves.currentYearEarned + earnedCredits, newState.lastLeaves.sick + sickCredits, newState.lastLeaves.extra)
+        (balanced, getNewLeaves(newRequests, balanced))
+      }
+
+      val now = LocalDateTime.now()
+      val piu = outcome.events.toList.head.asInstanceOf[PrivilegedIntimationUpdated]
+      val outcomePrivilegedIntimationUpdated = PrivilegedIntimationUpdated(piu.empId, piu.privilegedIntimationType, piu.start, piu.end, piu.reason, piu.requests, now)
+
+      outcomePrivilegedIntimationUpdated :: outcome.events.toList.tail should ===(
+        List(
+          PrivilegedIntimationUpdated(e.id, Sabbatical, startDate, dor, s"$Sabbatical Leave", newRequests, now),
+          EmployeeUpdated(newState.id, newState.name, newState.gender, newState.doj, newState.dor, newState.designation, newState.pfn, newState.contactInfo, newState.location, newLeaves, newState.roles),
+          LastLeavesSaved(newState.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+          LeavesCredited(newState.id, newLeaves2.earned, newLeaves2.currentYearEarned, newLeaves2.sick, newLeaves2.extra),
+          EmployeeUpdated(newState.id, newState.name, newState.gender, newState.doj, newState.dor, newState.designation, newState.pfn, newState.contactInfo, newState.location, newLeaves2, newState.roles),
+          EmployeeReleased(newState.id, dor)
+        )
+      )
+    }
+
     // Test cases for an employee that has already been released
     "invalidate adding an employee that already exists but has been released" in withDriver { driver =>
-      val dor = LocalDate.parse("2020-04-17")
+      val today = LocalDate.now()
+
+      val dor = if (isWeekend(today)) today.plusDays(2) else today
 
       driver.run(AddEmployee(employee))
       driver.run(ReleaseEmployee(empId, dor))
@@ -555,7 +631,9 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
     }
 
     "invalidate updation of an already released employee" in withDriver { driver =>
-      val dor = LocalDate.parse("2020-04-17")
+      val today = LocalDate.now()
+
+      val dor = if (isWeekend(today)) today.plusDays(2) else today
 
       driver.run(AddEmployee(employee))
       driver.run(ReleaseEmployee(empId, dor))
@@ -568,7 +646,9 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
     }
 
     "invalidate release of an already released employee" in withDriver { driver =>
-      val dor = LocalDate.parse("2020-04-17")
+      val today = LocalDate.now()
+
+      val dor = if (isWeekend(today)) today.plusDays(2) else today
 
       driver.run(AddEmployee(employee))
       driver.run(ReleaseEmployee(empId, dor))
@@ -581,7 +661,9 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
     }
 
     "invalidate deletion of an already released employee" in withDriver { driver =>
-      val dor = LocalDate.parse("2020-04-17")
+      val today = LocalDate.now()
+
+      val dor = if (isWeekend(today)) today.plusDays(2) else today
 
       driver.run(AddEmployee(employee))
       driver.run(ReleaseEmployee(empId, dor))
@@ -594,7 +676,9 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
     }
 
     "invalidate creation of an intimation for an already released employee" in withDriver { driver =>
-      val dor = LocalDate.parse("2020-04-17")
+      val today = LocalDate.now()
+
+      val dor = if (isWeekend(today)) today.plusDays(2) else today
 
       driver.run(AddEmployee(employee))
       driver.run(ReleaseEmployee(empId, dor))
@@ -608,7 +692,9 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
     }
 
     "invalidate updation of an intimation for an already released employee" in withDriver { driver =>
-      val dor = LocalDate.parse("2020-04-17")
+      val today = LocalDate.now()
+
+      val dor = if (isWeekend(today)) today.plusDays(2) else today
 
       driver.run(AddEmployee(employee))
       driver.run(ReleaseEmployee(empId, dor))
@@ -622,7 +708,9 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
     }
 
     "invalidate cancellation of an intimation for an already released employee" in withDriver { driver =>
-      val dor = LocalDate.parse("2020-04-17")
+      val today = LocalDate.now()
+
+      val dor = if (isWeekend(today)) today.plusDays(2) else today
 
       driver.run(AddEmployee(employee))
       driver.run(ReleaseEmployee(empId, dor))
@@ -635,7 +723,9 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
     }
 
     "invalidate monthly credit of leaves for an already released employee" in withDriver { driver =>
-      val dor = LocalDate.parse("2020-04-17")
+      val today = LocalDate.now()
+
+      val dor = if (isWeekend(today)) today.plusDays(2) else today
 
       driver.run(AddEmployee(employee))
       driver.run(ReleaseEmployee(empId, dor))
@@ -648,7 +738,9 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
     }
 
     "invalidate yearly balancing of leaves for an already released employee" in withDriver { driver =>
-      val dor = LocalDate.parse("2020-04-17")
+      val today = LocalDate.now()
+
+      val dor = if (isWeekend(today)) today.plusDays(2) else today
 
       driver.run(AddEmployee(employee))
       driver.run(ReleaseEmployee(empId, dor))
