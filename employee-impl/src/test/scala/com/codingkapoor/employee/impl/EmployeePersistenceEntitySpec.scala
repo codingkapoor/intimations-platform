@@ -446,7 +446,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       )
     }
 
-    "release and credit leaves for an employee that has on ongoing privileged maternity intimation that has first date as the release date" in withDriver { driver =>
+    "release and credit leaves for an employee that has on ongoing privileged maternity intimation that has first request date as release date" in withDriver { driver =>
       val today = LocalDate.now()
 
       val dor = if (isWeekend(today)) today.plusDays(2) else today
@@ -561,7 +561,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       )
     }
 
-    "release and credit leaves for an employee that has on ongoing privileged paternity intimation that has first date as request date" in withDriver { driver =>
+    "release and credit leaves for an employee that has on ongoing privileged paternity intimation that has first reuqest date as release date" in withDriver { driver =>
       val today = LocalDate.now()
 
       val dor = if (isWeekend(today)) today.plusDays(2) else today
@@ -654,6 +654,57 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val outcome = driver.run(ReleaseEmployee(empId, dor))
 
       val newRequests = EmployeePersistenceEntity.between(startDate, dor).filterNot(isWeekend).map(dt => Request(dt, RequestType.Leave, RequestType.Leave)).toSet
+      val newLeaves = getNewLeaves(newRequests, lastLeaves = Leaves(initialState.lastLeaves.earned, initialState.lastLeaves.currentYearEarned, initialState.lastLeaves.sick, initialState.lastLeaves.extra))
+
+      val newState = initialState.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(Sabbatical, startDate, dor)))
+
+      val (earnedCredits, sickCredits) = computeCredits(newState)
+
+      val hasActiveSabbaticalPrivilegedIntimation = newState.privilegedIntimationOpt.isDefined &&
+        newState.privilegedIntimationOpt.get.privilegedIntimationType == PrivilegedIntimationType.Sabbatical &&
+        newRequests.last.date.isEqual(dor) && (if (dor.isEqual(today)) !already5(newRequests.last.date) else true)
+
+      val (balanced, newLeaves2) = if (!hasActiveSabbaticalPrivilegedIntimation) {
+        val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
+        (balanced, Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra))
+      } else {
+        val balanced = balanceExtra(newState.lastLeaves.earned + earnedCredits, newState.lastLeaves.currentYearEarned + earnedCredits, newState.lastLeaves.sick + sickCredits, newState.lastLeaves.extra)
+        (balanced, getNewLeaves(newRequests, balanced))
+      }
+
+      val now = LocalDateTime.now()
+      val piu = outcome.events.toList.head.asInstanceOf[PrivilegedIntimationUpdated]
+      val outcomePrivilegedIntimationUpdated = PrivilegedIntimationUpdated(piu.empId, piu.privilegedIntimationType, piu.start, piu.end, piu.reason, piu.requests, now)
+
+      outcomePrivilegedIntimationUpdated :: outcome.events.toList.tail should ===(
+        List(
+          PrivilegedIntimationUpdated(e.id, Sabbatical, startDate, dor, s"$Sabbatical Leave", newRequests, now),
+          EmployeeUpdated(newState.id, newState.name, newState.gender, newState.doj, newState.dor, newState.designation, newState.pfn, newState.contactInfo, newState.location, newLeaves, newState.roles),
+          LastLeavesSaved(newState.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+          LeavesCredited(newState.id, newLeaves2.earned, newLeaves2.currentYearEarned, newLeaves2.sick, newLeaves2.extra),
+          EmployeeUpdated(newState.id, newState.name, newState.gender, newState.doj, newState.dor, newState.designation, newState.pfn, newState.contactInfo, newState.location, newLeaves2, newState.roles),
+          EmployeeReleased(newState.id, dor)
+        )
+      )
+    }
+
+    "release and credit leaves for an employee that has on ongoing privileged sabbatical intimation that has first request date as release date" in withDriver { driver =>
+      val today = LocalDate.now()
+
+      val dor = if (isWeekend(today)) today.plusDays(2) else today
+
+      val startDate = dor
+      val endDate = dor.plusDays(2)
+      val extra = EmployeePersistenceEntity.between(startDate, endDate).filterNot(isWeekend).size
+
+      val privilegedIntimation = PrivilegedIntimation(Sabbatical, startDate, endDate)
+      val initialState = state.copy(leaves = Leaves(extra = extra), privilegedIntimationOpt = Some(privilegedIntimation))
+
+      driver.initialize(Some(Some(initialState)))
+
+      val outcome = driver.run(ReleaseEmployee(empId, dor))
+
+      val newRequests = Set(Request(dor, RequestType.Leave, RequestType.Leave))
       val newLeaves = getNewLeaves(newRequests, lastLeaves = Leaves(initialState.lastLeaves.earned, initialState.lastLeaves.currentYearEarned, initialState.lastLeaves.sick, initialState.lastLeaves.extra))
 
       val newState = initialState.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(Sabbatical, startDate, dor)))
