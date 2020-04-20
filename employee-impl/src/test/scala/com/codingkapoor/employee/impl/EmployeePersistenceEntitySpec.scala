@@ -446,6 +446,43 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       )
     }
 
+    "release and credit leaves for an employee that has on ongoing privileged maternity intimation that has all request dates in future" in withDriver { driver =>
+      val today = LocalDate.now()
+
+      val dor = if (isWeekend(today)) today.plusDays(2) else today
+
+      val startDate = dor.plusDays(2)
+      val endDate = dor.plusDays(8)
+
+      val privilegedIntimation = PrivilegedIntimation(Maternity, startDate, endDate)
+      val initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
+
+      driver.initialize(Some(Some(initialState)))
+
+      val outcome = driver.run(ReleaseEmployee(empId, dor))
+
+      val newRequests = Set.empty[Request]
+      val newState = initialState.copy(privilegedIntimationOpt = None)
+
+      val (earnedCredits, sickCredits) = computeCredits(newState)
+      val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
+      val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
+
+      val now = LocalDateTime.now()
+      val pic = outcome.events.toList.head.asInstanceOf[PrivilegedIntimationCancelled]
+      val outcomePrivilegedIntimationCancelled = PrivilegedIntimationCancelled(pic.empId, pic.privilegedIntimationType, pic.start, pic.end, pic.reason, pic.requests, now)
+
+      outcomePrivilegedIntimationCancelled :: outcome.events.toList.tail should ===(
+        List(
+          PrivilegedIntimationCancelled(e.id, Maternity, startDate, dor, s"$Maternity Leave", newRequests, now),
+          LastLeavesSaved(newState.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+          LeavesCredited(newState.id, newLeaves.earned, newLeaves.currentYearEarned, newLeaves.sick, newLeaves.extra),
+          EmployeeUpdated(newState.id, newState.name, newState.gender, newState.doj, newState.dor, newState.designation, newState.pfn, newState.contactInfo, newState.location, newLeaves, newState.roles),
+          EmployeeReleased(newState.id, dor)
+        )
+      )
+    }
+
     "release and credit leaves for an employee that has on ongoing privileged paternity intimation that has few dates that are already consumed" in withDriver { driver =>
       val today = LocalDate.now()
 
@@ -479,6 +516,43 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
           PrivilegedIntimationUpdated(e.id, Paternity, startDate, dor, s"$Paternity Leave", newRequests, now),
           LastLeavesSaved(newState.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
           LeavesCredited(newState.id, newLeaves.earned, newLeaves.currentYearEarned, newLeaves.sick, newLeaves.extra),
+          EmployeeUpdated(newState.id, newState.name, newState.gender, newState.doj, newState.dor, newState.designation, newState.pfn, newState.contactInfo, newState.location, newLeaves, newState.roles),
+          EmployeeReleased(newState.id, dor)
+        )
+      )
+    }
+
+    "release and credit leaves for an employee that has on ongoing privileged paternity intimation that has all request dates in future" in withDriver { driver =>
+      val today = LocalDate.now()
+
+      val dor = if (isWeekend(today)) today.plusDays(2) else today
+
+      val startDate = dor.plusDays(2)
+      val endDate = dor.plusDays(8)
+
+      val privilegedIntimation = PrivilegedIntimation(Paternity, startDate, endDate)
+      val initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
+
+      driver.initialize(Some(Some(initialState)))
+
+      val outcome = driver.run(ReleaseEmployee(empId, dor))
+
+      val newRequests = Set.empty[Request]
+      val newState = initialState.copy(privilegedIntimationOpt = None)
+
+      val (earnedCredits, sickCredits) = computeCredits(newState)
+      val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
+      val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
+
+      val now = LocalDateTime.now()
+      val pic = outcome.events.toList.head.asInstanceOf[PrivilegedIntimationCancelled]
+      val outcomePrivilegedIntimationCancelled = PrivilegedIntimationCancelled(pic.empId, pic.privilegedIntimationType, pic.start, pic.end, pic.reason, pic.requests, now)
+
+      outcomePrivilegedIntimationCancelled :: outcome.events.toList.tail should ===(
+        List(
+          PrivilegedIntimationCancelled(e.id, Paternity, startDate, dor, s"$Paternity Leave", newRequests, now),
+          LastLeavesSaved(newState.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+          LeavesCredited(newState.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
           EmployeeUpdated(newState.id, newState.name, newState.gender, newState.doj, newState.dor, newState.designation, newState.pfn, newState.contactInfo, newState.location, newLeaves, newState.roles),
           EmployeeReleased(newState.id, dor)
         )
@@ -531,80 +605,6 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
           LastLeavesSaved(newState.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
           LeavesCredited(newState.id, newLeaves2.earned, newLeaves2.currentYearEarned, newLeaves2.sick, newLeaves2.extra),
           EmployeeUpdated(newState.id, newState.name, newState.gender, newState.doj, newState.dor, newState.designation, newState.pfn, newState.contactInfo, newState.location, newLeaves2, newState.roles),
-          EmployeeReleased(newState.id, dor)
-        )
-      )
-    }
-
-    "release and credit leaves for an employee that has on ongoing privileged maternity intimation that has all request dates in future" in withDriver { driver =>
-      val today = LocalDate.now()
-
-      val dor = if (isWeekend(today)) today.plusDays(2) else today
-
-      val startDate = dor.plusDays(2)
-      val endDate = dor.plusDays(8)
-
-      val privilegedIntimation = PrivilegedIntimation(Maternity, startDate, endDate)
-      val initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
-
-      driver.initialize(Some(Some(initialState)))
-
-      val outcome = driver.run(ReleaseEmployee(empId, dor))
-
-      val newRequests = Set.empty[Request]
-      val newState = initialState.copy(privilegedIntimationOpt = None)
-
-      val (earnedCredits, sickCredits) = computeCredits(newState)
-      val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
-      val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
-
-      val now = LocalDateTime.now()
-      val pic = outcome.events.toList.head.asInstanceOf[PrivilegedIntimationCancelled]
-      val outcomePrivilegedIntimationCancelled = PrivilegedIntimationCancelled(pic.empId, pic.privilegedIntimationType, pic.start, pic.end, pic.reason, pic.requests, now)
-
-      outcomePrivilegedIntimationCancelled :: outcome.events.toList.tail should ===(
-        List(
-          PrivilegedIntimationCancelled(e.id, Maternity, startDate, dor, s"$Maternity Leave", newRequests, now),
-          LastLeavesSaved(newState.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
-          LeavesCredited(newState.id, newLeaves.earned, newLeaves.currentYearEarned, newLeaves.sick, newLeaves.extra),
-          EmployeeUpdated(newState.id, newState.name, newState.gender, newState.doj, newState.dor, newState.designation, newState.pfn, newState.contactInfo, newState.location, newLeaves, newState.roles),
-          EmployeeReleased(newState.id, dor)
-        )
-      )
-    }
-
-    "release and credit leaves for an employee that has on ongoing privileged paternity intimation that has all request dates in future" in withDriver { driver =>
-      val today = LocalDate.now()
-
-      val dor = if (isWeekend(today)) today.plusDays(2) else today
-
-      val startDate = dor.plusDays(2)
-      val endDate = dor.plusDays(8)
-
-      val privilegedIntimation = PrivilegedIntimation(Paternity, startDate, endDate)
-      val initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
-
-      driver.initialize(Some(Some(initialState)))
-
-      val outcome = driver.run(ReleaseEmployee(empId, dor))
-
-      val newRequests = Set.empty[Request]
-      val newState = initialState.copy(privilegedIntimationOpt = None)
-
-      val (earnedCredits, sickCredits) = computeCredits(newState)
-      val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
-      val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
-
-      val now = LocalDateTime.now()
-      val pic = outcome.events.toList.head.asInstanceOf[PrivilegedIntimationCancelled]
-      val outcomePrivilegedIntimationCancelled = PrivilegedIntimationCancelled(pic.empId, pic.privilegedIntimationType, pic.start, pic.end, pic.reason, pic.requests, now)
-
-      outcomePrivilegedIntimationCancelled :: outcome.events.toList.tail should ===(
-        List(
-          PrivilegedIntimationCancelled(e.id, Paternity, startDate, dor, s"$Paternity Leave", newRequests, now),
-          LastLeavesSaved(newState.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
-          LeavesCredited(newState.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
-          EmployeeUpdated(newState.id, newState.name, newState.gender, newState.doj, newState.dor, newState.designation, newState.pfn, newState.contactInfo, newState.location, newLeaves, newState.roles),
           EmployeeReleased(newState.id, dor)
         )
       )
