@@ -291,7 +291,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
                       case Sabbatical =>
                         val newLeaves = getNewLeaves(newRequests, lastLeaves = Leaves(e.lastLeaves.earned, e.lastLeaves.currentYearEarned, e.lastLeaves.sick, e.lastLeaves.extra))
 
-                        newState = e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(Sabbatical, startDate, dor)), leaves = newLeaves)
+                        newState = e.copy(leaves = newLeaves, privilegedIntimationOpt = Some(PrivilegedIntimation(Sabbatical, startDate, dor)))
                         logger.info(s"On going privileged intimation = ${e.privilegedIntimationOpt.get} is ended at release date for employee = ${e.id} and leaves = $newLeaves are updated accordingly.")
 
                         List(
@@ -305,13 +305,13 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
                     privilegedIntimation.privilegedIntimationType match {
                       case Maternity =>
-                        newState = e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(Maternity, startDate, dor)))
+                        newState = e.copy(privilegedIntimationOpt = None)
                         logger.info(s"Planned privileged intimation = ${e.privilegedIntimationOpt.get} is cancelled for employee = ${e.id}.")
 
                         List(PrivilegedIntimationCancelled(e.id, Maternity, startDate, dor, s"$Maternity Leave", newRequests, now))
 
                       case Paternity =>
-                        newState = e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(Paternity, startDate, dor)))
+                        newState = e.copy(privilegedIntimationOpt = None)
                         logger.info(s"Planned privileged intimation = ${e.privilegedIntimationOpt.get} is cancelled for employee = ${e.id}.")
 
                         List(PrivilegedIntimationCancelled(e.id, Paternity, startDate, dor, s"$Paternity Leave", newRequests, now))
@@ -319,7 +319,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
                       case Sabbatical =>
                         val newLeaves = getNewLeaves(newRequests, lastLeaves = Leaves(e.lastLeaves.earned, e.lastLeaves.currentYearEarned, e.lastLeaves.sick, e.lastLeaves.extra))
 
-                        newState = e.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(Sabbatical, startDate, dor)), leaves = newLeaves)
+                        newState = e.copy(leaves = newLeaves, privilegedIntimationOpt = None)
                         logger.info(s"Planned privileged intimation = ${e.privilegedIntimationOpt.get} is cancelled for employee = ${e.id} and leaves = $newLeaves are updated accordingly.")
 
                         List(
