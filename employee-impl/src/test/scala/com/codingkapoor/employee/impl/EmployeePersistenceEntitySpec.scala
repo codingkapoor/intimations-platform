@@ -899,13 +899,13 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
     }
 
     "invalidate creation of an intimation for an already existing employee when there is an already existing intimation" in withDriver { driver =>
-      val today = LocalDate.now()
+      val tomorrow = LocalDate.now().plusDays(1)
+      val requestDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
 
       driver.run(AddEmployee(employee))
 
-      // TODO: will fail for weekend
-      driver.run(CreateIntimation(empId, IntimationReq("Reason", Set(Request(today.plusDays(1), RequestType.Leave, RequestType.Leave)))))
-      val outcome = driver.run(CreateIntimation(empId, IntimationReq("Reason", Set(Request(today.plusDays(2), RequestType.Leave, RequestType.Leave)))))
+      driver.run(CreateIntimation(empId, IntimationReq("Reason", Set(Request(requestDate, RequestType.Leave, RequestType.Leave)))))
+      val outcome = driver.run(CreateIntimation(empId, IntimationReq("Reason", Set(Request(requestDate, RequestType.Leave, RequestType.Leave)))))
 
       outcome.replies.head.getClass should be(classOf[InvalidCommandException])
       outcome.events.size should ===(0)
