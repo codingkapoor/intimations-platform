@@ -8,7 +8,7 @@ import com.codingkapoor.employee.api.models.PrivilegedIntimationType.{Maternity,
 import com.codingkapoor.employee.api.models.{ContactInfo, Employee, EmployeeInfo, Intimation, IntimationReq, Leaves, Location, PrivilegedIntimation, PrivilegedIntimationType, Request, RequestType, Role}
 import com.codingkapoor.employee.impl.persistence.write.EmployeePersistenceEntity.{already5, balanceExtra, between, computeCredits, getNewLeaves, isWeekend}
 import com.codingkapoor.employee.impl.persistence.write.{EmployeePersistenceEntity, EmployeeSerializerRegistry}
-import com.codingkapoor.employee.impl.persistence.write.models.{AddEmployee, BalanceLeaves, CancelIntimation, CreateIntimation, CreatePrivilegedIntimation, CreditLeaves, DeleteEmployee, EmployeeAdded, EmployeeCommand, EmployeeDeleted, EmployeeEvent, EmployeeReleased, EmployeeState, EmployeeUpdated, IntimationCancelled, IntimationUpdated, LastLeavesSaved, LeavesCredited, PrivilegedIntimationCancelled, PrivilegedIntimationUpdated, ReleaseEmployee, UpdateEmployee, UpdateIntimation}
+import com.codingkapoor.employee.impl.persistence.write.models.{AddEmployee, BalanceLeaves, CancelIntimation, CreateIntimation, CreatePrivilegedIntimation, CreditLeaves, DeleteEmployee, EmployeeAdded, EmployeeCommand, EmployeeDeleted, EmployeeEvent, EmployeeReleased, EmployeeState, EmployeeUpdated, IntimationCancelled, IntimationCreated, IntimationUpdated, LastLeavesSaved, LeavesCredited, PrivilegedIntimationCancelled, PrivilegedIntimationUpdated, ReleaseEmployee, UpdateEmployee, UpdateIntimation}
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.InvalidCommandException
 import com.lightbend.lagom.scaladsl.playjson.JsonSerializerRegistry
 import com.lightbend.lagom.scaladsl.testkit.PersistentEntityTestDriver
@@ -874,7 +874,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome.events.size should ===(0)
       outcome.issues should be(Nil)
 
-      if(already5(today)) {
+      if (already5(today)) {
         val outcome = driver.run(CreateIntimation(empId, IntimationReq("Reason", Set(Request(today, RequestType.Leave, RequestType.Leave)))))
 
         outcome.replies.head.getClass should be(classOf[InvalidCommandException])
@@ -903,11 +903,45 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
 
       driver.run(AddEmployee(employee))
 
+      // TODO: will fail for weekend
       driver.run(CreateIntimation(empId, IntimationReq("Reason", Set(Request(today.plusDays(1), RequestType.Leave, RequestType.Leave)))))
       val outcome = driver.run(CreateIntimation(empId, IntimationReq("Reason", Set(Request(today.plusDays(2), RequestType.Leave, RequestType.Leave)))))
 
       outcome.replies.head.getClass should be(classOf[InvalidCommandException])
       outcome.events.size should ===(0)
+      outcome.issues should be(Nil)
+    }
+
+    "create intimation for an already existing employee when active intimation in the employee state is none" in withDriver { driver =>
+      val tomorrow = LocalDate.now().plusDays(1)
+      val requestDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
+
+      driver.run(AddEmployee(employee))
+
+      val intimationReq = IntimationReq("Reason", Set(Request(requestDate, RequestType.Leave, RequestType.Leave)))
+
+      val outcome = driver.run(CreateIntimation(empId, intimationReq))
+
+      val newLeaves = getNewLeaves(intimationReq.requests, lastLeaves = Leaves(e.leaves.earned, e.leaves.currentYearEarned, e.leaves.sick, e.leaves.extra))
+
+      val now = LocalDateTime.now()
+      val ic = outcome.events.toList.head.asInstanceOf[IntimationCreated]
+      val outcomeIntimationCreated = IntimationCreated(ic.empId, ic.reason, ic.requests, now)
+
+      outcomeIntimationCreated :: outcome.events.toList.tail should ===(
+        List(
+          IntimationCreated(empId, intimationReq.reason, intimationReq.requests, now),
+          LastLeavesSaved(empId, e.leaves.earned, e.leaves.currentYearEarned, e.leaves.sick, e.leaves.extra),
+          EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles)
+        )
+      )
+      outcome.replies should contain only newLeaves
+
+      val es = outcome.state.get
+      val ai = es.activeIntimationOpt.get
+      val outcomeEmployeeState = es.copy(activeIntimationOpt = Some(Intimation(ai.reason, ai.requests, now)))
+      outcomeEmployeeState should ===(EmployeeState(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles, Some(Intimation(intimationReq.reason, intimationReq.requests, now)), None, Leaves()))
+
       outcome.issues should be(Nil)
     }
 
