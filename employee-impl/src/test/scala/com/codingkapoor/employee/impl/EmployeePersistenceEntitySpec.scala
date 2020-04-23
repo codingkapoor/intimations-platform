@@ -829,9 +829,12 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
     }
 
     "invalidate creation of an intimation for an already existing employee when no reason or request provided" in withDriver { driver =>
+      val tomorrow = LocalDate.now().plusDays(1)
+      val requestDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
+
       driver.run(AddEmployee(employee))
 
-      val intimationReq = IntimationReq("", Set(Request(LocalDate.now().plusDays(1), RequestType.Leave, RequestType.Leave)))
+      val intimationReq = IntimationReq("", Set(Request(requestDate, RequestType.Leave, RequestType.Leave)))
 
       val outcome = driver.run(CreateIntimation(empId, intimationReq))
 
@@ -884,12 +887,13 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
     }
 
     "invalidate creation of an intimation for an already existing employee when there is an already existing privileged intimation" in withDriver { driver =>
-      val today = LocalDate.now()
+      val tomorrow = LocalDate.now().plusDays(1)
+      val requestDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
 
       driver.run(AddEmployee(employee))
-      driver.run(CreatePrivilegedIntimation(empId, PrivilegedIntimation(PrivilegedIntimationType.Maternity, today.plusDays(1), today.plusDays(3))))
+      driver.run(CreatePrivilegedIntimation(empId, PrivilegedIntimation(PrivilegedIntimationType.Maternity, requestDate, requestDate.plusDays(3))))
 
-      val intimationReq = IntimationReq("Reason", Set(Request(today.plusDays(1), RequestType.Leave, RequestType.Leave)))
+      val intimationReq = IntimationReq("Reason", Set(Request(requestDate, RequestType.Leave, RequestType.Leave)))
 
       val outcome = driver.run(CreateIntimation(empId, intimationReq))
 
