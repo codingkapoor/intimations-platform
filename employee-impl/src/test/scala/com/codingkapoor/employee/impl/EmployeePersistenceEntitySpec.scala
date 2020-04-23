@@ -926,7 +926,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
 
       val outcome = driver.run(CreateIntimation(empId, intimationReq))
 
-      val newLeaves = getNewLeaves(intimationReq.requests, lastLeaves = Leaves(e.leaves.earned, e.leaves.currentYearEarned, e.leaves.sick, e.leaves.extra))
+      val newLeaves = getNewLeaves(intimationReq.requests, lastLeaves = Leaves(state.leaves.earned, state.leaves.currentYearEarned, state.leaves.sick, state.leaves.extra))
 
       val now = LocalDateTime.now()
       val ic = outcome.events.toList.head.asInstanceOf[IntimationCreated]
@@ -935,16 +935,60 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcomeIntimationCreated :: outcome.events.toList.tail should ===(
         List(
           IntimationCreated(empId, intimationReq.reason, intimationReq.requests, now),
-          LastLeavesSaved(empId, e.leaves.earned, e.leaves.currentYearEarned, e.leaves.sick, e.leaves.extra),
-          EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles)
+          LastLeavesSaved(empId, state.leaves.earned, state.leaves.currentYearEarned, state.leaves.sick, state.leaves.extra),
+          EmployeeUpdated(state.id, state.name, state.gender, state.doj, state.dor, state.designation, state.pfn, state.contactInfo, state.location, newLeaves, state.roles)
         )
       )
       outcome.replies should contain only newLeaves
 
       val es = outcome.state.get
       val ai = es.activeIntimationOpt.get
+
       val outcomeEmployeeState = es.copy(activeIntimationOpt = Some(Intimation(ai.reason, ai.requests, now)))
-      outcomeEmployeeState should ===(EmployeeState(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles, Some(Intimation(intimationReq.reason, intimationReq.requests, now)), None, Leaves()))
+      val newState = state.copy(leaves = newLeaves, activeIntimationOpt = Some(Intimation(intimationReq.reason, intimationReq.requests, now)), lastLeaves = state.leaves)
+
+      outcomeEmployeeState should ===(newState)
+
+      outcome.issues should be(Nil)
+    }
+
+    "create intimation for an already existing employee when active intimation in the employee state is not none but instead it's inactive" in withDriver { driver =>
+      val today = LocalDate.now()
+      val tomorrow = today.plusDays(1)
+      val requestDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
+
+      val requests = if(already5(today)) Set(Request(today, RequestType.Leave, RequestType.Leave)) else Set(Request(tomorrow.minusDays(3), RequestType.Leave, RequestType.Leave))
+      val activeIntimation = Intimation("Visiting my native", requests, LocalDateTime.parse("2020-01-12T10:15:30"))
+      val initialState = state.copy(leaves = Leaves(extra = requests.size), activeIntimationOpt = Some(activeIntimation))
+
+      driver.initialize(Some(Some(initialState)))
+
+      val intimationReq = IntimationReq("Reason", Set(Request(requestDate, RequestType.Leave, RequestType.Leave)))
+
+      val outcome = driver.run(CreateIntimation(empId, intimationReq))
+
+      val newLeaves = getNewLeaves(intimationReq.requests, lastLeaves = Leaves(initialState.leaves.earned, initialState.leaves.currentYearEarned, initialState.leaves.sick, initialState.leaves.extra))
+
+      val now = LocalDateTime.now()
+      val ic = outcome.events.toList.head.asInstanceOf[IntimationCreated]
+      val outcomeIntimationCreated = IntimationCreated(ic.empId, ic.reason, ic.requests, now)
+
+      outcomeIntimationCreated :: outcome.events.toList.tail should ===(
+        List(
+          IntimationCreated(empId, intimationReq.reason, intimationReq.requests, now),
+          LastLeavesSaved(empId, initialState.leaves.earned, initialState.leaves.currentYearEarned, initialState.leaves.sick, initialState.leaves.extra),
+          EmployeeUpdated(initialState.id, initialState.name, initialState.gender, initialState.doj, initialState.dor, initialState.designation, initialState.pfn, initialState.contactInfo, initialState.location, newLeaves, initialState.roles)
+        )
+      )
+      outcome.replies should contain only newLeaves
+
+      val es = outcome.state.get
+      val ai = es.activeIntimationOpt.get
+
+      val outcomeEmployeeState = es.copy(activeIntimationOpt = Some(Intimation(ai.reason, ai.requests, now)))
+      val newState = initialState.copy(leaves = newLeaves, activeIntimationOpt = Some(Intimation(intimationReq.reason, intimationReq.requests, now)), lastLeaves = initialState.leaves)
+
+      outcomeEmployeeState should ===(newState)
 
       outcome.issues should be(Nil)
     }
