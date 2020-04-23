@@ -831,7 +831,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
     "invalidate creation of an intimation for an already existing employee when no reason or request provided" in withDriver { driver =>
       driver.run(AddEmployee(employee))
 
-      val intimationReq = IntimationReq("", Set(Request(LocalDate.now(), RequestType.Leave, RequestType.Leave)))
+      val intimationReq = IntimationReq("", Set(Request(LocalDate.now().plusDays(1), RequestType.Leave, RequestType.Leave)))
 
       val outcome = driver.run(CreateIntimation(empId, intimationReq))
 
@@ -848,6 +848,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome2.issues should be(Nil)
     }
 
+    // TODO: Already 5
     "invalidate creation of an intimation for an already existing employee when a provided request date is in the past" in withDriver { driver =>
       driver.run(AddEmployee(employee))
 
@@ -860,6 +861,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome.issues should be(Nil)
     }
 
+    // TODO: Already 5
     "invalidate creation of an intimation for an already existing employee when a provided request date is on a weekend" in withDriver { driver =>
       driver.run(AddEmployee(employee))
 
@@ -879,11 +881,24 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val today = LocalDate.now()
 
       driver.run(AddEmployee(employee))
-      driver.run(CreatePrivilegedIntimation(empId, PrivilegedIntimation(PrivilegedIntimationType.Maternity, today, today.plusDays(3))))
+      driver.run(CreatePrivilegedIntimation(empId, PrivilegedIntimation(PrivilegedIntimationType.Maternity, today.plusDays(1), today.plusDays(3))))
 
-      val intimationReq = IntimationReq("Reason", Set(Request(today, RequestType.Leave, RequestType.Leave)))
+      val intimationReq = IntimationReq("Reason", Set(Request(today.plusDays(1), RequestType.Leave, RequestType.Leave)))
 
       val outcome = driver.run(CreateIntimation(empId, intimationReq))
+
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome.events.size should ===(0)
+      outcome.issues should be(Nil)
+    }
+
+    "invalidate creation of an intimation for an already existing employee when there is an already existing intimation" in withDriver { driver =>
+      val today = LocalDate.now()
+
+      driver.run(AddEmployee(employee))
+
+      driver.run(CreateIntimation(empId, IntimationReq("Reason", Set(Request(today.plusDays(1), RequestType.Leave, RequestType.Leave)))))
+      val outcome = driver.run(CreateIntimation(empId, IntimationReq("Reason", Set(Request(today.plusDays(2), RequestType.Leave, RequestType.Leave)))))
 
       outcome.replies.head.getClass should be(classOf[InvalidCommandException])
       outcome.events.size should ===(0)
