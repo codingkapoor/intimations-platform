@@ -848,20 +848,6 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome2.issues should be(Nil)
     }
 
-    // TODO: Already 5
-    "invalidate creation of an intimation for an already existing employee when a provided request date is in the past" in withDriver { driver =>
-      driver.run(AddEmployee(employee))
-
-      val intimationReq = IntimationReq("Reason", Set(Request(LocalDate.now().minusDays(1), RequestType.Leave, RequestType.Leave)))
-
-      val outcome = driver.run(CreateIntimation(empId, intimationReq))
-
-      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
-      outcome.events.size should ===(0)
-      outcome.issues should be(Nil)
-    }
-
-    // TODO: Already 5
     "invalidate creation of an intimation for an already existing employee when a provided request date is on a weekend" in withDriver { driver =>
       driver.run(AddEmployee(employee))
 
@@ -875,6 +861,26 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome.replies.head.getClass should be(classOf[InvalidCommandException])
       outcome.events.size should ===(0)
       outcome.issues should be(Nil)
+    }
+
+    "invalidate creation of an intimation for an already existing employee when a provided request date is in the past" in withDriver { driver =>
+      driver.run(AddEmployee(employee))
+
+      val today = LocalDate.now()
+
+      val outcome = driver.run(CreateIntimation(empId, IntimationReq("Reason", Set(Request(today.minusDays(1), RequestType.Leave, RequestType.Leave)))))
+
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome.events.size should ===(0)
+      outcome.issues should be(Nil)
+
+      if(already5(today)) {
+        val outcome = driver.run(CreateIntimation(empId, IntimationReq("Reason", Set(Request(today, RequestType.Leave, RequestType.Leave)))))
+
+        outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+        outcome.events.size should ===(0)
+        outcome.issues should be(Nil)
+      }
     }
 
     "invalidate creation of an intimation for an already existing employee when there is an already existing privileged intimation" in withDriver { driver =>

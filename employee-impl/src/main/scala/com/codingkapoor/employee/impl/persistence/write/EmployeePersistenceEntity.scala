@@ -412,16 +412,16 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
           ctx.done
 
-        } else if (intimationReq.requests.exists(_.date.isBefore(today)) || intimationReq.requests.exists(r => already5(r.date))) {
-          val msg = s"Intimation can't be created for dates in the past"
+        } else if (intimationReq.requests.exists(r => isWeekend(r.date))) {
+          val msg = s"Intimation can't be created for weekends"
 
           ctx.invalidCommand(msg)
           logger.error(s"InvalidCommandException: $msg")
 
           ctx.done
 
-        } else if (intimationReq.requests.exists(r => isWeekend(r.date))) {
-          val msg = s"Intimation can't be created for weekends"
+        } else if (intimationReq.requests.exists(_.date.isBefore(today)) || intimationReq.requests.exists(r => already5(r.date))) {
+          val msg = s"Intimation can't be created for dates in the past"
 
           ctx.invalidCommand(msg)
           logger.error(s"InvalidCommandException: $msg")
