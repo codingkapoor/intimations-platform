@@ -147,7 +147,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome.issues should be(Nil)
     }
 
-    "update employee information" in withDriver { driver =>
+    "update an already existing employee" in withDriver { driver =>
       driver.run(AddEmployee(employee))
 
       val outcome = driver.run(UpdateEmployee(empId, employeeInfo))
@@ -805,6 +805,27 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
           EmployeeReleased(newState.id, dor)
         )
       )
+    }
+
+    "invalidate deletion of an already existing employee that is an admin" in withDriver { driver =>
+      val e = employee.copy(roles = List(Role.Employee, Role.Admin))
+      driver.run(AddEmployee(e))
+
+      val outcome = driver.run(DeleteEmployee(empId))
+
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome.events.size should ===(0)
+      outcome.issues should be(Nil)
+    }
+
+    "delete an already existing non admin employee" ignore withDriver { driver =>
+      driver.run(AddEmployee(employee))
+
+      val outcome = driver.run(DeleteEmployee(empId))
+
+      outcome.events should contain only EmployeeDeleted(empId)
+      outcome.state should be(None)
+      outcome.issues should be(Nil)
     }
 
     // Test cases for an employee that has already been released
