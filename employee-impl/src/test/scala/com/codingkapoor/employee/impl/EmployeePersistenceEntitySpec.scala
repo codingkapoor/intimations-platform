@@ -147,6 +147,22 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome.issues should be(Nil)
     }
 
+    "update employee information" in withDriver { driver =>
+      driver.run(AddEmployee(employee))
+
+      val outcome = driver.run(UpdateEmployee(empId, employeeInfo))
+
+      val designation = employeeInfo.designation.getOrElse(e.designation)
+      val contactInfo = employeeInfo.contactInfo.getOrElse(e.contactInfo)
+      val location = employeeInfo.location.getOrElse(e.location)
+      val roles = employeeInfo.roles.getOrElse(e.roles)
+
+      outcome.events should contain only EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, designation, e.pfn, contactInfo, location, e.leaves, roles)
+      outcome.state should ===(Some(EmployeeState(e.id, e.name, e.gender, e.doj, e.dor, designation, e.pfn, contactInfo, location, e.leaves, roles, None, None, Leaves())))
+      outcome.issues should be(Nil)
+      outcome.replies should contain only Employee(e.id, e.name, e.gender, e.doj, e.dor, designation, e.pfn, contactInfo, location, e.leaves, roles)
+    }
+
     "release and credit leaves for an employee that has no ongoing intimations" in withDriver { driver =>
       driver.run(AddEmployee(employee))
 
