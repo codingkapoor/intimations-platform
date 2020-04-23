@@ -137,6 +137,16 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome.issues should be(Nil)
     }
 
+    "invalidate adding an employee with an id against which an employee already exists" in withDriver { driver =>
+      driver.run(AddEmployee(employee))
+
+      val outcome = driver.run(AddEmployee(employee))
+
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome.events.size should ===(0)
+      outcome.issues should be(Nil)
+    }
+
     "release and credit leaves for an employee that has no ongoing intimations" in withDriver { driver =>
       driver.run(AddEmployee(employee))
 
