@@ -120,7 +120,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome.issues should be(Nil)
     }
 
-    // Test cases when an employee is already added
+    // Test cases for when an employee is already added
     "invalidate release of an employee that has admin privilege" in withDriver { driver =>
       val e1 = employee.copy(roles = List(Role.Admin, Role.Employee))
 
@@ -911,7 +911,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome.issues should be(Nil)
     }
 
-    // Test cases for an employee that has already been released
+    // Test cases for when an employee has already been released
     "invalidate adding an employee that already exists but has been released" in withDriver { driver =>
       val today = LocalDate.now()
 
