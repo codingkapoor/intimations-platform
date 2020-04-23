@@ -8,7 +8,7 @@ import com.codingkapoor.employee.api.models.PrivilegedIntimationType.{Maternity,
 import com.codingkapoor.employee.api.models.{ContactInfo, Employee, EmployeeInfo, Intimation, IntimationReq, Leaves, Location, PrivilegedIntimation, PrivilegedIntimationType, Request, RequestType, Role}
 import com.codingkapoor.employee.impl.persistence.write.EmployeePersistenceEntity.{already5, balanceExtra, between, computeCredits, getNewLeaves, isWeekend}
 import com.codingkapoor.employee.impl.persistence.write.{EmployeePersistenceEntity, EmployeeSerializerRegistry}
-import com.codingkapoor.employee.impl.persistence.write.models.{AddEmployee, BalanceLeaves, CancelIntimation, CreateIntimation, CreditLeaves, DeleteEmployee, EmployeeAdded, EmployeeCommand, EmployeeDeleted, EmployeeEvent, EmployeeReleased, EmployeeState, EmployeeUpdated, IntimationCancelled, IntimationUpdated, LastLeavesSaved, LeavesCredited, PrivilegedIntimationCancelled, PrivilegedIntimationUpdated, ReleaseEmployee, UpdateEmployee, UpdateIntimation}
+import com.codingkapoor.employee.impl.persistence.write.models.{AddEmployee, BalanceLeaves, CancelIntimation, CreateIntimation, CreatePrivilegedIntimation, CreditLeaves, DeleteEmployee, EmployeeAdded, EmployeeCommand, EmployeeDeleted, EmployeeEvent, EmployeeReleased, EmployeeState, EmployeeUpdated, IntimationCancelled, IntimationUpdated, LastLeavesSaved, LeavesCredited, PrivilegedIntimationCancelled, PrivilegedIntimationUpdated, ReleaseEmployee, UpdateEmployee, UpdateIntimation}
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.InvalidCommandException
 import com.lightbend.lagom.scaladsl.playjson.JsonSerializerRegistry
 import com.lightbend.lagom.scaladsl.testkit.PersistentEntityTestDriver
@@ -867,6 +867,21 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val weekend = today.plusDays(6 - today.getDayOfWeek.getValue)
 
       val intimationReq = IntimationReq("Reason", Set(Request(weekend, RequestType.Leave, RequestType.Leave)))
+
+      val outcome = driver.run(CreateIntimation(empId, intimationReq))
+
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome.events.size should ===(0)
+      outcome.issues should be(Nil)
+    }
+
+    "invalidate creation of an intimation for an already existing employee when there is an already existing privileged intimation" in withDriver { driver =>
+      val today = LocalDate.now()
+
+      driver.run(AddEmployee(employee))
+      driver.run(CreatePrivilegedIntimation(empId, PrivilegedIntimation(PrivilegedIntimationType.Maternity, today, today.plusDays(3))))
+
+      val intimationReq = IntimationReq("Reason", Set(Request(today, RequestType.Leave, RequestType.Leave)))
 
       val outcome = driver.run(CreateIntimation(empId, intimationReq))
 
