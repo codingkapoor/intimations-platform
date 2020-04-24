@@ -539,7 +539,10 @@ class EmployeePersistenceEntity extends PersistentEntity {
         }
 
     }.onCommand[CreatePrivilegedIntimation, Leaves] {
+
       case (CreatePrivilegedIntimation(empId, privilegedIntimation), ctx, state@Some(e)) =>
+        val today = LocalDate.now()
+
         logger.info(s"EmployeePersistenceEntity at state = $state received CreatePrivilegedIntimation command.")
 
         lazy val latestRequestDate = e.activeIntimationOpt.get.requests.map(_.date).toList.sortWith(_.isBefore(_)).last
@@ -552,7 +555,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
           ctx.done
 
-        } else if (e.activeIntimationOpt.isDefined && latestRequestDate.isAfter(LocalDate.now()) && !already5(latestRequestDate)) {
+        } else if (e.activeIntimationOpt.isDefined && (latestRequestDate.isAfter(today) || (if (latestRequestDate.isEqual(today)) !already5(latestRequestDate) else false))) {
           val msg = s"Privileged and active intimations are mutually exclusive. Cancel one to create another."
 
           ctx.invalidCommand(msg)
