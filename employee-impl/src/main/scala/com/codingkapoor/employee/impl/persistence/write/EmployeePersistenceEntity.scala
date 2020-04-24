@@ -576,6 +576,14 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
           ctx.done
 
+        } else if (isWeekend(privilegedIntimation.start) || isWeekend(privilegedIntimation.end)) {
+          val msg = s"Start or end dates can't be on weekends."
+
+          ctx.invalidCommand(msg)
+          logger.error(s"InvalidCommandException: $msg")
+
+          ctx.done
+
         } else {
           val now = LocalDateTime.now()
 
