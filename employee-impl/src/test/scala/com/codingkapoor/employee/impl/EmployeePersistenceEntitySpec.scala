@@ -1189,6 +1189,22 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome.issues should be(Nil)
     }
 
+    "invalidate creation of a privileged intimation in the past for an already existing employee" in withDriver { driver =>
+      driver.initialize(Some(Some(state)))
+
+      val today = LocalDate.now()
+      val yesterday = today.minusDays(1)
+      val tomorrow =  today.plusDays(1)
+      val startDate = if (isWeekend(yesterday)) yesterday.minusDays(2) else yesterday
+      val endDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
+
+      val outcome = driver.run(CreatePrivilegedIntimation(empId, PrivilegedIntimation(Maternity, startDate, endDate)))
+
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome.events.size should ===(0)
+      outcome.issues should be(Nil)
+    }
+
     // Test cases for when an employee has already been released
     "invalidate adding an employee that already exists but has been released" in withDriver { driver =>
       val today = LocalDate.now()
