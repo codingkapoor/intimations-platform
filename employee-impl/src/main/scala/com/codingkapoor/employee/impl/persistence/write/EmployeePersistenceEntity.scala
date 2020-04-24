@@ -492,6 +492,14 @@ class EmployeePersistenceEntity extends PersistentEntity {
           logger.error(s"InvalidCommandException: $msg")
           ctx.done
 
+        } else if (requests2.exists(r => isWeekend(r.date))) {
+          val msg = s"Intimation can't be created for request dates on weekends"
+
+          ctx.invalidCommand(msg)
+          logger.error(s"InvalidCommandException: $msg")
+
+          ctx.done
+
         } else {
           val newRequests = requestsAlreadyConsumed ++ requests2
           val newLeaves = getNewLeaves(intimationReq.requests, lastLeaves = Leaves(e.lastLeaves.earned, e.lastLeaves.currentYearEarned, e.lastLeaves.sick, e.lastLeaves.extra))
