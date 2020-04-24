@@ -1016,6 +1016,20 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome2.issues should be(Nil)
     }
 
+    "invalidate updation of a non existent active intimation of an already existing employee" in withDriver { driver =>
+      driver.initialize(Some(Some(state)))
+
+      val tomorrow = LocalDate.now().plusDays(1)
+      val requestDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
+      val intimationReq = IntimationReq("", Set(Request(requestDate, RequestType.Leave, RequestType.Leave)))
+
+      val outcome = driver.run(UpdateIntimation(empId, intimationReq))
+
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome.events.size should ===(0)
+      outcome.issues should be(Nil)
+    }
+
     // Test cases for when an employee has already been released
     "invalidate adding an employee that already exists but has been released" in withDriver { driver =>
       val today = LocalDate.now()
