@@ -456,7 +456,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         }
 
-    }.onCommand[UpdateIntimation, Leaves] { // TODO: If requests are same as existing intimation then just return done
+    }.onCommand[UpdateIntimation, Leaves] {
       case (UpdateIntimation(empId, intimationReq), ctx, state@Some(e)) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received UpdateIntimation command.")
 
@@ -483,6 +483,9 @@ class EmployeePersistenceEntity extends PersistentEntity {
           ctx.invalidCommand(msg)
           logger.error(s"InvalidCommandException: $msg")
 
+          ctx.done
+
+        } else if (e.activeIntimationOpt.get.requests == intimationReq.requests) {
           ctx.done
 
         } else if (!(requestsAlreadyConsumed equals newRequestAlreadyConsumed)) {
