@@ -1076,6 +1076,39 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome.issues should be(Nil)
     }
 
+    "update active intimation of an already existing employee" in withDriver { driver =>
+      val today = LocalDate.now()
+      val tomorrow =  today.plusDays(1)
+      val dayAfterTomorrow = tomorrow.plusDays(1)
+      val requestDate1 = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
+      val requestDate2 = if (isWeekend(dayAfterTomorrow)) dayAfterTomorrow.plusDays(2) else dayAfterTomorrow
+
+      val requests = Set(Request(requestDate1, RequestType.Leave, RequestType.Leave))
+      val activeIntimation = Intimation("Visiting my native", requests, LocalDateTime.parse("2020-01-12T10:15:30"))
+      val initialState = state.copy(leaves = Leaves(extra = requests.size), activeIntimationOpt = Some(activeIntimation))
+
+      driver.initialize(Some(Some(initialState)))
+
+      val newRequests = Set(Request(requestDate2, RequestType.Leave, RequestType.Leave))
+      val intimationReq = IntimationReq("Reason", newRequests)
+
+      val outcome = driver.run(UpdateIntimation(empId, intimationReq))
+
+      val newLeaves = getNewLeaves(newRequests, lastLeaves = Leaves(initialState.lastLeaves.earned, initialState.lastLeaves.currentYearEarned, initialState.lastLeaves.sick, initialState.lastLeaves.extra))
+
+      val now = LocalDateTime.now()
+      val iu = outcome.events.toList.head.asInstanceOf[IntimationUpdated]
+      val outcomeIntimationUpdated = IntimationUpdated(iu.empId, iu.reason, iu.requests, now)
+
+      outcomeIntimationUpdated :: outcome.events.toList.tail should ===(
+        List(
+          IntimationUpdated(empId, intimationReq.reason, newRequests, now),
+          EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles)
+        )
+      )
+      outcome.issues should be(Nil)
+    }
+
     // Test cases for when an employee has already been released
     "invalidate adding an employee that already exists but has been released" in withDriver { driver =>
       val today = LocalDate.now()
