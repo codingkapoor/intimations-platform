@@ -179,7 +179,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
           ctx.done
 
-      }.onCommand[UpdateEmployee, Employee] {
+      }.onCommand[UpdateEmployee, Employee] { // TODO: if no changes from what already exists then don't make any modifications + tc
       case (UpdateEmployee(id, employeeInfo), ctx, state@Some(e)) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received UpdateEmployee command.")
 
@@ -456,7 +456,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
         }
 
-    }.onCommand[UpdateIntimation, Leaves] {
+    }.onCommand[UpdateIntimation, Leaves] { // TODO: If requests are same as existing intimation then just return done
       case (UpdateIntimation(empId, intimationReq), ctx, state@Some(e)) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received UpdateIntimation command.")
 
@@ -627,6 +627,9 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
           ctx.done
 
+        } else if (e.privilegedIntimationOpt.get.start == privilegedIntimation.start && e.privilegedIntimationOpt.get.end == privilegedIntimation.end) {
+          ctx.done
+
         } else if (privilegedIntimation.end.isBefore(privilegedIntimation.start)) {
           val msg = s"Start date can't be after end date."
 
@@ -685,7 +688,6 @@ class EmployeePersistenceEntity extends PersistentEntity {
             case Sabbatical =>
               val newLeaves = getNewLeaves(newRequests, lastLeaves = Leaves(e.lastLeaves.earned, e.lastLeaves.currentYearEarned, e.lastLeaves.sick, e.lastLeaves.extra))
 
-              // TODO: seems like missed lastleavessaved to persist
               ctx.thenPersistAll(
                 PrivilegedIntimationUpdated(empId, Sabbatical, startDate, endDate, s"$Sabbatical Leave", newRequests, now),
                 EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles)
