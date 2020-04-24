@@ -8,7 +8,7 @@ import com.codingkapoor.employee.api.models.PrivilegedIntimationType.{Maternity,
 import com.codingkapoor.employee.api.models.{ContactInfo, Employee, EmployeeInfo, Intimation, IntimationReq, Leaves, Location, PrivilegedIntimation, PrivilegedIntimationType, Request, RequestType, Role}
 import com.codingkapoor.employee.impl.persistence.write.EmployeePersistenceEntity.{already5, balanceExtra, between, computeCredits, getNewLeaves, isWeekend}
 import com.codingkapoor.employee.impl.persistence.write.{EmployeePersistenceEntity, EmployeeSerializerRegistry}
-import com.codingkapoor.employee.impl.persistence.write.models.{AddEmployee, BalanceLeaves, CancelIntimation, CreateIntimation, CreatePrivilegedIntimation, CreditLeaves, DeleteEmployee, EmployeeAdded, EmployeeCommand, EmployeeDeleted, EmployeeEvent, EmployeeReleased, EmployeeState, EmployeeUpdated, IntimationCancelled, IntimationCreated, IntimationUpdated, LastLeavesSaved, LeavesCredited, PrivilegedIntimationCancelled, PrivilegedIntimationCreated, PrivilegedIntimationUpdated, ReleaseEmployee, UpdateEmployee, UpdateIntimation}
+import com.codingkapoor.employee.impl.persistence.write.models.{AddEmployee, BalanceLeaves, CancelIntimation, CreateIntimation, CreatePrivilegedIntimation, CreditLeaves, DeleteEmployee, EmployeeAdded, EmployeeCommand, EmployeeDeleted, EmployeeEvent, EmployeeReleased, EmployeeState, EmployeeUpdated, IntimationCancelled, IntimationCreated, IntimationUpdated, LastLeavesSaved, LeavesCredited, PrivilegedIntimationCancelled, PrivilegedIntimationCreated, PrivilegedIntimationUpdated, ReleaseEmployee, UpdateEmployee, UpdateIntimation, UpdatePrivilegedIntimation}
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.InvalidCommandException
 import com.lightbend.lagom.scaladsl.playjson.JsonSerializerRegistry
 import com.lightbend.lagom.scaladsl.testkit.PersistentEntityTestDriver
@@ -957,7 +957,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val tomorrow = today.plusDays(1)
       val requestDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
 
-      val requests = if(already5(today)) Set(Request(today, RequestType.Leave, RequestType.Leave)) else Set(Request(tomorrow.minusDays(3), RequestType.Leave, RequestType.Leave))
+      val requests = if (already5(today)) Set(Request(today, RequestType.Leave, RequestType.Leave)) else Set(Request(tomorrow.minusDays(3), RequestType.Leave, RequestType.Leave))
       val activeIntimation = Intimation("Visiting my native", requests, LocalDateTime.parse("2020-01-12T10:15:30"))
       val initialState = state.copy(leaves = Leaves(extra = requests.size), activeIntimationOpt = Some(activeIntimation))
 
@@ -1033,7 +1033,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
     "invalidate updation of request dates from the past in an active intimation of an already existing employee" in withDriver { driver =>
       val today = LocalDate.now()
       val yesterday = today.minusDays(1)
-      val tomorrow =  today.plusDays(1)
+      val tomorrow = today.plusDays(1)
       val requestDate1 = if (isWeekend(yesterday)) yesterday.minusDays(2) else yesterday
       val requestDate2 = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
 
@@ -1057,7 +1057,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
 
     "invalidate updation of an active intimation for request dates on weekends for an already existing employee" in withDriver { driver =>
       val today = LocalDate.now()
-      val tomorrow =  today.plusDays(1)
+      val tomorrow = today.plusDays(1)
       val requestDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
 
       val requests = Set(Request(requestDate, RequestType.Leave, RequestType.Leave))
@@ -1078,7 +1078,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
 
     "update active intimation of an already existing employee" in withDriver { driver =>
       val today = LocalDate.now()
-      val tomorrow =  today.plusDays(1)
+      val tomorrow = today.plusDays(1)
       val dayAfterTomorrow = tomorrow.plusDays(1)
       val requestDate1 = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
       val requestDate2 = if (isWeekend(dayAfterTomorrow)) dayAfterTomorrow.plusDays(2) else dayAfterTomorrow
@@ -1123,7 +1123,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val yesterday = today.minusDays(1)
       val requestDate = if (isWeekend(yesterday)) yesterday.minusDays(2) else yesterday
 
-      val requests = if(already5(today)) Set(Request(today, RequestType.Leave, RequestType.Leave)) else Set(Request(requestDate, RequestType.Leave, RequestType.Leave))
+      val requests = if (already5(today)) Set(Request(today, RequestType.Leave, RequestType.Leave)) else Set(Request(requestDate, RequestType.Leave, RequestType.Leave))
       val activeIntimation = Intimation("Visiting my native", requests, LocalDateTime.parse("2020-01-12T10:15:30"))
       val initialState = state.copy(leaves = Leaves(extra = requests.size), activeIntimationOpt = Some(activeIntimation))
 
@@ -1137,7 +1137,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
 
     "invalidate creation of a privileged intimation for an already existing employee when a privileged intimation already exists" in withDriver { driver =>
       val today = LocalDate.now()
-      val tomorrow =  today.plusDays(1)
+      val tomorrow = today.plusDays(1)
 
       val startDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
       val endDate = if (isWeekend(tomorrow.plusDays(4))) tomorrow.plusDays(6) else tomorrow.plusDays(4)
@@ -1155,10 +1155,10 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
 
     "invalidate creation of a privileged intimation for an already existing employee when an active intimation already exists" in withDriver { driver =>
       val today = LocalDate.now()
-      val tomorrow =  today.plusDays(1)
+      val tomorrow = today.plusDays(1)
       val requestDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
 
-      val requests = if(!already5(today)) Set(Request(today, RequestType.Leave, RequestType.Leave)) else Set(Request(requestDate, RequestType.Leave, RequestType.Leave))
+      val requests = if (!already5(today)) Set(Request(today, RequestType.Leave, RequestType.Leave)) else Set(Request(requestDate, RequestType.Leave, RequestType.Leave))
       val activeIntimation = Intimation("Visiting my native", requests, LocalDateTime.parse("2020-01-12T10:15:30"))
       val initialState = state.copy(leaves = Leaves(extra = requests.size), activeIntimationOpt = Some(activeIntimation))
 
@@ -1178,7 +1178,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       driver.initialize((Some(Some(state))))
 
       val today = LocalDate.now()
-      val tomorrow =  today.plusDays(1)
+      val tomorrow = today.plusDays(1)
       val startDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
       val endDate = if (isWeekend(tomorrow.plusDays(4))) tomorrow.plusDays(6) else tomorrow.plusDays(4)
 
@@ -1194,7 +1194,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
 
       val today = LocalDate.now()
       val yesterday = today.minusDays(1)
-      val tomorrow =  today.plusDays(1)
+      val tomorrow = today.plusDays(1)
       val startDate = if (isWeekend(yesterday)) yesterday.minusDays(2) else yesterday
       val endDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
 
@@ -1232,7 +1232,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       driver.initialize(Some(Some(state)))
 
       val today = LocalDate.now()
-      val tomorrow =  today.plusDays(1)
+      val tomorrow = today.plusDays(1)
       val startDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
       val endDate = if (isWeekend(tomorrow.plusDays(4))) tomorrow.plusDays(6) else tomorrow.plusDays(4)
 
@@ -1255,7 +1255,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       driver.initialize(Some(Some(state)))
 
       val today = LocalDate.now()
-      val tomorrow =  today.plusDays(1)
+      val tomorrow = today.plusDays(1)
       val startDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
       val endDate = if (isWeekend(tomorrow.plusDays(4))) tomorrow.plusDays(6) else tomorrow.plusDays(4)
 
@@ -1278,7 +1278,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       driver.initialize(Some(Some(state)))
 
       val today = LocalDate.now()
-      val tomorrow =  today.plusDays(1)
+      val tomorrow = today.plusDays(1)
       val startDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
       val endDate = if (isWeekend(tomorrow.plusDays(4))) tomorrow.plusDays(6) else tomorrow.plusDays(4)
 
@@ -1302,6 +1302,156 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       )
       outcome.state should ===(Some(state.copy(leaves = newLeaves, privilegedIntimationOpt = Some(sabbaticalPrivilegedIntimation))))
       outcome.replies should contain only newLeaves
+      outcome.issues should be(Nil)
+    }
+
+    "invalidate updation of a privileged intimation for an already existing employee if found none" in withDriver { driver =>
+      driver.initialize(Some(Some(state)))
+
+      val today = LocalDate.now()
+      val tomorrow = today.plusDays(1)
+      val startDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
+      val endDate = if (isWeekend(tomorrow.plusDays(4))) tomorrow.plusDays(6) else tomorrow.plusDays(4)
+
+      val privilegedIntimation = PrivilegedIntimation(Maternity, startDate, endDate)
+
+      val outcome = driver.run(UpdatePrivilegedIntimation(empId, privilegedIntimation))
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome.events.size should ===(0)
+      outcome.issues should be(Nil)
+    }
+
+    "invalidate updation of a privileged intimation for an already existing employee if found inactive" in withDriver { driver =>
+      val today = LocalDate.now()
+      val yesterday = today.minusDays(1)
+      val tomorrow = today.plusDays(1)
+      val endDate = if (isWeekend(yesterday)) yesterday.minusDays(2) else yesterday
+      val startDate = if (isWeekend(yesterday.minusDays(4))) yesterday.minusDays(6) else yesterday.minusDays(4)
+
+      val privilegedIntimation = PrivilegedIntimation(Maternity, startDate, endDate)
+      val initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
+      driver.initialize(Some(Some(initialState)))
+
+      val startDate2 = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
+      val endDate2 = if (isWeekend(tomorrow.plusDays(4))) tomorrow.plusDays(6) else tomorrow.plusDays(4)
+
+      val privilegedIntimation2 = PrivilegedIntimation(Maternity, startDate2, endDate2)
+
+      val outcome = driver.run(UpdatePrivilegedIntimation(empId, privilegedIntimation2))
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome.events.size should ===(0)
+      outcome.issues should be(Nil)
+    }
+
+    "invalidate updation of a privileged intimation for an already existing employee when start and end dates are not in proper order" in withDriver { driver =>
+      val today = LocalDate.now()
+      val tomorrow = today.plusDays(1)
+      val startDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
+      val endDate = if (isWeekend(tomorrow.plusDays(4))) tomorrow.plusDays(6) else tomorrow.plusDays(4)
+
+      val privilegedIntimation = PrivilegedIntimation(Maternity, startDate, endDate)
+      val initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
+
+      driver.initialize(Some(Some(initialState)))
+
+      val privilegedIntimation2 = PrivilegedIntimation(Maternity, endDate, startDate)
+
+      val outcome = driver.run(UpdatePrivilegedIntimation(empId, privilegedIntimation2))
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome.events.size should ===(0)
+      outcome.issues should be(Nil)
+    }
+
+    "invalidate updation of a privileged intimation for an already existing employee when an attempt is made to modify the privileged intimation type" in withDriver { driver =>
+      val today = LocalDate.now()
+      val tomorrow = today.plusDays(1)
+      val startDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
+      val endDate = if (isWeekend(tomorrow.plusDays(4))) tomorrow.plusDays(6) else tomorrow.plusDays(4)
+
+      val privilegedIntimation = PrivilegedIntimation(Maternity, startDate, endDate)
+      val initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
+
+      driver.initialize(Some(Some(initialState)))
+
+      val privilegedIntimation2 = PrivilegedIntimation(Paternity, startDate, endDate)
+
+      val outcome = driver.run(UpdatePrivilegedIntimation(empId, privilegedIntimation2))
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome.events.size should ===(0)
+      outcome.issues should be(Nil)
+    }
+
+    "invalidate updation of a privileged intimation for an already existing employee when provided start or end dates are on weekends" in withDriver { driver =>
+      val today = LocalDate.now()
+      val tomorrow = today.plusDays(1)
+      val startDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
+      val endDate = if (isWeekend(tomorrow.plusDays(4))) tomorrow.plusDays(6) else tomorrow.plusDays(4)
+
+      val privilegedIntimation = PrivilegedIntimation(Maternity, startDate, endDate)
+      val initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
+
+      driver.initialize(Some(Some(initialState)))
+
+      val startDate2 = today.plusDays(6 - today.getDayOfWeek.getValue)
+      val endDate2 = startDate2.plusDays(2)
+
+      val outcome = driver.run(UpdatePrivilegedIntimation(empId, PrivilegedIntimation(Maternity, startDate2, endDate2)))
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome.events.size should ===(0)
+      outcome.issues should be(Nil)
+
+      val endDate3 = today.plusDays(6 - today.getDayOfWeek.getValue)
+      val startDate3 = endDate3.minusDays(2)
+
+      val outcome2 = driver.run(UpdatePrivilegedIntimation(empId, PrivilegedIntimation(Maternity, startDate3, endDate3)))
+      outcome2.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome2.events.size should ===(0)
+      outcome2.issues should be(Nil)
+    }
+
+    "invalidate updation of a privileged intimation for an already existing employee when provided start date is in the past" in withDriver { driver =>
+      val today = LocalDate.now()
+      val yesterday = today.minusDays(1)
+      val tomorrow = today.plusDays(1)
+      val startDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
+      val endDate = if (isWeekend(tomorrow.plusDays(4))) tomorrow.plusDays(6) else tomorrow.plusDays(4)
+
+      val privilegedIntimation = PrivilegedIntimation(Maternity, startDate, endDate)
+      val initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
+
+      driver.initialize(Some(Some(initialState)))
+
+      val startDate2 = if (already5(today)) today else {
+        if (isWeekend(yesterday)) yesterday.minusDays(2) else yesterday
+      }
+      val endDate2 = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
+
+      val outcome = driver.run(UpdatePrivilegedIntimation(empId, PrivilegedIntimation(Maternity, startDate2, endDate2)))
+
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome.events.size should ===(0)
+      outcome.issues should be(Nil)
+    }
+
+    "invalidate updation of a privileged intimation for an already existing employee when attempt is made to modify start date that's already in the past" in withDriver { driver =>
+      val today = LocalDate.now()
+      val yesterday = today.minusDays(1)
+      val tomorrow = today.plusDays(1)
+      val startDate = if (isWeekend(yesterday)) yesterday.minusDays(2) else yesterday
+      val endDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
+
+      val privilegedIntimation = PrivilegedIntimation(Maternity, startDate, endDate)
+      val initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
+
+      driver.initialize(Some(Some(initialState)))
+
+      val startDate2 = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
+      val endDate2 = if (isWeekend(tomorrow.plusDays(4))) tomorrow.plusDays(6) else tomorrow.plusDays(4)
+
+      val outcome = driver.run(UpdatePrivilegedIntimation(empId, PrivilegedIntimation(Maternity, startDate2, endDate2)))
+
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome.events.size should ===(0)
       outcome.issues should be(Nil)
     }
 

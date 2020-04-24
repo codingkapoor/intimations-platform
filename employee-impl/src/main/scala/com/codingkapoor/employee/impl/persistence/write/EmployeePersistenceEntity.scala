@@ -571,7 +571,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
           ctx.done
 
-        } else if (privilegedIntimation.start.isBefore(LocalDate.now())) {
+        } else if (privilegedIntimation.start.isBefore(today) || (if (privilegedIntimation.start.isEqual(today)) already5(privilegedIntimation.start) else false)) {
           val msg = s"Privileged intimations can't be created for the dates in the past."
 
           ctx.invalidCommand(msg)
@@ -615,9 +615,11 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
     }.onCommand[UpdatePrivilegedIntimation, Leaves] {
       case (UpdatePrivilegedIntimation(empId, privilegedIntimation), ctx, state@Some(e)) =>
+        val today = LocalDate.now()
+
         logger.info(s"EmployeePersistenceEntity at state = $state received UpdatePrivilegedIntimation command.")
 
-        if (e.privilegedIntimationOpt.isEmpty || e.privilegedIntimationOpt.get.end.isBefore(LocalDate.now())) {
+        if (e.privilegedIntimationOpt.isEmpty || e.privilegedIntimationOpt.get.end.isBefore(today)) {
           val msg = s"No privileged intimation found to update."
 
           ctx.invalidCommand(msg)
@@ -641,7 +643,23 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
           ctx.done
 
-        } else if (privilegedIntimation.start.isBefore(LocalDate.now()) || already5(privilegedIntimation.start)) {
+        } else if (isWeekend(privilegedIntimation.start) || isWeekend(privilegedIntimation.end)) {
+          val msg = s"Start or end dates can't be on weekends."
+
+          ctx.invalidCommand(msg)
+          logger.error(s"InvalidCommandException: $msg")
+
+          ctx.done
+
+        } else if (privilegedIntimation.start.isBefore(today) || (if (privilegedIntimation.start.isEqual(today)) already5(privilegedIntimation.start) else false)) {
+          val msg = s"Privileged intimations can't be created for the dates in the past."
+
+          ctx.invalidCommand(msg)
+          logger.error(s"InvalidCommandException: $msg")
+
+          ctx.done
+
+        } else if ((e.privilegedIntimationOpt.get.start.isBefore(today) || already5(e.privilegedIntimationOpt.get.start)) && privilegedIntimation.start != e.privilegedIntimationOpt.get.start) {
           val msg = s"Start date can't be updated since it is already in the past."
 
           ctx.invalidCommand(msg)
@@ -667,6 +685,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
             case Sabbatical =>
               val newLeaves = getNewLeaves(newRequests, lastLeaves = Leaves(e.lastLeaves.earned, e.lastLeaves.currentYearEarned, e.lastLeaves.sick, e.lastLeaves.extra))
 
+              // TODO: seems like missed lastleavessaved to persist
               ctx.thenPersistAll(
                 PrivilegedIntimationUpdated(empId, Sabbatical, startDate, endDate, s"$Sabbatical Leave", newRequests, now),
                 EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles)
