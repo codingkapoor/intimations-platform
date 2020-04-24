@@ -553,7 +553,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
           ctx.done
 
         } else if (e.activeIntimationOpt.isDefined && latestRequestDate.isAfter(LocalDate.now()) && !already5(latestRequestDate)) {
-          val msg = s"Only single active intimation at a given time is supported. Cancel an active intimation first so as to create a new intimation."
+          val msg = s"Privileged and active intimations are mutually exclusive. Cancel one to create another."
 
           ctx.invalidCommand(msg)
           logger.error(s"InvalidCommandException: $msg")
