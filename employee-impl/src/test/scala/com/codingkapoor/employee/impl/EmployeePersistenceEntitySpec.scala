@@ -20,7 +20,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
 
   private val system = ActorSystem("EmployeePersistenceEntitySpec", JsonSerializerRegistry.actorSystemSetupFor(EmployeeSerializerRegistry))
 
-  override def afterAll = {
+  override def afterAll: Unit = {
     TestKit.shutdownActorSystem(system)
   }
 
