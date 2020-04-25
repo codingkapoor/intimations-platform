@@ -1839,6 +1839,29 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome.issues should be(Nil)
     }
 
+    "credit earned and sick leaves when there is no exitent intimation and neither doj or dor fall in the current month" in withDriver { driver =>
+      driver.initialize(Some(Some(state)))
+
+      val outcome = driver.run(CreditLeaves(empId))
+
+      val (earnedCredits, sickCredits) = computeCredits(state)
+      val balanced = balanceExtra(state.leaves.earned + earnedCredits, state.leaves.currentYearEarned + earnedCredits, state.leaves.sick + sickCredits, state.leaves.extra)
+      val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
+
+      outcome.events should ===(
+        List(
+          LastLeavesSaved(state.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+          LeavesCredited(state.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+          EmployeeUpdated(state.id, state.name, state.gender, state.doj, state.dor, state.designation, state.pfn, state.contactInfo, state.location, newLeaves, state.roles)
+        )
+      )
+      outcome.state should be(Some(state.copy(leaves = newLeaves, lastLeaves = newLeaves)))
+      outcome.replies should contain only Done
+      outcome.issues should be(Nil)
+    }
+
+    
+
     // Test cases for when an employee has already been released
     "invalidate adding an employee that already exists but has been released" in withDriver { driver =>
       val today = LocalDate.now()
