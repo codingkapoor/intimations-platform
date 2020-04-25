@@ -147,6 +147,23 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome.issues should be(Nil)
     }
 
+    "ignore update of an already existing employee when employeeInfo has no changes" in withDriver { driver =>
+      driver.run(AddEmployee(employee))
+
+      val designation = e.designation
+      val contactInfo = e.contactInfo
+      val location = e.location
+      val roles = e.roles
+      val ei = employeeInfo.copy(designation = Some(designation), contactInfo = Some(contactInfo), location = None, roles = None)
+
+      val outcome = driver.run(UpdateEmployee(empId, ei))
+
+      outcome.events should be(Nil)
+      outcome.state should ===(Some(state))
+      outcome.issues should be(Nil)
+      outcome.replies should be(Nil)
+    }
+
     "update an already existing employee" in withDriver { driver =>
       driver.run(AddEmployee(employee))
 
@@ -818,7 +835,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome.issues should be(Nil)
     }
 
-    "delete an already existing non admin employee" ignore withDriver { driver =>
+    "delete an already existing non admin employee" in withDriver { driver =>
       driver.run(AddEmployee(employee))
 
       val outcome = driver.run(DeleteEmployee(empId))

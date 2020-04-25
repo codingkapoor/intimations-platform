@@ -179,8 +179,8 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
           ctx.done
 
-      }.onCommand[UpdateEmployee, Employee] { // TODO: if no changes from what already exists then don't make any modifications + tc
-      case (UpdateEmployee(id, employeeInfo), ctx, state@Some(e)) =>
+      }.onCommand[UpdateEmployee, Employee] {
+      case (UpdateEmployee(_, employeeInfo), ctx, state@Some(e)) =>
         logger.info(s"EmployeePersistenceEntity at state = $state received UpdateEmployee command.")
 
         val designation = employeeInfo.designation.getOrElse(e.designation)
@@ -188,8 +188,11 @@ class EmployeePersistenceEntity extends PersistentEntity {
         val location = employeeInfo.location.getOrElse(e.location)
         val roles = employeeInfo.roles.getOrElse(e.roles)
 
-        ctx.thenPersist(EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, designation, e.pfn, contactInfo, location, e.leaves, roles))(_ =>
-          ctx.reply(Employee(e.id, e.name, e.gender, e.doj, e.dor, designation, e.pfn, contactInfo, location, e.leaves, roles)))
+        if (designation == e.designation && contactInfo == e.contactInfo && location == e.location && roles == e.roles)
+          ctx.done
+        else
+          ctx.thenPersist(EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, designation, e.pfn, contactInfo, location, e.leaves, roles))(_ =>
+            ctx.reply(Employee(e.id, e.name, e.gender, e.doj, e.dor, designation, e.pfn, contactInfo, location, e.leaves, roles)))
 
     }.onCommand[ReleaseEmployee, Done] {
       case (ReleaseEmployee(_, dor), ctx, state@Some(e)) =>
