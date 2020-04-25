@@ -726,7 +726,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
               ctx.thenPersist(PrivilegedIntimationCancelled(empId, Maternity, startDate, endDate, s"$Maternity Leave", requestsAlreadyConsumed, now))(_ => ctx.reply(e.leaves))
 
             case Paternity =>
-              ctx.thenPersist(PrivilegedIntimationUpdated(empId, Paternity, startDate, endDate, s"$Paternity Leave", requestsAlreadyConsumed, now))(_ => ctx.reply(e.leaves))
+              ctx.thenPersist(PrivilegedIntimationCancelled(empId, Paternity, startDate, endDate, s"$Paternity Leave", requestsAlreadyConsumed, now))(_ => ctx.reply(e.leaves))
 
             case Sabbatical =>
               val newLeaves = getNewLeaves(requestsAlreadyConsumed, lastLeaves = Leaves(e.lastLeaves.earned, e.lastLeaves.currentYearEarned, e.lastLeaves.sick, e.lastLeaves.extra))

@@ -9,7 +9,7 @@ import com.codingkapoor.employee.api.models.PrivilegedIntimationType.{Maternity,
 import com.codingkapoor.employee.api.models.{ContactInfo, Employee, EmployeeInfo, Intimation, IntimationReq, Leaves, Location, PrivilegedIntimation, PrivilegedIntimationType, Request, RequestType, Role}
 import com.codingkapoor.employee.impl.persistence.write.EmployeePersistenceEntity.{already5, balanceExtra, between, computeCredits, getNewLeaves, isWeekend}
 import com.codingkapoor.employee.impl.persistence.write.{EmployeePersistenceEntity, EmployeeSerializerRegistry}
-import com.codingkapoor.employee.impl.persistence.write.models.{AddEmployee, BalanceLeaves, CancelIntimation, CreateIntimation, CreatePrivilegedIntimation, CreditLeaves, DeleteEmployee, EmployeeAdded, EmployeeCommand, EmployeeDeleted, EmployeeEvent, EmployeeReleased, EmployeeState, EmployeeUpdated, IntimationCancelled, IntimationCreated, IntimationUpdated, LastLeavesSaved, LeavesCredited, PrivilegedIntimationCancelled, PrivilegedIntimationCreated, PrivilegedIntimationUpdated, ReleaseEmployee, UpdateEmployee, UpdateIntimation, UpdatePrivilegedIntimation}
+import com.codingkapoor.employee.impl.persistence.write.models.{AddEmployee, BalanceLeaves, CancelIntimation, CancelPrivilegedIntimation, CreateIntimation, CreatePrivilegedIntimation, CreditLeaves, DeleteEmployee, EmployeeAdded, EmployeeCommand, EmployeeDeleted, EmployeeEvent, EmployeeReleased, EmployeeState, EmployeeUpdated, IntimationCancelled, IntimationCreated, IntimationUpdated, LastLeavesSaved, LeavesCredited, PrivilegedIntimationCancelled, PrivilegedIntimationCreated, PrivilegedIntimationUpdated, ReleaseEmployee, UpdateEmployee, UpdateIntimation, UpdatePrivilegedIntimation}
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.InvalidCommandException
 import com.lightbend.lagom.scaladsl.playjson.JsonSerializerRegistry
 import com.lightbend.lagom.scaladsl.testkit.PersistentEntityTestDriver
@@ -1243,7 +1243,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome.issues should be(Nil)
     }
 
-    "invalidate cancellation of active intimation of an already existing employee when active intimation in the employee state is none" in withDriver { driver =>
+    "invalidate cancellation of a non existent active intimation of an already existing employee" in withDriver { driver =>
       driver.initialize(Some(Some(state)))
 
       val outcome = driver.run(CancelIntimation(empId))
@@ -1471,7 +1471,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome.issues should be(Nil)
     }
 
-    "invalidate updation of a privileged intimation for an already existing employee if found inactive" in withDriver { driver =>
+    "invalidate updation of an inactive privileged intimation for an already existing employee" in withDriver { driver =>
       val today = LocalDate.now()
       val yesterday = today.minusDays(1)
       val tomorrow = today.plusDays(1)
@@ -1726,6 +1726,116 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       ))
       outcome.state should ===(Some(initialState.copy(leaves = newLeaves, privilegedIntimationOpt = Some(PrivilegedIntimation(Sabbatical, startDate2, endDate2)))))
       outcome.replies should contain only newLeaves
+      outcome.issues should be(Nil)
+    }
+
+    "invalidate cancellation of a non existent privileged intimation for an already existing employee" in withDriver { driver =>
+      driver.initialize(Some(Some(state)))
+
+      val outcome = driver.run(CancelPrivilegedIntimation(empId))
+
+      outcome.events should be(Nil)
+      outcome.state should be(Some(state))
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome.issues should be(Nil)
+    }
+
+    "invalidate cancellation of an inactive privileged intimation for an already existing employee" in withDriver { driver =>
+      val today = LocalDate.now()
+      val yesterday = today.minusDays(1)
+      val endDate = if (isWeekend(yesterday)) yesterday.minusDays(2) else yesterday
+      val startDate = if (isWeekend(yesterday.minusDays(4))) yesterday.minusDays(6) else yesterday.minusDays(4)
+
+      val privilegedIntimation = PrivilegedIntimation(Maternity, startDate, endDate)
+      val initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
+      driver.initialize(Some(Some(initialState)))
+
+      val outcome = driver.run(CancelPrivilegedIntimation(empId))
+
+      outcome.events should be(Nil)
+      outcome.state should be(Some(initialState))
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome.issues should be(Nil)
+    }
+
+    "cancel maternity privileged intimation of an already existing employee" in withDriver { driver =>
+      val today = LocalDate.now()
+      val tomorrow = today.plusDays(1)
+      val startDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
+      val endDate = if (isWeekend(tomorrow.plusDays(3))) tomorrow.plusDays(5) else tomorrow.plusDays(3)
+
+      val privilegedIntimation = PrivilegedIntimation(Maternity, startDate, endDate)
+      val initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
+
+      driver.initialize(Some(Some(initialState)))
+
+      val outcome = driver.run(CancelPrivilegedIntimation(empId))
+
+      val now = LocalDateTime.now()
+      val requestsAlreadyConsumed = EmployeePersistenceEntity.between(initialState.privilegedIntimationOpt.get.start, today).filterNot(isWeekend).map(dt => Request(dt, RequestType.Leave, RequestType.Leave)).toSet
+
+      val pic = outcome.events.toList.head.asInstanceOf[PrivilegedIntimationCancelled]
+      val outcomePrivilegedIntimationCancelled = PrivilegedIntimationCancelled(pic.empId, pic.privilegedIntimationType, pic.start, pic.end, pic.reason, pic.requests, now)
+      outcomePrivilegedIntimationCancelled :: outcome.events.toList.tail should ===(List(PrivilegedIntimationCancelled(empId, Maternity, startDate, today, s"$Maternity Leave", requestsAlreadyConsumed, now)))
+
+      outcome.state should be(Some(state))
+      outcome.replies should contain only initialState.leaves
+      outcome.issues should be(Nil)
+    }
+
+    "cancel paternity privileged intimation of an already existing employee" in withDriver { driver =>
+      val today = LocalDate.now()
+      val tomorrow = today.plusDays(1)
+      val startDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
+      val endDate = if (isWeekend(tomorrow.plusDays(3))) tomorrow.plusDays(5) else tomorrow.plusDays(3)
+
+      val privilegedIntimation = PrivilegedIntimation(Paternity, startDate, endDate)
+      val initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
+
+      driver.initialize(Some(Some(initialState)))
+
+      val outcome = driver.run(CancelPrivilegedIntimation(empId))
+
+      val now = LocalDateTime.now()
+      val requestsAlreadyConsumed = EmployeePersistenceEntity.between(initialState.privilegedIntimationOpt.get.start, today).filterNot(isWeekend).map(dt => Request(dt, RequestType.Leave, RequestType.Leave)).toSet
+
+      val pic = outcome.events.toList.head.asInstanceOf[PrivilegedIntimationCancelled]
+      val outcomePrivilegedIntimationCancelled = PrivilegedIntimationCancelled(pic.empId, pic.privilegedIntimationType, pic.start, pic.end, pic.reason, pic.requests, now)
+      outcomePrivilegedIntimationCancelled :: outcome.events.toList.tail should ===(List(PrivilegedIntimationCancelled(empId, Paternity, startDate, today, s"$Paternity Leave", requestsAlreadyConsumed, now)))
+
+      outcome.state should be(Some(state))
+      outcome.replies should contain only initialState.leaves
+      outcome.issues should be(Nil)
+    }
+
+    "cancel sabbatical privileged intimation of an already existing employee" in withDriver { driver =>
+      val today = LocalDate.now()
+      val tomorrow = today.plusDays(1)
+      val startDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
+      val endDate = if (isWeekend(tomorrow.plusDays(3))) tomorrow.plusDays(5) else tomorrow.plusDays(3)
+
+      val privilegedIntimation = PrivilegedIntimation(Sabbatical, startDate, endDate)
+      val initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
+
+      driver.initialize(Some(Some(initialState)))
+
+      val outcome = driver.run(CancelPrivilegedIntimation(empId))
+
+      val now = LocalDateTime.now()
+      val requestsAlreadyConsumed = EmployeePersistenceEntity.between(initialState.privilegedIntimationOpt.get.start, today).filterNot(isWeekend).map(dt => Request(dt, RequestType.Leave, RequestType.Leave)).toSet
+      val newLeaves = getNewLeaves(requestsAlreadyConsumed, lastLeaves = Leaves(initialState.lastLeaves.earned, initialState.lastLeaves.currentYearEarned, initialState.lastLeaves.sick, initialState.lastLeaves.extra))
+
+      val pic = outcome.events.toList.head.asInstanceOf[PrivilegedIntimationCancelled]
+      val outcomePrivilegedIntimationCancelled = PrivilegedIntimationCancelled(pic.empId, pic.privilegedIntimationType, pic.start, pic.end, pic.reason, pic.requests, now)
+      outcomePrivilegedIntimationCancelled :: outcome.events.toList.tail should ===(
+        List(
+          PrivilegedIntimationCancelled(empId, Sabbatical, startDate, today, s"$Sabbatical Leave", requestsAlreadyConsumed, now),
+          EmployeeUpdated(initialState.id, initialState.name, initialState.gender, initialState.doj, initialState.dor, initialState.designation, initialState.pfn, initialState.contactInfo, initialState.location, newLeaves, initialState.roles)
+        )
+      )
+
+      outcome.state should be(Some(state))
+      outcome.replies should contain only initialState.leaves
       outcome.issues should be(Nil)
     }
 
