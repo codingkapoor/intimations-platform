@@ -1839,7 +1839,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome.issues should be(Nil)
     }
 
-    "credit earned and sick leaves when there is no exitent intimation and neither doj or dor fall in the current month" in withDriver { driver =>
+    "credit leaves when there is a non-exitent active and a non-existent privileged intimations" in withDriver { driver =>
       driver.initialize(Some(Some(state)))
 
       val outcome = driver.run(CreditLeaves(empId))
@@ -1860,7 +1860,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome.issues should be(Nil)
     }
 
-    "credit earned and sick leaves when there is an inactive intimation and neither doj or dor fall in the current month" in withDriver { driver =>
+    "credit leaves when there is an inactive and a non-existent privileged intimation" in withDriver { driver =>
       val today = LocalDate.now()
       val yesterday = today.minusDays(1)
       val requestDate = if (isWeekend(yesterday)) yesterday.minusDays(2) else yesterday
@@ -1889,7 +1889,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome.issues should be(Nil)
     }
 
-    "credit earned and sick leaves when there is an inactive privileged intimation and neither doj or dor fall in the current month" in withDriver { driver =>
+    "credit leaves when there is a non-exitent active intimation and an inactive sabbatical privileged intimation" in withDriver { driver =>
       val today = LocalDate.now()
       val yesterday = today.minusDays(1)
       val endDate = if (isWeekend(yesterday)) yesterday.minusDays(2) else yesterday
@@ -1897,6 +1897,40 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
 
       val privilegedIntimation = PrivilegedIntimation(Sabbatical, startDate, endDate)
       val is@initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
+
+      driver.initialize(Some(Some(initialState)))
+
+      val outcome = driver.run(CreditLeaves(empId))
+
+      val (earnedCredits, sickCredits) = computeCredits(initialState)
+      val balanced = balanceExtra(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
+      val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
+
+      outcome.events should ===(
+        List(
+          LastLeavesSaved(is.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+          LeavesCredited(is.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+          EmployeeUpdated(is.id, is.name, is.gender, is.doj, is.dor, is.designation, is.pfn, is.contactInfo, is.location, newLeaves, is.roles)
+        )
+      )
+      outcome.state should be(Some(initialState.copy(leaves = newLeaves, lastLeaves = newLeaves)))
+      outcome.replies should contain only Done
+      outcome.issues should be(Nil)
+    }
+
+    "credit leaves when there is an inactive intimation and an inactive sabbatical privileged intimation" in withDriver { driver =>
+      val today = LocalDate.now()
+      val yesterday = today.minusDays(1)
+      val endDate = if (isWeekend(yesterday)) yesterday.minusDays(2) else yesterday
+      val startDate = if (isWeekend(yesterday.minusDays(4))) yesterday.minusDays(6) else yesterday.minusDays(4)
+
+      val privilegedIntimation = PrivilegedIntimation(Sabbatical, startDate, endDate)
+
+      val requestDate = if (isWeekend(today.minusDays(10))) today.minusDays(12) else today.minusDays(10)
+      val requests = if (already5(today)) Set(Request(today, RequestType.Leave, RequestType.Leave)) else Set(Request(requestDate, RequestType.Leave, RequestType.Leave))
+      val activeIntimation = Intimation("Visiting my native", requests, LocalDateTime.parse("2020-01-12T10:15:30"))
+
+      val is@initialState = state.copy(activeIntimationOpt = Some(activeIntimation), privilegedIntimationOpt = Some(privilegedIntimation))
 
       driver.initialize(Some(Some(initialState)))
 
