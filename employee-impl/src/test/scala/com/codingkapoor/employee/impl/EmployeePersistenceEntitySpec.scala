@@ -9,7 +9,7 @@ import com.codingkapoor.employee.api.models.PrivilegedIntimationType.{Maternity,
 import com.codingkapoor.employee.api.models.{ContactInfo, Employee, EmployeeInfo, Intimation, IntimationReq, Leaves, Location, PrivilegedIntimation, PrivilegedIntimationType, Request, RequestType, Role}
 import com.codingkapoor.employee.impl.persistence.write.EmployeePersistenceEntity.{already5, balanceExtra, between, computeCredits, getNewLeaves, isWeekend}
 import com.codingkapoor.employee.impl.persistence.write.{EmployeePersistenceEntity, EmployeeSerializerRegistry}
-import com.codingkapoor.employee.impl.persistence.write.models.{AddEmployee, BalanceLeaves, CancelIntimation, CancelPrivilegedIntimation, CreateIntimation, CreatePrivilegedIntimation, CreditLeaves, DeleteEmployee, EmployeeAdded, EmployeeCommand, EmployeeDeleted, EmployeeEvent, EmployeeReleased, EmployeeState, EmployeeUpdated, IntimationCancelled, IntimationCreated, IntimationUpdated, LastLeavesSaved, LeavesCredited, PrivilegedIntimationCancelled, PrivilegedIntimationCreated, PrivilegedIntimationUpdated, ReleaseEmployee, UpdateEmployee, UpdateIntimation, UpdatePrivilegedIntimation}
+import com.codingkapoor.employee.impl.persistence.write.models.{AddEmployee, BalanceLeaves, CancelIntimation, CancelPrivilegedIntimation, CreateIntimation, CreatePrivilegedIntimation, CreditLeaves, DeleteEmployee, EmployeeAdded, EmployeeCommand, EmployeeDeleted, EmployeeEvent, EmployeeReleased, EmployeeState, EmployeeUpdated, IntimationCancelled, IntimationCreated, IntimationUpdated, LastLeavesSaved, LeavesBalanced, LeavesCredited, PrivilegedIntimationCancelled, PrivilegedIntimationCreated, PrivilegedIntimationUpdated, ReleaseEmployee, UpdateEmployee, UpdateIntimation, UpdatePrivilegedIntimation}
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.InvalidCommandException
 import com.lightbend.lagom.scaladsl.playjson.JsonSerializerRegistry
 import com.lightbend.lagom.scaladsl.testkit.PersistentEntityTestDriver
@@ -2294,6 +2294,141 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
         )
       )
       outcome.state should be(Some(initialState.copy(leaves = newLeaves, lastLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra))))
+      outcome.replies should contain only Done
+      outcome.issues should be(Nil)
+    }
+
+    "balance yearly leaves when all sick leaves were consumed" in withDriver { driver =>
+      val initialState = state.copy(leaves = Leaves(earned = 11.0, currentYearEarned = 8.0))
+      driver.initialize(Some(Some(initialState)))
+
+      val outcome = driver.run(BalanceLeaves(empId))
+
+      outcome.events should ===(
+        List(
+          LeavesBalanced(e.id, 11, 0),
+          EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, Leaves(earned = 11), e.roles)
+        )
+      )
+      outcome.state should be(Some(initialState.copy(leaves = Leaves(earned = 11.0))))
+      outcome.replies should contain only Done
+      outcome.issues should be(Nil)
+    }
+
+    "balance yearly leaves when all leaves were consumed from current and past years" in withDriver { driver =>
+      driver.initialize(Some(Some(state)))
+
+      val outcome = driver.run(BalanceLeaves(empId))
+
+      outcome.events should ===(
+        List(
+          LeavesBalanced(e.id, 0, 0),
+          EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, Leaves(), e.roles)
+        )
+      )
+      outcome.state should be(Some(state))
+      outcome.replies should contain only Done
+      outcome.issues should be(Nil)
+    }
+
+    "balance yearly leaves when all leaves were consumed from the current year only" in withDriver { driver =>
+      val initialState = state.copy(leaves = Leaves(earned = 10.0))
+      driver.initialize(Some(Some(initialState)))
+
+      val outcome = driver.run(BalanceLeaves(empId))
+
+      outcome.events should ===(
+        List(
+          LeavesBalanced(e.id, 10.0, 0),
+          EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, Leaves(earned = 10.0), e.roles)
+        )
+      )
+      outcome.state should be(Some(initialState.copy(leaves = Leaves(earned = 10.0))))
+      outcome.replies should contain only Done
+      outcome.issues should be(Nil)
+    }
+
+    "balance yearly leaves when no leaves were consumed in the first year" in withDriver { driver =>
+      val initialState = state.copy(leaves = Leaves(earned = 18.0, currentYearEarned = 18.0, sick = 6.0))
+      driver.initialize(Some(Some(initialState)))
+
+      val outcome = driver.run(BalanceLeaves(empId))
+
+      outcome.events should ===(
+        List(
+          LeavesBalanced(e.id, 10.0, 14.0),
+          EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, Leaves(earned = 10.0), e.roles)
+        )
+      )
+      outcome.state should be(Some(initialState.copy(leaves = Leaves(earned = 10.0))))
+      outcome.replies should contain only Done
+      outcome.issues should be(Nil)
+    }
+
+    "balance yearly leaves when no leaves were consumed for two consecutive years" in withDriver { driver =>
+      val initialState = state.copy(leaves = Leaves(earned = 28.0, currentYearEarned = 18.0, sick = 6.0))
+      driver.initialize(Some(Some(initialState)))
+
+      val outcome = driver.run(BalanceLeaves(empId))
+
+      outcome.events should ===(
+        List(
+          LeavesBalanced(e.id, 20.0, 14.0),
+          EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, Leaves(earned = 20.0), e.roles)
+        )
+      )
+      outcome.state should be(Some(initialState.copy(leaves = Leaves(earned = 20.0))))
+      outcome.replies should contain only Done
+      outcome.issues should be(Nil)
+    }
+
+    "balance yearly leaves when no leaves were consumed for three consecutive years" in withDriver { driver =>
+      val initialState = state.copy(leaves = Leaves(earned = 38.0, currentYearEarned = 18.0, sick = 6.0))
+      driver.initialize(Some(Some(initialState)))
+
+      val outcome = driver.run(BalanceLeaves(empId))
+
+      outcome.events should ===(
+        List(
+          LeavesBalanced(e.id, 20.0, 24.0),
+          EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, Leaves(earned = 20.0), e.roles)
+        )
+      )
+      outcome.state should be(Some(initialState.copy(leaves = Leaves(earned = 20.0))))
+      outcome.replies should contain only Done
+      outcome.issues should be(Nil)
+    }
+
+    "balance yearly leaves when extra leaves were consumed" in withDriver { driver =>
+      val initialState = state.copy(leaves = Leaves(extra = 4.0))
+      driver.initialize(Some(Some(initialState)))
+
+      val outcome = driver.run(BalanceLeaves(empId))
+
+      outcome.events should ===(
+        List(
+          LeavesBalanced(e.id, 0, 4.0),
+          EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, Leaves(), e.roles)
+        )
+      )
+      outcome.state should be(Some(state))
+      outcome.replies should contain only Done
+      outcome.issues should be(Nil)
+    }
+
+    "balance yearly leaves when neither earned nor current earned leaves were beyond 10 leaves" in withDriver { driver =>
+      val initialState = state.copy(leaves = Leaves(earned = 4.5, currentYearEarned = 4.5, sick = 1.5))
+      driver.initialize(Some(Some(initialState)))
+
+      val outcome = driver.run(BalanceLeaves(empId))
+
+      outcome.events should ===(
+        List(
+          LeavesBalanced(e.id, 6.0, 0),
+          EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, Leaves(earned = 6.0), e.roles)
+        )
+      )
+      outcome.state should be(Some(initialState.copy(leaves = Leaves(earned = 6.0))))
       outcome.replies should contain only Done
       outcome.issues should be(Nil)
     }
