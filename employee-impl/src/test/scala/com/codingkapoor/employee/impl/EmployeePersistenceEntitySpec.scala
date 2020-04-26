@@ -534,7 +534,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
         )
       )
       outcome.state should be(Some(state.copy(dor = Some(dor), leaves = newLeaves, lastLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
-          privilegedIntimationOpt = Some(PrivilegedIntimation(Maternity, startDate, dor)))))
+        privilegedIntimationOpt = Some(PrivilegedIntimation(Maternity, startDate, dor)))))
       outcome.replies should contain only Done
       outcome.issues should be(Nil)
     }
@@ -1952,6 +1952,35 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome.issues should be(Nil)
     }
 
+    "credit leaves when there is a non-existent active intimation and an ongoing maternity privileged intimation" in withDriver { driver =>
+      val today = LocalDate.now()
+      val tomorrow = today.plusDays(1)
+      val startDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
+      val endDate = if (isWeekend(tomorrow.plusDays(3))) tomorrow.plusDays(5) else tomorrow.plusDays(3)
+
+      val privilegedIntimation = PrivilegedIntimation(Maternity, startDate, endDate)
+      val is@initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
+
+      driver.initialize(Some(Some(initialState)))
+
+      val outcome = driver.run(CreditLeaves(empId))
+
+      val (earnedCredits, sickCredits) = computeCredits(initialState)
+      val balanced = balanceExtra(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
+      val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
+
+      outcome.events should ===(
+        List(
+          LastLeavesSaved(is.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+          LeavesCredited(is.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+          EmployeeUpdated(is.id, is.name, is.gender, is.doj, is.dor, is.designation, is.pfn, is.contactInfo, is.location, newLeaves, is.roles)
+        )
+      )
+      outcome.state should be(Some(initialState.copy(leaves = newLeaves, lastLeaves = newLeaves)))
+      outcome.replies should contain only Done
+      outcome.issues should be(Nil)
+    }
+
     "credit leaves when there is an inactive intimation and an ongoing maternity privileged intimation" in withDriver { driver =>
       val today = LocalDate.now()
       val tomorrow = today.plusDays(1)
@@ -1965,6 +1994,35 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val activeIntimation = Intimation("Visiting my native", requests, LocalDateTime.parse("2020-01-12T10:15:30"))
 
       val is@initialState = state.copy(activeIntimationOpt = Some(activeIntimation), privilegedIntimationOpt = Some(privilegedIntimation))
+
+      driver.initialize(Some(Some(initialState)))
+
+      val outcome = driver.run(CreditLeaves(empId))
+
+      val (earnedCredits, sickCredits) = computeCredits(initialState)
+      val balanced = balanceExtra(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
+      val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
+
+      outcome.events should ===(
+        List(
+          LastLeavesSaved(is.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+          LeavesCredited(is.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+          EmployeeUpdated(is.id, is.name, is.gender, is.doj, is.dor, is.designation, is.pfn, is.contactInfo, is.location, newLeaves, is.roles)
+        )
+      )
+      outcome.state should be(Some(initialState.copy(leaves = newLeaves, lastLeaves = newLeaves)))
+      outcome.replies should contain only Done
+      outcome.issues should be(Nil)
+    }
+
+    "credit leaves when there is a non-existent active intimation and an inactive maternity privileged intimation" in withDriver { driver =>
+      val today = LocalDate.now()
+      val yesterday = today.minusDays(1)
+      val endDate = if (isWeekend(yesterday)) yesterday.minusDays(2) else yesterday
+      val startDate = if (isWeekend(yesterday.minusDays(4))) yesterday.minusDays(6) else yesterday.minusDays(4)
+
+      val privilegedIntimation = PrivilegedIntimation(Maternity, startDate, endDate)
+      val is@initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
 
       driver.initialize(Some(Some(initialState)))
 
@@ -2020,6 +2078,35 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome.issues should be(Nil)
     }
 
+    "credit leaves when there is a non-existent active intimation and an ongoing paternity privileged intimation" in withDriver { driver =>
+      val today = LocalDate.now()
+      val tomorrow = today.plusDays(1)
+      val startDate = if (isWeekend(tomorrow)) tomorrow.plusDays(2) else tomorrow
+      val endDate = if (isWeekend(tomorrow.plusDays(3))) tomorrow.plusDays(5) else tomorrow.plusDays(3)
+
+      val privilegedIntimation = PrivilegedIntimation(Paternity, startDate, endDate)
+      val is@initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
+
+      driver.initialize(Some(Some(initialState)))
+
+      val outcome = driver.run(CreditLeaves(empId))
+
+      val (earnedCredits, sickCredits) = computeCredits(initialState)
+      val balanced = balanceExtra(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
+      val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
+
+      outcome.events should ===(
+        List(
+          LastLeavesSaved(is.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+          LeavesCredited(is.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+          EmployeeUpdated(is.id, is.name, is.gender, is.doj, is.dor, is.designation, is.pfn, is.contactInfo, is.location, newLeaves, is.roles)
+        )
+      )
+      outcome.state should be(Some(initialState.copy(leaves = newLeaves, lastLeaves = newLeaves)))
+      outcome.replies should contain only Done
+      outcome.issues should be(Nil)
+    }
+
     "credit leaves when there is an inactive intimation and an ongoing paternity privileged intimation" in withDriver { driver =>
       val today = LocalDate.now()
       val tomorrow = today.plusDays(1)
@@ -2033,6 +2120,35 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val activeIntimation = Intimation("Visiting my native", requests, LocalDateTime.parse("2020-01-12T10:15:30"))
 
       val is@initialState = state.copy(activeIntimationOpt = Some(activeIntimation), privilegedIntimationOpt = Some(privilegedIntimation))
+
+      driver.initialize(Some(Some(initialState)))
+
+      val outcome = driver.run(CreditLeaves(empId))
+
+      val (earnedCredits, sickCredits) = computeCredits(initialState)
+      val balanced = balanceExtra(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
+      val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
+
+      outcome.events should ===(
+        List(
+          LastLeavesSaved(is.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+          LeavesCredited(is.id, balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra),
+          EmployeeUpdated(is.id, is.name, is.gender, is.doj, is.dor, is.designation, is.pfn, is.contactInfo, is.location, newLeaves, is.roles)
+        )
+      )
+      outcome.state should be(Some(initialState.copy(leaves = newLeaves, lastLeaves = newLeaves)))
+      outcome.replies should contain only Done
+      outcome.issues should be(Nil)
+    }
+
+    "credit leaves when there is a non-existent active intimation and an inactive paternity privileged intimation" in withDriver { driver =>
+      val today = LocalDate.now()
+      val yesterday = today.minusDays(1)
+      val endDate = if (isWeekend(yesterday)) yesterday.minusDays(2) else yesterday
+      val startDate = if (isWeekend(yesterday.minusDays(4))) yesterday.minusDays(6) else yesterday.minusDays(4)
+
+      val privilegedIntimation = PrivilegedIntimation(Paternity, startDate, endDate)
+      val is@initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
 
       driver.initialize(Some(Some(initialState)))
 
