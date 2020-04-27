@@ -1,7 +1,7 @@
 package com.codingkapoor.employee.impl.persistence.write
 
 import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, LocalDateTime}
+import java.time.{LocalDate, LocalDateTime, YearMonth}
 
 import akka.Done
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
@@ -13,8 +13,6 @@ import com.codingkapoor.employee.impl.persistence.write.models.{EmployeeReleased
 import scala.collection.immutable
 
 class EmployeePersistenceEntity extends PersistentEntity {
-
-  private val logger = LoggerFactory.getLogger(classOf[EmployeePersistenceEntity])
 
   import EmployeePersistenceEntity._
 
@@ -972,6 +970,8 @@ class EmployeePersistenceEntity extends PersistentEntity {
 
 object EmployeePersistenceEntity {
 
+  private val logger = LoggerFactory.getLogger(classOf[EmployeePersistenceEntity])
+
   def isWeekend(date: LocalDate): Boolean = date.getDayOfWeek.toString == "SATURDAY" || date.getDayOfWeek.toString == "SUNDAY"
 
   def between(fromDate: LocalDate, toDate: LocalDate): immutable.Seq[LocalDate] =
@@ -1027,10 +1027,13 @@ object EmployeePersistenceEntity {
 
     val today = LocalDate.now
 
+    val currentYearMonth = YearMonth.of(today.getYear, today.getMonthValue)
+    val daysInCurrentMonth = currentYearMonth.lengthOfMonth
+
     val doj = state.doj
 
     val j = if (doj.getMonthValue == today.getMonthValue && doj.getYear == today.getYear) doj.getDayOfMonth else 1
-    val r = if (state.dor.isDefined) state.dor.get.getDayOfMonth else 31
+    val r = if (state.dor.isDefined) state.dor.get.getDayOfMonth else daysInCurrentMonth
 
     val (s, e) = if (state.privilegedIntimationOpt.isEmpty) (0, 0) else {
       val privilegedIntimationType = state.privilegedIntimationOpt.get.privilegedIntimationType
@@ -1048,7 +1051,9 @@ object EmployeePersistenceEntity {
 
     val prorata = if (e == 0 && s == 0) r - j + 1 else (r - j) - (e - s)
 
-    val el = if (prorata >= 22) 1.5 else if (prorata >= 16) 1 else if (prorata >= 10) 0.5 else 0
+    logger.debug(s"state = $state, r = $r, j = $j, e = $e, s = $s, prorata = $prorata")
+
+    val el = if (prorata >= 20) 1.5 else if (prorata >= 15) 1 else if (prorata >= 10) 0.5 else 0
     val sl = if (prorata >= 15) 0.5 else 0
 
     (el, sl)
