@@ -19,56 +19,56 @@ class CreditsSpec extends FlatSpec {
     assert(el == 1.5 && sl == 0.5)
   }
 
-  it should "return earned and sick leaves as 1.5 and 0.5 respectively when prorata number of days computes to 21 or more days and total number of days in a month is 28" in {
+  it should "return earned and sick leaves as 1.5 and 0.5 respectively when prorata number of days computes to 20 or more days and total number of days in a month is 28" in {
     val doj1 = LocalDate.parse(s"2019-02-01")
 
     val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj1), doj1.getMonthValue, doj1.getYear)
     assert(el1 == 1.5 && sl1 == 0.5)
 
-    val doj2 = LocalDate.parse(s"2019-02-08")
+    val doj2 = LocalDate.parse(s"2019-02-09")
 
     val (el2, sl2) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj2), doj2.getMonthValue, doj2.getYear)
     assert(el2 == 1.5 && sl2 == 0.5)
   }
 
-  it should "return earned and sick leaves as 1.5 and 0.5 respectively when prorata number of days computes to 21 or more days and total number of days in a month is 29" in {
+  it should "return earned and sick leaves as 1.5 and 0.5 respectively when prorata number of days computes to 20 or more days and total number of days in a month is 29" in {
     val doj3 = LocalDate.parse(s"2020-02-01")
 
     val (el3, sl3) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj3), doj3.getMonthValue, doj3.getYear)
     assert(el3 == 1.5 && sl3 == 0.5)
 
-    val doj4 = LocalDate.parse(s"2020-02-09")
+    val doj4 = LocalDate.parse(s"2020-02-10")
 
     val (el4, sl4) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj4), doj4.getMonthValue, doj4.getYear)
     assert(el4 == 1.5 && sl4 == 0.5)
   }
 
-  it should "return earned and sick leaves as 1.5 and 0.5 respectively when prorata number of days computes to 21 or more days and total number of days in a month is 30" in {
+  it should "return earned and sick leaves as 1.5 and 0.5 respectively when prorata number of days computes to 20 or more days and total number of days in a month is 30" in {
     val doj3 = LocalDate.parse(s"2020-04-01")
 
     val (el3, sl3) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj3), doj3.getMonthValue, doj3.getYear)
     assert(el3 == 1.5 && sl3 == 0.5)
 
-    val doj4 = LocalDate.parse(s"2020-04-10")
+    val doj4 = LocalDate.parse(s"2020-04-11")
 
     val (el4, sl4) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj4), doj4.getMonthValue, doj4.getYear)
     assert(el4 == 1.5 && sl4 == 0.5)
   }
 
-  it should "return earned and sick leaves as 1.5 and 0.5 respectively when prorata number of days computes to 21 or more days and total number of days in a month is 31" in {
+  it should "return earned and sick leaves as 1.5 and 0.5 respectively when prorata number of days computes to 20 or more days and total number of days in a month is 31" in {
     val doj3 = LocalDate.parse(s"2020-01-01")
 
     val (el3, sl3) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj3), doj3.getMonthValue, doj3.getYear)
     assert(el3 == 1.5 && sl3 == 0.5)
 
-    val doj4 = LocalDate.parse(s"2020-01-11")
+    val doj4 = LocalDate.parse(s"2020-01-12")
 
     val (el4, sl4) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj4), doj4.getMonthValue, doj4.getYear)
     assert(el4 == 1.5 && sl4 == 0.5)
   }
 
-  it should "return earned and sick leaves as 1.0 and 0.5 respectively when prorata number of days computes to 16 or more days" in {
-    val doj1 = LocalDate.parse(s"2020-02-10")
+  it should "return earned and sick leaves as 1.0 and 0.5 respectively when prorata number of days computes to 15 or more days" in {
+    val doj1 = LocalDate.parse(s"2020-02-11")
 
     val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj1), doj1.getMonthValue, doj1.getYear)
     assert(el1 == 1.0 && sl1 == 0.5)
@@ -79,4 +79,15 @@ class CreditsSpec extends FlatSpec {
     assert(el2 == 1.0 && sl2 == 0.5)
   }
 
+  it should "return earned and sick leaves as 0.5 and 0 respectively when prorata number of days computes to 10 or more days" in {
+    val doj1 = LocalDate.parse(s"2020-04-17")
+
+    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj1), doj1.getMonthValue, doj1.getYear)
+    assert(el1 == 0.5 && sl1 == 0)
+
+    val doj2 = LocalDate.parse(s"2020-04-21")
+
+    val (el2, sl2) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj2), doj2.getMonthValue, doj2.getYear)
+    assert(el2 == 0.5 && sl2 == 0)
+  }
 }

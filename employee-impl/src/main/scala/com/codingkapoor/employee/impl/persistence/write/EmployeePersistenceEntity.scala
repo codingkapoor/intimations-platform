@@ -1055,7 +1055,7 @@ object EmployeePersistenceEntity {
 
     logger.debug(s"state = $state, r = $r, j = $j, e = $e, s = $s, prorata = $prorata")
 
-    val el = if (prorata >= 21) 1.5 else if (prorata >= 15) 1 else if (prorata >= 10) 0.5 else 0
+    val el = if (prorata >= 20) 1.5 else if (prorata >= 15) 1.0 else if (prorata >= 10) 0.5 else 0
     val sl = if (prorata >= 15) 0.5 else 0
 
     (el, sl)
