@@ -43,6 +43,30 @@ class CreditsSpec extends FlatSpec {
     assert(el4 == 1.5 && sl4 == 0.5)
   }
 
+  it should "return earned and sick leaves as 1.5 and 0.5 respectively when prorata number of days computes to 21 or more days and total number of days in a month is 30" in {
+    val doj3 = LocalDate.parse(s"2020-04-01")
+
+    val (el3, sl3) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj3), doj3.getMonthValue, doj3.getYear)
+    assert(el3 == 1.5 && sl3 == 0.5)
+
+    val doj4 = LocalDate.parse(s"2020-04-10")
+
+    val (el4, sl4) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj4), doj4.getMonthValue, doj4.getYear)
+    assert(el4 == 1.5 && sl4 == 0.5)
+  }
+
+  it should "return earned and sick leaves as 1.5 and 0.5 respectively when prorata number of days computes to 21 or more days and total number of days in a month is 31" in {
+    val doj3 = LocalDate.parse(s"2020-01-01")
+
+    val (el3, sl3) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj3), doj3.getMonthValue, doj3.getYear)
+    assert(el3 == 1.5 && sl3 == 0.5)
+
+    val doj4 = LocalDate.parse(s"2020-01-11")
+
+    val (el4, sl4) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj4), doj4.getMonthValue, doj4.getYear)
+    assert(el4 == 1.5 && sl4 == 0.5)
+  }
+
 //  it should "return earned and sick leaves as 1.0 and 0.5 respectively when there is no active or privileged intimation and neither does dor fall in the current month, doj however falls between 11th and 16th day of the current month" in {
 //    val today = LocalDate.now()
 //
