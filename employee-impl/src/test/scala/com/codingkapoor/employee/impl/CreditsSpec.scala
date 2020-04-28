@@ -103,7 +103,7 @@ class CreditsSpec extends FlatSpec {
     assert(el2 == 0 && sl2 == 0)
   }
 
-  it should "return earned and sick leaves as 1.5 and 0.5 respectively when employee joined and was released the very same month" in {
+  it should "return earned and sick leaves as 1.5 and 0.5 respectively when an employee joined and was released the very same month" in {
     val doj = LocalDate.parse("2020-01-06")
     val dor = LocalDate.parse("2020-01-27")
 
@@ -111,7 +111,7 @@ class CreditsSpec extends FlatSpec {
     assert(el1 == 1.5 && sl1 == 0.5)
   }
 
-  it should "return earned and sick leaves as 0.5 and 0 respectively when employee joined on a month and has an active intimation that starts but doesn't end on very the same month" in {
+  it should "return earned and sick leaves as 0.5 and 0 respectively when an employee joined on a month and has an active intimation that starts but doesn't end on the very same month" in {
     val doj = LocalDate.parse("2020-02-16")
 
     val requests =
@@ -130,7 +130,7 @@ class CreditsSpec extends FlatSpec {
     assert(el1 == 0.5 && sl1 == 0)
   }
 
-  it should "return earned and sick leaves as 1.5 and 0.5 respectively when employee joined on a month and has an active intimation that starts and ends on very the same month" in {
+  it should "return earned and sick leaves as 1.5 and 0.5 respectively when an employee joined on a month and has an active intimation that starts and ends on the very same month" in {
     val doj = LocalDate.parse("2020-02-02")
 
     val requests =
@@ -141,6 +141,23 @@ class CreditsSpec extends FlatSpec {
     val activeIntimation = Intimation("Visiting my native", requests, LocalDateTime.parse("2020-01-12T10:15:30"))
 
     val initialState = state.copy(doj = doj, activeIntimationOpt = Some(activeIntimation))
+
+    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, doj.getMonthValue, doj.getYear)
+    assert(el1 == 1.5 && sl1 == 0.5)
+  }
+
+  it should "return earned and sick leaves as 1.5 and 0.5 respectively when an employee joined and was released on the same month and also has an active intimation that starts and ends on the very same month" in {
+    val doj = LocalDate.parse("2020-01-02")
+    val dor = LocalDate.parse("2020-01-28")
+
+    val requests =
+      Set(
+        Request(LocalDate.parse("2020-01-12"), RequestType.Leave, RequestType.Leave),
+        Request(LocalDate.parse("2020-01-13"), RequestType.WFH, RequestType.Leave)
+      )
+    val activeIntimation = Intimation("Visiting my native", requests, LocalDateTime.parse("2020-01-11T10:15:30"))
+
+    val initialState = state.copy(doj = doj, dor = Some(dor), activeIntimationOpt = Some(activeIntimation))
 
     val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, doj.getMonthValue, doj.getYear)
     assert(el1 == 1.5 && sl1 == 0.5)
