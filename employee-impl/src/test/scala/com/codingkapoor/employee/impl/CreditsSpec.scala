@@ -2,7 +2,8 @@ package com.codingkapoor.employee.impl
 
 import java.time.{LocalDate, LocalDateTime}
 
-import com.codingkapoor.employee.api.models.{ContactInfo, Employee, Intimation, Leaves, Location, Request, RequestType, Role}
+import com.codingkapoor.employee.api.models.PrivilegedIntimationType.Paternity
+import com.codingkapoor.employee.api.models.{ContactInfo, Employee, Intimation, Leaves, Location, PrivilegedIntimation, Request, RequestType, Role}
 import com.codingkapoor.employee.impl.persistence.write.EmployeePersistenceEntity
 import com.codingkapoor.employee.impl.persistence.write.models.EmployeeState
 import org.scalatest.FlatSpec
@@ -111,7 +112,7 @@ class CreditsSpec extends FlatSpec {
     assert(el1 == 1.5 && sl1 == 0.5)
   }
 
-  it should "return earned and sick leaves as 1.5 and 0.5 respectively while ignoring an active intimation" in {
+  it should "return earned and sick leaves as 1.5 and 0.5 respectively while ignoring any active intimation" in {
     val requests =
       Set(
         Request(LocalDate.parse("2020-02-26"), RequestType.Leave, RequestType.Leave),
@@ -124,7 +125,17 @@ class CreditsSpec extends FlatSpec {
 
     val initialState = state.copy(activeIntimationOpt = Some(activeIntimation))
 
-    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, state.doj.getMonthValue, state.doj.getYear)
+    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, 2, 2020)
+    assert(el1 == 1.5 && sl1 == 0.5)
+  }
+
+  it should "return earned and sick leaves as 1.5 and 0.5 respectively while ignoring any privileged paternity intimation" in {
+    val startDate = LocalDate.parse("2020-04-12")
+    val endDate = LocalDate.parse("2020-04-28")
+    val privilegedIntimation = PrivilegedIntimation(Paternity, startDate, endDate)
+    val initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
+
+    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, 4, 2020)
     assert(el1 == 1.5 && sl1 == 0.5)
   }
 }
