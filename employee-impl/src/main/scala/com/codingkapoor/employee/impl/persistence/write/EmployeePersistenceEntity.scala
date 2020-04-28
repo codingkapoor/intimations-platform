@@ -1024,15 +1024,17 @@ object EmployeePersistenceEntity {
   }
 
   def computeCredits(state: EmployeeState): (Double, Double) = {
+    val today = LocalDate.now()
+    computeCreditsForYearMonth(state, today.getMonthValue, today.getYear)
+  }
 
-    val today = LocalDate.now
-
-    val currentYearMonth = YearMonth.of(today.getYear, today.getMonthValue)
+  def computeCreditsForYearMonth(state: EmployeeState, month: Int, year: Int): (Double, Double) = {
+    val currentYearMonth = YearMonth.of(year, month)
     val daysInCurrentMonth = currentYearMonth.lengthOfMonth
 
     val doj = state.doj
 
-    val j = if (doj.getMonthValue == today.getMonthValue && doj.getYear == today.getYear) doj.getDayOfMonth else 1
+    val j = if (doj.getMonthValue == month && doj.getYear == year) doj.getDayOfMonth else 1
     val r = if (state.dor.isDefined) state.dor.get.getDayOfMonth else daysInCurrentMonth
 
     val (s, e) = if (state.privilegedIntimationOpt.isEmpty) (0, 0) else {
@@ -1041,11 +1043,11 @@ object EmployeePersistenceEntity {
       val pEnd = state.privilegedIntimationOpt.get.end
 
       if (privilegedIntimationType.equals(PrivilegedIntimationType.Paternity) ||
-        (today.getMonthValue < pStart.getMonthValue && today.getYear < pStart.getYear) ||
-        (today.getMonthValue > pEnd.getMonthValue && today.getYear > pEnd.getYear)) (0, 0)
+        (month < pStart.getMonthValue && year < pStart.getYear) ||
+        (month > pEnd.getMonthValue && year > pEnd.getYear)) (0, 0)
       else (
-        if (pStart.getMonthValue == today.getMonthValue && pStart.getYear == today.getYear) pStart.getDayOfMonth else 1,
-        if (pEnd.getMonthValue == today.getMonthValue && pEnd.getYear == today.getYear && pEnd.getDayOfMonth < r) pEnd.getDayOfMonth else r
+        if (pStart.getMonthValue == month && pStart.getYear == year) pStart.getDayOfMonth else 1,
+        if (pEnd.getMonthValue == month && pEnd.getYear == year && pEnd.getDayOfMonth < r) pEnd.getDayOfMonth else r
       )
     }
 
@@ -1053,7 +1055,7 @@ object EmployeePersistenceEntity {
 
     logger.debug(s"state = $state, r = $r, j = $j, e = $e, s = $s, prorata = $prorata")
 
-    val el = if (prorata >= 20) 1.5 else if (prorata >= 15) 1 else if (prorata >= 10) 0.5 else 0
+    val el = if (prorata >= 21) 1.5 else if (prorata >= 15) 1 else if (prorata >= 10) 0.5 else 0
     val sl = if (prorata >= 15) 0.5 else 0
 
     (el, sl)
