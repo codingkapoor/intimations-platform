@@ -67,44 +67,16 @@ class CreditsSpec extends FlatSpec {
     assert(el4 == 1.5 && sl4 == 0.5)
   }
 
-//  it should "return earned and sick leaves as 1.0 and 0.5 respectively when there is no active or privileged intimation and neither does dor fall in the current month, doj however falls between 11th and 16th day of the current month" in {
-//    val today = LocalDate.now()
-//
-//    val doj1 = LocalDate.parse(s"${today.getYear}-${"%02d".format(today.getMonthValue)}-11")
-//
-//    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj1))
-//    assert(el1 == 1.0 && sl1 == 0.5)
-//
-//    val doj2 = LocalDate.parse(s"${today.getYear}-${"%02d".format(today.getMonthValue)}-16")
-//
-//    val (el2, sl2) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj2))
-//    assert(el2 == 1.0 && sl2 == 0.5)
-//  }
-//
-//  it should "return earned and sick leaves as 0.5 and 0 respectively when there is no active or privileged intimation and neither does dor fall in the current month, doj however falls between 17th and 21st day of the current month" in {
-//    val today = LocalDate.now()
-//
-//    val doj1 = LocalDate.parse(s"${today.getYear}-${"%02d".format(today.getMonthValue)}-17")
-//
-//    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj1))
-//    assert(el1 == 0.5 && sl1 == 0)
-//
-//    val doj2 = LocalDate.parse(s"${today.getYear}-${"%02d".format(today.getMonthValue)}-21")
-//
-//    val (el2, sl2) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj2))
-//    assert(el2 == 0.5 && sl2 == 0)
-//  }
-//
-//  it should "return earned and sick leaves as 0 and 0 respectively when there is no active or privileged intimation and neither does dor fall in the current month, doj however falls between 22nd and 30th day of the current month" in {
-//    val today = LocalDate.now()
-//
-//    val doj1 = LocalDate.parse(s"${today.getYear}-${"%02d".format(today.getMonthValue)}-22")
-//
-//    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj1))
-//    assert(el1 == 0 && sl1 == 0)
-//
-//    val doj2 = LocalDate.parse(s"${today.getYear}-${"%02d".format(today.getMonthValue)}-30")
-//    val (el2, sl2) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj2))
-//    assert(el2 == 0 && sl2 == 0)
-//  }
+  it should "return earned and sick leaves as 1.0 and 0.5 respectively when prorata number of days computes to 16 or more days" in {
+    val doj1 = LocalDate.parse(s"2020-02-10")
+
+    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj1), doj1.getMonthValue, doj1.getYear)
+    assert(el1 == 1.0 && sl1 == 0.5)
+
+    val doj2 = LocalDate.parse(s"2020-02-14")
+
+    val (el2, sl2) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj2), doj2.getMonthValue, doj2.getYear)
+    assert(el2 == 1.0 && sl2 == 0.5)
+  }
+
 }
