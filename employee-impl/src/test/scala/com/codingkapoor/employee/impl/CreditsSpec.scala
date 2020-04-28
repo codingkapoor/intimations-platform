@@ -90,4 +90,16 @@ class CreditsSpec extends FlatSpec {
     val (el2, sl2) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj2), doj2.getMonthValue, doj2.getYear)
     assert(el2 == 0.5 && sl2 == 0)
   }
+
+  it should "return earned and sick leaves as 0 and 0 respectively when prorata number of days computes to less than 10 days" in {
+    val doj1 = LocalDate.parse(s"2020-01-23")
+
+    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj1), doj1.getMonthValue, doj1.getYear)
+    assert(el1 == 0 && sl1 == 0)
+
+    val doj2 = LocalDate.parse(s"2020-01-31")
+
+    val (el2, sl2) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj2), doj2.getMonthValue, doj2.getYear)
+    assert(el2 == 0 && sl2 == 0)
+  }
 }
