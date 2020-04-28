@@ -19,10 +19,7 @@ class CreditsSpec extends FlatSpec {
     assert(el == 1.5 && sl == 0.5)
   }
 
-  it should "return earned and sick leaves as 1.5 and 0.5 respectively when prorata number of days computes to 21 or more days" in {
-
-    // When total number of days in a month is 28
-
+  it should "return earned and sick leaves as 1.5 and 0.5 respectively when prorata number of days computes to 21 or more days and total number of days in a month is 28" in {
     val doj1 = LocalDate.parse(s"2019-02-01")
 
     val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj1), doj1.getMonthValue, doj1.getYear)
@@ -32,10 +29,9 @@ class CreditsSpec extends FlatSpec {
 
     val (el2, sl2) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj2), doj2.getMonthValue, doj2.getYear)
     assert(el2 == 1.5 && sl2 == 0.5)
+  }
 
-
-    // When total number of days in a month is 29
-
+  it should "return earned and sick leaves as 1.5 and 0.5 respectively when prorata number of days computes to 21 or more days and total number of days in a month is 29" in {
     val doj3 = LocalDate.parse(s"2020-02-01")
 
     val (el3, sl3) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj3), doj3.getMonthValue, doj3.getYear)
