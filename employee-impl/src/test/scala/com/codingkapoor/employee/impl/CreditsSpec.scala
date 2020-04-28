@@ -129,4 +129,20 @@ class CreditsSpec extends FlatSpec {
     val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, doj.getMonthValue, doj.getYear)
     assert(el1 == 0.5 && sl1 == 0)
   }
+
+  it should "return earned and sick leaves as 1.5 and 0.5 respectively when employee joined on a month and has an active intimation that starts and ends on very the same month" in {
+    val doj = LocalDate.parse("2020-02-02")
+
+    val requests =
+      Set(
+        Request(LocalDate.parse("2020-02-26"), RequestType.Leave, RequestType.Leave),
+        Request(LocalDate.parse("2020-02-27"), RequestType.Leave, RequestType.Leave)
+      )
+    val activeIntimation = Intimation("Visiting my native", requests, LocalDateTime.parse("2020-01-12T10:15:30"))
+
+    val initialState = state.copy(doj = doj, activeIntimationOpt = Some(activeIntimation))
+
+    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, doj.getMonthValue, doj.getYear)
+    assert(el1 == 1.5 && sl1 == 0.5)
+  }
 }
