@@ -1,8 +1,8 @@
 package com.codingkapoor.employee.impl
 
-import java.time.LocalDate
+import java.time.{LocalDate, LocalDateTime}
 
-import com.codingkapoor.employee.api.models.{ContactInfo, Employee, Leaves, Location, Role}
+import com.codingkapoor.employee.api.models.{ContactInfo, Employee, Intimation, Leaves, Location, Request, RequestType, Role}
 import com.codingkapoor.employee.impl.persistence.write.EmployeePersistenceEntity
 import com.codingkapoor.employee.impl.persistence.write.models.EmployeeState
 import org.scalatest.FlatSpec
@@ -109,5 +109,24 @@ class CreditsSpec extends FlatSpec {
 
     val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(state.copy(doj = doj, dor = Some(dor)), doj.getMonthValue, doj.getYear)
     assert(el1 == 1.5 && sl1 == 0.5)
+  }
+
+  it should "return earned and sick leaves as 0.5 and 0 respectively when employee joined on a month and has an active intimation that starts but doesn't end on very the same month" in {
+    val doj = LocalDate.parse("2020-02-16")
+
+    val requests =
+      Set(
+        Request(LocalDate.parse("2020-02-26"), RequestType.Leave, RequestType.Leave),
+        Request(LocalDate.parse("2020-02-27"), RequestType.Leave, RequestType.Leave),
+        Request(LocalDate.parse("2020-02-28"), RequestType.Leave, RequestType.Leave),
+        Request(LocalDate.parse("2020-03-02"), RequestType.Leave, RequestType.Leave),
+        Request(LocalDate.parse("2020-03-03"), RequestType.Leave, RequestType.Leave)
+      )
+    val activeIntimation = Intimation("Visiting my native", requests, LocalDateTime.parse("2020-01-12T10:15:30"))
+
+    val initialState = state.copy(doj = doj, activeIntimationOpt = Some(activeIntimation))
+
+    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, doj.getMonthValue, doj.getYear)
+    assert(el1 == 0.5 && sl1 == 0)
   }
 }
