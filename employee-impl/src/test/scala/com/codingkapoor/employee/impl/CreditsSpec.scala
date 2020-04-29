@@ -179,6 +179,17 @@ class CreditsSpec extends FlatSpec {
     assert(el1 == 0.5 && sl1 == 0)
   }
 
+  it should "return earned and sick leaves as 0.5 and 0 respectively when there is an ongoing sabbatical privileged intimation such that it starts in the current month but ends in the next month and also the employee is released in the current month" in {
+    val dor = LocalDate.parse("2020-04-25")
+    val startDate = LocalDate.parse("2020-04-12")
+    val endDate = LocalDate.parse("2020-05-20")
+    val privilegedIntimation = PrivilegedIntimation(Sabbatical, startDate, endDate)
+    val initialState = state.copy(dor = Some(dor), privilegedIntimationOpt = Some(privilegedIntimation))
+
+    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, 4, 2020)
+    assert(el1 == 0.5 && sl1 == 0)
+  }
+
   it should "return earned and sick leaves as 0.5 and 0 respectively when there is an ongoing sabbatical privileged intimation such that it started in the last month but ends in the current month" in {
     val startDate = LocalDate.parse("2020-03-12")
     val endDate = LocalDate.parse("2020-04-20")
@@ -197,5 +208,16 @@ class CreditsSpec extends FlatSpec {
 
     val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, 4, 2020)
     assert(el1 == 1.5 && sl1 == 0.5)
+  }
+
+  it should "return earned and sick leaves as 0.5 and 0 respectively when there is an ongoing sabbatical privileged intimation such that it starts and ends in the current month and also the employee is released by the end of the month" in {
+    val dor = LocalDate.parse("2020-04-26")
+    val startDate = LocalDate.parse("2020-04-08")
+    val endDate = LocalDate.parse("2020-04-20")
+    val privilegedIntimation = PrivilegedIntimation(Sabbatical, startDate, endDate)
+    val initialState = state.copy(dor = Some(dor), privilegedIntimationOpt = Some(privilegedIntimation))
+
+    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, 4, 2020)
+    assert(el1 == 0.5 && sl1 == 0)
   }
 }
