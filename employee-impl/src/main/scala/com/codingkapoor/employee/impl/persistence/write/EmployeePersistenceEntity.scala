@@ -1029,6 +1029,7 @@ object EmployeePersistenceEntity {
   }
 
   def computeCreditsForYearMonth(state: EmployeeState, month: Int, year: Int): (Double, Double) = {
+    val current = LocalDate.parse(s"$year-${"%02d".format(month)}-01")
     val currentYearMonth = YearMonth.of(year, month)
     val daysInCurrentMonth = currentYearMonth.lengthOfMonth
 
@@ -1042,9 +1043,19 @@ object EmployeePersistenceEntity {
       val pStart = state.privilegedIntimationOpt.get.start
       val pEnd = state.privilegedIntimationOpt.get.end
 
-      if (privilegedIntimationType.equals(PrivilegedIntimationType.Paternity) ||
-        (month < pStart.getMonthValue && year < pStart.getYear) ||
-        (month > pEnd.getMonthValue && year > pEnd.getYear)) (0, 0)
+      val pStartDoesNotBelongToYearMonth = (pStart.isBefore(current) || pStart.isAfter(current)) &&
+        ((pStart.getMonthValue != month && pStart.getYear == year) || (pStart.getMonthValue == month && pStart.getYear != year))
+
+      val pEndDoesNotBelongToYearMonth = (pEnd.isBefore(current) || pEnd.isAfter(current)) &&
+        ((pEnd.getMonthValue != month && pEnd.getYear == year) || (pEnd.getMonthValue == month && pEnd.getYear != year))
+
+      val pStartAndpEndBelongToSameMonth = pStart.getMonthValue == pEnd.getMonthValue
+
+      logger.debug(s"pStartDoesNotBelongToYearMonth = $pStartDoesNotBelongToYearMonth, pEndDoesNotBelongToYearMonth = $pEndDoesNotBelongToYearMonth, pStartAndpEndBelongToSameMonth = $pStartAndpEndBelongToSameMonth")
+
+      val hasNoActivePrivilegedIntimation = pStartDoesNotBelongToYearMonth && pEndDoesNotBelongToYearMonth && pStartAndpEndBelongToSameMonth
+
+      if (privilegedIntimationType.equals(PrivilegedIntimationType.Paternity) || hasNoActivePrivilegedIntimation) (0, 0)
       else (
         if (pStart.getMonthValue == month && pStart.getYear == year) pStart.getDayOfMonth else 1,
         if (pEnd.getMonthValue == month && pEnd.getYear == year && pEnd.getDayOfMonth < r) pEnd.getDayOfMonth else r
