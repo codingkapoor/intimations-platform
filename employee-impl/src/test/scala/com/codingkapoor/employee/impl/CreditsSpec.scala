@@ -168,4 +168,34 @@ class CreditsSpec extends FlatSpec {
     val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, 4, 2020)
     assert(el1 == 0 && sl1 == 0)
   }
+
+  it should "return earned and sick leaves as 0.5 and 0 respectively when there is an ongoing sabbatical privileged intimation such that it starts in the current month but ends in the next month" in {
+    val startDate = LocalDate.parse("2020-04-12")
+    val endDate = LocalDate.parse("2020-05-20")
+    val privilegedIntimation = PrivilegedIntimation(Sabbatical, startDate, endDate)
+    val initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
+
+    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, 4, 2020)
+    assert(el1 == 0.5 && sl1 == 0)
+  }
+
+  it should "return earned and sick leaves as 0.5 and 0 respectively when there is an ongoing sabbatical privileged intimation such that it started in the last month but ends in the current month" in {
+    val startDate = LocalDate.parse("2020-03-12")
+    val endDate = LocalDate.parse("2020-04-20")
+    val privilegedIntimation = PrivilegedIntimation(Sabbatical, startDate, endDate)
+    val initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
+
+    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, 4, 2020)
+    assert(el1 == 0.5 && sl1 == 0)
+  }
+
+  it should "return earned and sick leaves as 1.5 and 0.5 respectively when there is an ongoing sabbatical privileged intimation such that it starts and ends in the current month" in {
+    val startDate = LocalDate.parse("2020-04-12")
+    val endDate = LocalDate.parse("2020-04-20")
+    val privilegedIntimation = PrivilegedIntimation(Sabbatical, startDate, endDate)
+    val initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
+
+    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, 4, 2020)
+    assert(el1 == 1.5 && sl1 == 0.5)
+  }
 }
