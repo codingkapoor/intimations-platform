@@ -2,7 +2,7 @@ package com.codingkapoor.employee.impl
 
 import java.time.{LocalDate, LocalDateTime}
 
-import com.codingkapoor.employee.api.models.PrivilegedIntimationType.Paternity
+import com.codingkapoor.employee.api.models.PrivilegedIntimationType._
 import com.codingkapoor.employee.api.models.{ContactInfo, Employee, Intimation, Leaves, Location, PrivilegedIntimation, Request, RequestType, Role}
 import com.codingkapoor.employee.impl.persistence.write.EmployeePersistenceEntity
 import com.codingkapoor.employee.impl.persistence.write.models.EmployeeState
@@ -137,5 +137,35 @@ class CreditsSpec extends FlatSpec {
 
     val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, 4, 2020)
     assert(el1 == 1.5 && sl1 == 0.5)
+  }
+
+  it should "return earned and sick leaves as 1.5 and 0.5 respectively while ignoring any inactive privileged intimation" in {
+    val startDate = LocalDate.parse("2020-02-12")
+    val endDate = LocalDate.parse("2020-02-28")
+    val privilegedIntimation = PrivilegedIntimation(Maternity, startDate, endDate)
+    val initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
+
+    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, 4, 2020)
+    assert(el1 == 1.5 && sl1 == 0.5)
+  }
+
+  it should "return earned and sick leaves as 1.5 and 0.5 respectively while ignoring any privileged intimation in the future" in {
+    val startDate = LocalDate.parse("2020-08-12")
+    val endDate = LocalDate.parse("2020-08-20")
+    val privilegedIntimation = PrivilegedIntimation(Sabbatical, startDate, endDate)
+    val initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
+
+    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, 4, 2020)
+    assert(el1 == 1.5 && sl1 == 0.5)
+  }
+
+  it should "return earned and sick leaves as 0 and 0 respectively when there is an ongoing sabbatical privileged intimation" in {
+    val startDate = LocalDate.parse("2020-03-12")
+    val endDate = LocalDate.parse("2020-05-20")
+    val privilegedIntimation = PrivilegedIntimation(Sabbatical, startDate, endDate)
+    val initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
+
+    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, 4, 2020)
+    assert(el1 == 0 && sl1 == 0)
   }
 }
