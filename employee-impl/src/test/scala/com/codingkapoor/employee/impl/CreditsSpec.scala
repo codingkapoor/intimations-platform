@@ -266,4 +266,113 @@ class CreditsSpec extends FlatSpec {
     val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, 4, 2020)
     assert(el1 == 0.5 && sl1 == 0)
   }
+
+  it should "return earned and sick leaves as 0 and 0 respectively when there is an ongoing maternity privileged intimation" in {
+    val startDate = LocalDate.parse("2020-03-12")
+    val endDate = LocalDate.parse("2020-05-20")
+    val privilegedIntimation = PrivilegedIntimation(Maternity, startDate, endDate)
+    val initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
+
+    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, 4, 2020)
+    assert(el1 == 0 && sl1 == 0)
+  }
+
+  it should "return earned and sick leaves as 0.5 and 0 respectively when there is an ongoing maternity privileged intimation such that it starts in the current month but ends in the next month" in {
+    val startDate = LocalDate.parse("2020-04-12")
+    val endDate = LocalDate.parse("2020-05-20")
+    val privilegedIntimation = PrivilegedIntimation(Maternity, startDate, endDate)
+    val initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
+
+    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, 4, 2020)
+    assert(el1 == 0.5 && sl1 == 0)
+  }
+
+  it should "return earned and sick leaves as 0.5 and 0 respectively when there is an ongoing maternity privileged intimation such that it starts in the current month but ends in the next month and also that the employee is released in the current month" in {
+    val dor = LocalDate.parse("2020-04-25")
+    val startDate = LocalDate.parse("2020-04-12")
+    val endDate = LocalDate.parse("2020-05-20")
+    val privilegedIntimation = PrivilegedIntimation(Maternity, startDate, endDate)
+    val initialState = state.copy(dor = Some(dor), privilegedIntimationOpt = Some(privilegedIntimation))
+
+    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, 4, 2020)
+    assert(el1 == 0.5 && sl1 == 0)
+  }
+
+  it should "return earned and sick leaves as 1.5 and 0.5 respectively when there is an ongoing maternity privileged intimation such that it starts in the current month but ends in the next month and also that the employee joined in the current month" in {
+    val doj = LocalDate.parse("2020-04-03")
+    val startDate = LocalDate.parse("2020-04-28")
+    val endDate = LocalDate.parse("2020-05-20")
+    val privilegedIntimation = PrivilegedIntimation(Maternity, startDate, endDate)
+    val initialState = state.copy(doj = doj, privilegedIntimationOpt = Some(privilegedIntimation))
+
+    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, 4, 2020)
+    assert(el1 == 1.5 && sl1 == 0.5)
+  }
+
+  it should "return earned and sick leaves as 1.5 and 0.5 respectively when there is an ongoing maternity privileged intimation such that it starts in the current month but ends in the next month and also that the employee joined and is released in the current month" in {
+    val doj = LocalDate.parse("2020-04-03")
+    val dor = LocalDate.parse("2020-04-28")
+    val startDate = LocalDate.parse("2020-04-25")
+    val endDate = LocalDate.parse("2020-05-20")
+    val privilegedIntimation = PrivilegedIntimation(Maternity, startDate, endDate)
+    val initialState = state.copy(doj = doj, dor = Some(dor), privilegedIntimationOpt = Some(privilegedIntimation))
+
+    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, 4, 2020)
+    assert(el1 == 1.5 && sl1 == 0.5)
+  }
+
+  it should "return earned and sick leaves as 0.5 and 0 respectively when there is an ongoing maternity privileged intimation such that it started in the last month but ends in the current month" in {
+    val startDate = LocalDate.parse("2020-03-12")
+    val endDate = LocalDate.parse("2020-04-20")
+    val privilegedIntimation = PrivilegedIntimation(Maternity, startDate, endDate)
+    val initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
+
+    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, 4, 2020)
+    assert(el1 == 0.5 && sl1 == 0)
+  }
+
+  it should "return earned and sick leaves as 1.5 and 0.5 respectively when there is an ongoing maternity privileged intimation such that it starts and ends in the current month" in {
+    val startDate = LocalDate.parse("2020-04-12")
+    val endDate = LocalDate.parse("2020-04-20")
+    val privilegedIntimation = PrivilegedIntimation(Maternity, startDate, endDate)
+    val initialState = state.copy(privilegedIntimationOpt = Some(privilegedIntimation))
+
+    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, 4, 2020)
+    assert(el1 == 1.5 && sl1 == 0.5)
+  }
+
+  it should "return earned and sick leaves as 0.5 and 0 respectively when there is an ongoing maternity privileged intimation such that it starts and ends in the current month and also that the employee joined in the current month" in {
+    val doj = LocalDate.parse("2020-04-10")
+    val startDate = LocalDate.parse("2020-04-12")
+    val endDate = LocalDate.parse("2020-04-20")
+    val privilegedIntimation = PrivilegedIntimation(Maternity, startDate, endDate)
+    val initialState = state.copy(doj = doj, privilegedIntimationOpt = Some(privilegedIntimation))
+
+    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, 4, 2020)
+    assert(el1 == 0.5 && sl1 == 0)
+  }
+
+  it should "return earned and sick leaves as 0.5 and 0 respectively when there is an ongoing maternity privileged intimation such that it starts and ends in the current month and also that the employee is released by the end of the month" in {
+    val dor = LocalDate.parse("2020-04-26")
+    val startDate = LocalDate.parse("2020-04-08")
+    val endDate = LocalDate.parse("2020-04-20")
+    val privilegedIntimation = PrivilegedIntimation(Maternity, startDate, endDate)
+    val initialState = state.copy(dor = Some(dor), privilegedIntimationOpt = Some(privilegedIntimation))
+
+    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, 4, 2020)
+    assert(el1 == 0.5 && sl1 == 0)
+  }
+
+  it should "return earned and sick leaves as 0.5 and 0 respectively when there is an ongoing maternity privileged intimation such that it starts and ends in the current month and also that the employee joined and is released in the current month" in {
+    val doj = LocalDate.parse("2020-04-02")
+    val dor = LocalDate.parse("2020-04-26")
+    val startDate = LocalDate.parse("2020-04-08")
+    val endDate = LocalDate.parse("2020-04-20")
+    val privilegedIntimation = PrivilegedIntimation(Maternity, startDate, endDate)
+    val initialState = state.copy(doj = doj, dor = Some(dor), privilegedIntimationOpt = Some(privilegedIntimation))
+
+    val (el1, sl1) = EmployeePersistenceEntity.computeCreditsForYearMonth(initialState, 4, 2020)
+    assert(el1 == 0.5 && sl1 == 0)
+  }
+
 }
