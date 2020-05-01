@@ -6,10 +6,10 @@ import akka.Done
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
 import com.codingkapoor.employee.api.models.PrivilegedIntimationType.{Maternity, Paternity, Sabbatical}
-import com.codingkapoor.employee.api.models.{ContactInfo, Employee, EmployeeInfo, Intimation, IntimationReq, Leaves, Location, PrivilegedIntimation, PrivilegedIntimationType, Request, RequestType, Role}
-import com.codingkapoor.employee.impl.persistence.write.EmployeePersistenceEntity.{already5, balanceExtraWithNewCredits, between, computeCredits, getNewLeaves, isWeekend}
+import com.codingkapoor.employee.api.models._
+import com.codingkapoor.employee.impl.persistence.write.EmployeePersistenceEntity.{already5, balanceExtraWithNewCredits, computeCredits, getNewLeaves, isWeekend}
 import com.codingkapoor.employee.impl.persistence.write.{EmployeePersistenceEntity, EmployeeSerializerRegistry}
-import com.codingkapoor.employee.impl.persistence.write.models.{AddEmployee, BalanceLeaves, CancelIntimation, CancelPrivilegedIntimation, CreateIntimation, CreatePrivilegedIntimation, CreditLeaves, DeleteEmployee, EmployeeAdded, EmployeeCommand, EmployeeDeleted, EmployeeEvent, EmployeeReleased, EmployeeState, EmployeeUpdated, IntimationCancelled, IntimationCreated, IntimationUpdated, LastLeavesSaved, LeavesBalanced, LeavesCredited, PrivilegedIntimationCancelled, PrivilegedIntimationCreated, PrivilegedIntimationUpdated, ReleaseEmployee, UpdateEmployee, UpdateIntimation, UpdatePrivilegedIntimation}
+import com.codingkapoor.employee.impl.persistence.write.models._
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.InvalidCommandException
 import com.lightbend.lagom.scaladsl.playjson.JsonSerializerRegistry
 import com.lightbend.lagom.scaladsl.testkit.PersistentEntityTestDriver
@@ -131,23 +131,6 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
     }
 
     // Test cases for when an employee is already added
-    "invalidate release of an employee that has admin privilege" in withDriver { driver =>
-      val e1 = employee.copy(roles = List(Role.Admin, Role.Employee))
-
-      driver.run(AddEmployee(e1))
-
-      val today = LocalDate.now()
-
-      val dor = if (isWeekend(today)) today.plusDays(2) else today
-
-      val outcome = driver.run(ReleaseEmployee(empId, dor))
-
-      outcome.events.size should ===(0)
-      outcome.state should be(Some(state.copy(roles = e1.roles)))
-      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
-      outcome.issues should be(Nil)
-    }
-
     "invalidate adding an employee with an id against which an employee already exists" in withDriver { driver =>
       driver.run(AddEmployee(employee))
 
@@ -187,6 +170,53 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome.events should contain only EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, designation, e.pfn, contactInfo, location, e.leaves, roles)
       outcome.state should ===(Some(EmployeeState(e.id, e.name, e.gender, e.doj, e.dor, designation, e.pfn, contactInfo, location, e.leaves, roles, None, None, Leaves())))
       outcome.replies should contain only Employee(e.id, e.name, e.gender, e.doj, e.dor, designation, e.pfn, contactInfo, location, e.leaves, roles)
+      outcome.issues should be(Nil)
+    }
+
+    "invalidate release of an employee that has admin privilege" in withDriver { driver =>
+      val e1 = employee.copy(roles = List(Role.Admin, Role.Employee))
+
+      driver.run(AddEmployee(e1))
+
+      val today = LocalDate.now()
+
+      val dor = if (isWeekend(today)) today.plusDays(2) else today
+
+      val outcome = driver.run(ReleaseEmployee(empId, dor))
+
+      outcome.events.size should ===(0)
+      outcome.state should be(Some(state.copy(roles = e1.roles)))
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome.issues should be(Nil)
+    }
+
+    "invalidate release of an employee on a weekend" in withDriver { driver =>
+      driver.initialize(Some(Some(state)))
+
+      val today = LocalDate.now()
+
+      val dor = LocalDate.parse("2020-05-02")
+
+      val outcome = driver.run(ReleaseEmployee(empId, dor))
+
+      outcome.events.size should ===(0)
+      outcome.state should be(Some(state))
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
+      outcome.issues should be(Nil)
+    }
+
+    "invalidate release of an employee on a date in the past" in withDriver { driver =>
+      driver.initialize(Some(Some(state)))
+
+      val today = LocalDate.now()
+
+      val dor = LocalDate.parse("2020-04-30")
+
+      val outcome = driver.run(ReleaseEmployee(empId, dor))
+
+      outcome.events.size should ===(0)
+      outcome.state should be(Some(state))
+      outcome.replies.head.getClass should be(classOf[InvalidCommandException])
       outcome.issues should be(Nil)
     }
 
