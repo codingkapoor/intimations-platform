@@ -996,7 +996,9 @@ object EmployeePersistenceEntity {
 
     val applied = getTotalNumOfLeavesApplied(requests)
 
-    if (sick >= applied)
+    if (applied == 0)
+      lastLeaves
+    else if (sick >= applied)
       Leaves(earned = earned, currentYearEarned = currentYearEarned, sick = sick - applied)
     else {
       if (earned >= (applied - sick))
