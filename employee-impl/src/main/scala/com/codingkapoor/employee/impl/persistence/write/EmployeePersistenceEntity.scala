@@ -352,7 +352,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
             (if (dor.isEqual(today)) !already5(privilegedIntimationRequests.last.date) else true)
 
           if (hasNoActiveIntimationAvailable && (newState.privilegedIntimationOpt.isEmpty || !hasActiveSabbaticalPrivilegedIntimation)) {
-            val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
+            val balanced = balanceExtraWithNewCredits(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
             val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
             ctx.thenPersistAll(
@@ -365,7 +365,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
                 ): _*
             )(() => ctx.reply(Done))
           } else {
-            val balanced = balanceExtra(newState.lastLeaves.earned + earnedCredits, newState.lastLeaves.currentYearEarned + earnedCredits, newState.lastLeaves.sick + sickCredits, newState.lastLeaves.extra)
+            val balanced = balanceExtraWithNewCredits(newState.lastLeaves.earned + earnedCredits, newState.lastLeaves.currentYearEarned + earnedCredits, newState.lastLeaves.sick + sickCredits, newState.lastLeaves.extra)
             val newLeaves = if (hasActiveSabbaticalPrivilegedIntimation) getNewLeaves(privilegedIntimationRequests, balanced) else getNewLeaves(activeIntimationRequests, balanced)
 
             ctx.thenPersistAll(
@@ -757,7 +757,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
           (privilegedIntimationRequests.last.date.isAfter(today) || !already5(privilegedIntimationRequests.last.date))
 
         if (hasNoActiveIntimationAvailable && (e.privilegedIntimationOpt.isEmpty || !hasActiveSabbaticalPrivilegedIntimation)) {
-          val balanced = balanceExtra(e.leaves.earned + earnedCredits, e.leaves.currentYearEarned + earnedCredits, e.leaves.sick + sickCredits, e.leaves.extra)
+          val balanced = balanceExtraWithNewCredits(e.leaves.earned + earnedCredits, e.leaves.currentYearEarned + earnedCredits, e.leaves.sick + sickCredits, e.leaves.extra)
           val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
           ctx.thenPersistAll(
@@ -766,7 +766,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
             EmployeeUpdated(e.id, e.name, e.gender, e.doj, e.dor, e.designation, e.pfn, e.contactInfo, e.location, newLeaves, e.roles)
           )(() => ctx.reply(Done))
         } else {
-          val balanced = balanceExtra(e.lastLeaves.earned + earnedCredits, e.lastLeaves.currentYearEarned + earnedCredits, e.lastLeaves.sick + sickCredits, e.lastLeaves.extra)
+          val balanced = balanceExtraWithNewCredits(e.lastLeaves.earned + earnedCredits, e.lastLeaves.currentYearEarned + earnedCredits, e.lastLeaves.sick + sickCredits, e.lastLeaves.extra)
           val newLeaves = if (hasActiveSabbaticalPrivilegedIntimation) getNewLeaves(privilegedIntimationRequests, balanced) else getNewLeaves(activeIntimationRequests, balanced)
 
           ctx.thenPersistAll(
@@ -1011,17 +1011,17 @@ object EmployeePersistenceEntity {
     }
   }
 
-  def balanceExtra(earned: Double, currentYearEarned: Double, sick: Double, due: Double): Leaves = {
-    if (sick >= due)
-      Leaves(earned = earned, currentYearEarned = currentYearEarned, sick = sick - due)
+  def balanceExtraWithNewCredits(creditedEarned: Double, creditedCurrentYearEarned: Double, creditedSick: Double, extra: Double): Leaves = {
+    if (creditedSick >= extra)
+      Leaves(earned = creditedEarned, currentYearEarned = creditedCurrentYearEarned, sick = creditedSick - extra)
     else {
-      if (earned >= (due - sick))
+      if (creditedEarned >= (extra - creditedSick))
         Leaves(
-          earned = earned - (due - sick),
-          currentYearEarned = if (currentYearEarned - (due - sick) < 0) 0 else currentYearEarned - (due - sick)
+          earned = creditedEarned - (extra - creditedSick),
+          currentYearEarned = if (creditedCurrentYearEarned - (extra - creditedSick) < 0) 0 else creditedCurrentYearEarned - (extra - creditedSick)
         )
       else
-        Leaves(extra = due - (earned + sick))
+        Leaves(extra = extra - (creditedEarned + creditedSick))
     }
   }
 

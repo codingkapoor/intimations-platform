@@ -7,7 +7,7 @@ import akka.actor.ActorSystem
 import akka.testkit.TestKit
 import com.codingkapoor.employee.api.models.PrivilegedIntimationType.{Maternity, Paternity, Sabbatical}
 import com.codingkapoor.employee.api.models.{ContactInfo, Employee, EmployeeInfo, Intimation, IntimationReq, Leaves, Location, PrivilegedIntimation, PrivilegedIntimationType, Request, RequestType, Role}
-import com.codingkapoor.employee.impl.persistence.write.EmployeePersistenceEntity.{already5, balanceExtra, between, computeCredits, getNewLeaves, isWeekend}
+import com.codingkapoor.employee.impl.persistence.write.EmployeePersistenceEntity.{already5, balanceExtraWithNewCredits, between, computeCredits, getNewLeaves, isWeekend}
 import com.codingkapoor.employee.impl.persistence.write.{EmployeePersistenceEntity, EmployeeSerializerRegistry}
 import com.codingkapoor.employee.impl.persistence.write.models.{AddEmployee, BalanceLeaves, CancelIntimation, CancelPrivilegedIntimation, CreateIntimation, CreatePrivilegedIntimation, CreditLeaves, DeleteEmployee, EmployeeAdded, EmployeeCommand, EmployeeDeleted, EmployeeEvent, EmployeeReleased, EmployeeState, EmployeeUpdated, IntimationCancelled, IntimationCreated, IntimationUpdated, LastLeavesSaved, LeavesBalanced, LeavesCredited, PrivilegedIntimationCancelled, PrivilegedIntimationCreated, PrivilegedIntimationUpdated, ReleaseEmployee, UpdateEmployee, UpdateIntimation, UpdatePrivilegedIntimation}
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.InvalidCommandException
@@ -200,7 +200,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val outcome = driver.run(ReleaseEmployee(empId, dor))
 
       val (earnedCredits, sickCredits) = computeCredits(state)
-      val balanced = balanceExtra(state.leaves.earned + earnedCredits, state.leaves.currentYearEarned + earnedCredits, state.leaves.sick + sickCredits, state.leaves.extra)
+      val balanced = balanceExtraWithNewCredits(state.leaves.earned + earnedCredits, state.leaves.currentYearEarned + earnedCredits, state.leaves.sick + sickCredits, state.leaves.extra)
       val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
       outcome.events should ===(
@@ -254,10 +254,10 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
         (if (dor.isEqual(today)) already5(latestRequestDate) else false)
 
       val (balanced, newLeaves2) = if (hasNoActiveIntimationAvailable) {
-        val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
+        val balanced = balanceExtraWithNewCredits(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
         (balanced, Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra))
       } else {
-        val balanced = balanceExtra(newState.lastLeaves.earned + earnedCredits, newState.lastLeaves.currentYearEarned + earnedCredits, newState.lastLeaves.sick + sickCredits, newState.lastLeaves.extra)
+        val balanced = balanceExtraWithNewCredits(newState.lastLeaves.earned + earnedCredits, newState.lastLeaves.currentYearEarned + earnedCredits, newState.lastLeaves.sick + sickCredits, newState.lastLeaves.extra)
         (balanced, getNewLeaves(newState.activeIntimationOpt.get.requests, balanced))
       }
 
@@ -308,7 +308,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val newState = initialState.copy(leaves = newLeaves, activeIntimationOpt = Some(Intimation(initialState.activeIntimationOpt.get.reason, newRequests, now)))
 
       val (earnedCredits, sickCredits) = computeCredits(newState)
-      val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
+      val balanced = balanceExtraWithNewCredits(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
       val newLeaves2 = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
       val iu = outcome.events.toList.head.asInstanceOf[IntimationUpdated]
@@ -365,10 +365,10 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
         (if (dor.isEqual(today)) already5(latestRequestDate) else false)
 
       val (balanced, newLeaves2) = if (hasNoActiveIntimationAvailable) {
-        val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
+        val balanced = balanceExtraWithNewCredits(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
         (balanced, Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra))
       } else {
-        val balanced = balanceExtra(newState.lastLeaves.earned + earnedCredits, newState.lastLeaves.currentYearEarned + earnedCredits, newState.lastLeaves.sick + sickCredits, newState.lastLeaves.extra)
+        val balanced = balanceExtraWithNewCredits(newState.lastLeaves.earned + earnedCredits, newState.lastLeaves.currentYearEarned + earnedCredits, newState.lastLeaves.sick + sickCredits, newState.lastLeaves.extra)
         (balanced, getNewLeaves(newState.activeIntimationOpt.get.requests, balanced))
       }
 
@@ -420,10 +420,10 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
         (if (dor.isEqual(today)) already5(latestRequestDate) else false)
 
       val (balanced, newLeaves2) = if (hasNoActiveIntimationAvailable) {
-        val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
+        val balanced = balanceExtraWithNewCredits(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
         (balanced, Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra))
       } else {
-        val balanced = balanceExtra(newState.lastLeaves.earned + earnedCredits, newState.lastLeaves.currentYearEarned + earnedCredits, newState.lastLeaves.sick + sickCredits, newState.lastLeaves.extra)
+        val balanced = balanceExtraWithNewCredits(newState.lastLeaves.earned + earnedCredits, newState.lastLeaves.currentYearEarned + earnedCredits, newState.lastLeaves.sick + sickCredits, newState.lastLeaves.extra)
         (balanced, getNewLeaves(newState.activeIntimationOpt.get.requests, balanced))
       }
 
@@ -473,7 +473,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val newState = initialState.copy(leaves = newLeaves, activeIntimationOpt = Some(Intimation(initialState.activeIntimationOpt.get.reason, newRequests, now)))
 
       val (earnedCredits, sickCredits) = computeCredits(newState)
-      val balanced = balanceExtra(newState.lastLeaves.earned + earnedCredits, newState.lastLeaves.currentYearEarned + earnedCredits, newState.lastLeaves.sick + sickCredits, newState.lastLeaves.extra)
+      val balanced = balanceExtraWithNewCredits(newState.lastLeaves.earned + earnedCredits, newState.lastLeaves.currentYearEarned + earnedCredits, newState.lastLeaves.sick + sickCredits, newState.lastLeaves.extra)
       val newLeaves2 = getNewLeaves(newState.activeIntimationOpt.get.requests, balanced)
 
       val iu = outcome.events.toList.head.asInstanceOf[IntimationCancelled]
@@ -517,7 +517,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val newState = initialState.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(Maternity, startDate, dor)))
 
       val (earnedCredits, sickCredits) = computeCredits(newState)
-      val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
+      val balanced = balanceExtraWithNewCredits(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
       val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
       val now = LocalDateTime.now()
@@ -560,7 +560,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val newState = initialState.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(Maternity, startDate, dor)))
 
       val (earnedCredits, sickCredits) = computeCredits(newState)
-      val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
+      val balanced = balanceExtraWithNewCredits(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
       val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
       val now = LocalDateTime.now()
@@ -601,7 +601,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val newState = initialState.copy(privilegedIntimationOpt = None)
 
       val (earnedCredits, sickCredits) = computeCredits(newState)
-      val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
+      val balanced = balanceExtraWithNewCredits(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
       val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
       val now = LocalDateTime.now()
@@ -641,7 +641,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val newState = initialState.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(Paternity, startDate, dor)))
 
       val (earnedCredits, sickCredits) = computeCredits(newState)
-      val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
+      val balanced = balanceExtraWithNewCredits(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
       val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
       val newRequests = EmployeePersistenceEntity.between(startDate, dor).filterNot(isWeekend).map(dt => Request(dt, RequestType.Leave, RequestType.Leave)).toSet
@@ -686,7 +686,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val newState = initialState.copy(privilegedIntimationOpt = Some(PrivilegedIntimation(Paternity, startDate, dor)))
 
       val (earnedCredits, sickCredits) = computeCredits(newState)
-      val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
+      val balanced = balanceExtraWithNewCredits(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
       val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
       val now = LocalDateTime.now()
@@ -727,7 +727,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val newState = initialState.copy(privilegedIntimationOpt = None)
 
       val (earnedCredits, sickCredits) = computeCredits(newState)
-      val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
+      val balanced = balanceExtraWithNewCredits(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
       val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
       val now = LocalDateTime.now()
@@ -776,10 +776,10 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
         newRequests.last.date.isEqual(dor) && (if (dor.isEqual(today)) !already5(newRequests.last.date) else true)
 
       val (balanced, newLeaves2) = if (!hasActiveSabbaticalPrivilegedIntimation) {
-        val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
+        val balanced = balanceExtraWithNewCredits(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
         (balanced, Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra))
       } else {
-        val balanced = balanceExtra(newState.lastLeaves.earned + earnedCredits, newState.lastLeaves.currentYearEarned + earnedCredits, newState.lastLeaves.sick + sickCredits, newState.lastLeaves.extra)
+        val balanced = balanceExtraWithNewCredits(newState.lastLeaves.earned + earnedCredits, newState.lastLeaves.currentYearEarned + earnedCredits, newState.lastLeaves.sick + sickCredits, newState.lastLeaves.extra)
         (balanced, getNewLeaves(newRequests, balanced))
       }
 
@@ -831,10 +831,10 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
         newRequests.last.date.isEqual(dor) && (if (dor.isEqual(today)) !already5(newRequests.last.date) else true)
 
       val (balanced, newLeaves2) = if (!hasActiveSabbaticalPrivilegedIntimation) {
-        val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
+        val balanced = balanceExtraWithNewCredits(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
         (balanced, Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra))
       } else {
-        val balanced = balanceExtra(newState.lastLeaves.earned + earnedCredits, newState.lastLeaves.currentYearEarned + earnedCredits, newState.lastLeaves.sick + sickCredits, newState.lastLeaves.extra)
+        val balanced = balanceExtraWithNewCredits(newState.lastLeaves.earned + earnedCredits, newState.lastLeaves.currentYearEarned + earnedCredits, newState.lastLeaves.sick + sickCredits, newState.lastLeaves.extra)
         (balanced, getNewLeaves(newRequests, balanced))
       }
 
@@ -881,7 +881,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
 
       val (earnedCredits, sickCredits) = computeCredits(newState)
 
-      val balanced = balanceExtra(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
+      val balanced = balanceExtraWithNewCredits(newState.leaves.earned + earnedCredits, newState.leaves.currentYearEarned + earnedCredits, newState.leaves.sick + sickCredits, newState.leaves.extra)
       val newLeaves2 = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
       val now = LocalDateTime.now()
@@ -1845,7 +1845,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val outcome = driver.run(CreditLeaves(empId))
 
       val (earnedCredits, sickCredits) = computeCredits(state)
-      val balanced = balanceExtra(state.leaves.earned + earnedCredits, state.leaves.currentYearEarned + earnedCredits, state.leaves.sick + sickCredits, state.leaves.extra)
+      val balanced = balanceExtraWithNewCredits(state.leaves.earned + earnedCredits, state.leaves.currentYearEarned + earnedCredits, state.leaves.sick + sickCredits, state.leaves.extra)
       val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
       outcome.events should ===(
@@ -1874,7 +1874,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val outcome = driver.run(CreditLeaves(empId))
 
       val (earnedCredits, sickCredits) = computeCredits(initialState)
-      val balanced = balanceExtra(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
+      val balanced = balanceExtraWithNewCredits(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
       val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
       outcome.events should ===(
@@ -1903,7 +1903,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val outcome = driver.run(CreditLeaves(empId))
 
       val (earnedCredits, sickCredits) = computeCredits(initialState)
-      val balanced = balanceExtra(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
+      val balanced = balanceExtraWithNewCredits(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
       val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
       outcome.events should ===(
@@ -1937,7 +1937,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val outcome = driver.run(CreditLeaves(empId))
 
       val (earnedCredits, sickCredits) = computeCredits(initialState)
-      val balanced = balanceExtra(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
+      val balanced = balanceExtraWithNewCredits(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
       val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
       outcome.events should ===(
@@ -1966,7 +1966,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val outcome = driver.run(CreditLeaves(empId))
 
       val (earnedCredits, sickCredits) = computeCredits(initialState)
-      val balanced = balanceExtra(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
+      val balanced = balanceExtraWithNewCredits(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
       val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
       outcome.events should ===(
@@ -2000,7 +2000,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val outcome = driver.run(CreditLeaves(empId))
 
       val (earnedCredits, sickCredits) = computeCredits(initialState)
-      val balanced = balanceExtra(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
+      val balanced = balanceExtraWithNewCredits(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
       val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
       outcome.events should ===(
@@ -2029,7 +2029,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val outcome = driver.run(CreditLeaves(empId))
 
       val (earnedCredits, sickCredits) = computeCredits(initialState)
-      val balanced = balanceExtra(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
+      val balanced = balanceExtraWithNewCredits(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
       val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
       outcome.events should ===(
@@ -2063,7 +2063,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val outcome = driver.run(CreditLeaves(empId))
 
       val (earnedCredits, sickCredits) = computeCredits(initialState)
-      val balanced = balanceExtra(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
+      val balanced = balanceExtraWithNewCredits(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
       val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
       outcome.events should ===(
@@ -2092,7 +2092,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val outcome = driver.run(CreditLeaves(empId))
 
       val (earnedCredits, sickCredits) = computeCredits(initialState)
-      val balanced = balanceExtra(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
+      val balanced = balanceExtraWithNewCredits(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
       val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
       outcome.events should ===(
@@ -2126,7 +2126,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val outcome = driver.run(CreditLeaves(empId))
 
       val (earnedCredits, sickCredits) = computeCredits(initialState)
-      val balanced = balanceExtra(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
+      val balanced = balanceExtraWithNewCredits(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
       val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
       outcome.events should ===(
@@ -2155,7 +2155,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val outcome = driver.run(CreditLeaves(empId))
 
       val (earnedCredits, sickCredits) = computeCredits(initialState)
-      val balanced = balanceExtra(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
+      val balanced = balanceExtraWithNewCredits(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
       val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
       outcome.events should ===(
@@ -2189,7 +2189,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val outcome = driver.run(CreditLeaves(empId))
 
       val (earnedCredits, sickCredits) = computeCredits(initialState)
-      val balanced = balanceExtra(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
+      val balanced = balanceExtraWithNewCredits(is.leaves.earned + earnedCredits, is.leaves.currentYearEarned + earnedCredits, is.leaves.sick + sickCredits, is.leaves.extra)
       val newLeaves = Leaves(balanced.earned, balanced.currentYearEarned, balanced.sick, balanced.extra)
 
       outcome.events should ===(
@@ -2219,7 +2219,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val outcome = driver.run(CreditLeaves(empId))
 
       val (earnedCredits, sickCredits) = computeCredits(initialState)
-      val balanced = balanceExtra(is.lastLeaves.earned + earnedCredits, is.lastLeaves.currentYearEarned + earnedCredits, is.lastLeaves.sick + sickCredits, is.lastLeaves.extra)
+      val balanced = balanceExtraWithNewCredits(is.lastLeaves.earned + earnedCredits, is.lastLeaves.currentYearEarned + earnedCredits, is.lastLeaves.sick + sickCredits, is.lastLeaves.extra)
       val newLeaves = getNewLeaves(privilegedIntimationRequests, balanced)
 
       outcome.events should ===(
@@ -2254,7 +2254,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val outcome = driver.run(CreditLeaves(empId))
 
       val (earnedCredits, sickCredits) = computeCredits(initialState)
-      val balanced = balanceExtra(is.lastLeaves.earned + earnedCredits, is.lastLeaves.currentYearEarned + earnedCredits, is.lastLeaves.sick + sickCredits, is.lastLeaves.extra)
+      val balanced = balanceExtraWithNewCredits(is.lastLeaves.earned + earnedCredits, is.lastLeaves.currentYearEarned + earnedCredits, is.lastLeaves.sick + sickCredits, is.lastLeaves.extra)
       val newLeaves = getNewLeaves(privilegedIntimationRequests, balanced)
 
       outcome.events should ===(
@@ -2283,7 +2283,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       val outcome = driver.run(CreditLeaves(empId))
 
       val (earnedCredits, sickCredits) = computeCredits(initialState)
-      val balanced = balanceExtra(is.lastLeaves.earned + earnedCredits, is.lastLeaves.currentYearEarned + earnedCredits, is.lastLeaves.sick + sickCredits, is.lastLeaves.extra)
+      val balanced = balanceExtraWithNewCredits(is.lastLeaves.earned + earnedCredits, is.lastLeaves.currentYearEarned + earnedCredits, is.lastLeaves.sick + sickCredits, is.lastLeaves.extra)
       val newLeaves = getNewLeaves(requests, balanced)
 
       outcome.events should ===(
