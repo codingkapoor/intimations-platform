@@ -5,4 +5,5 @@
 </p>
 
 Platform for Intimations. Refer [Wiki](https://github.com/codingkapoor/intimations-platform/wiki).
+
 ***Mobile App***: *[intimations](https://github.com/-codingkapoor/intimations)*, ***Web console***: *[intimations-console](https://github.com/codingkapoor/intimations-console)*
