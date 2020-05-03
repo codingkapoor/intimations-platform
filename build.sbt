@@ -146,4 +146,4 @@ lazy val `common` = (project in file("common"))
 
 lagomServiceGatewayAddress in ThisBuild := "0.0.0.0"
 
-lagomCassandraCleanOnStart in ThisBuild := true
+//lagomCassandraCleanOnStart in ThisBuild := true
