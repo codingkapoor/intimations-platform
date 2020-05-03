@@ -142,7 +142,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome.issues should be(Nil)
     }
 
-    "ignore update of an already existing employee when employeeInfo has no changes" in withDriver { driver =>
+    "ignore update of an already existing employee when employeeInfo has no changes" ignore withDriver { driver =>
       driver.run(AddEmployee(employee))
 
       val designation = e.designation
