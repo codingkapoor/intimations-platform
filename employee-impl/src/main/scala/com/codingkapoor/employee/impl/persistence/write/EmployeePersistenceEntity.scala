@@ -489,6 +489,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
           ctx.done
 
         } else if (e.activeIntimationOpt.get.requests == intimationReq.requests) {
+          ctx.reply(e.leaves)
           ctx.done
 
         } else if (!(requestsAlreadyConsumed equals newRequestAlreadyConsumed)) {

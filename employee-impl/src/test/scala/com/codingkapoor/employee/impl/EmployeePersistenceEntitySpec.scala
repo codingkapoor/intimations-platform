@@ -1229,9 +1229,9 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
 
       val outcome = driver.run(UpdateIntimation(empId, intimationReq))
 
-      outcome.replies should be(Nil)
       outcome.events should be(Nil)
       outcome.state should ===(Some(initialState))
+      outcome.replies should be(List(initialState.leaves))
       outcome.issues should be(Nil)
     }
 
