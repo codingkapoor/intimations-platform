@@ -130,7 +130,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
       outcome.issues should be(Nil)
     }
 
-    // Test cases for when an employee is already added
+    // Test cases for when anignore request to update privileged intimation for an already existing employee when start and end dates employee is already added
     "invalidate adding an employee with an id against which an employee already exists" in withDriver { driver =>
       driver.run(AddEmployee(employee))
 
@@ -1667,7 +1667,7 @@ class EmployeePersistenceEntitySpec extends WordSpec with Matchers with BeforeAn
 
       outcome.events should be(Nil)
       outcome.state should ===(Some(initialState))
-      outcome.replies should be(Nil)
+      outcome.replies should be(List(Leaves(0.0,0.0,0.0,0.0)))
       outcome.issues should be(Nil)
     }
 

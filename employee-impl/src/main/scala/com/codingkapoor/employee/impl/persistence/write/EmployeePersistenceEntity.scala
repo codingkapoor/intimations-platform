@@ -634,6 +634,7 @@ class EmployeePersistenceEntity extends PersistentEntity {
           ctx.done
 
         } else if (e.privilegedIntimationOpt.get.start == privilegedIntimation.start && e.privilegedIntimationOpt.get.end == privilegedIntimation.end) {
+          ctx.reply(e.leaves)
           ctx.done
 
         } else if (privilegedIntimation.end.isBefore(privilegedIntimation.start)) {
