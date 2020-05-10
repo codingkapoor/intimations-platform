@@ -16,6 +16,8 @@ val pac4jHttp = "org.pac4j" % "pac4j-http" % pac4jVersion
 val pac4jJwt = "org.pac4j" % "pac4j-jwt" % pac4jVersion
 val expoServerSdk = "com.kinoroy.expo.push" % "expo-push-sdk" % "0.1.3"
 
+val akkaDiscovery = "com.lightbend.lagom" %% "lagom-scaladsl-akka-discovery-service-locator" % "1.0.0"
+
 lazy val `intimations` = (project in file("."))
   .aggregate(`employee-api`, `employee-impl`, `holiday-api`, `holiday-impl`, `audit`, `passwordless-api`, `passwordless-impl`)
 
@@ -40,7 +42,8 @@ lazy val `employee-impl` = (project in file("employee-impl"))
       scalaTest,
       pac4jHttp,
       pac4jJwt,
-      lagomPac4j
+      lagomPac4j,
+      akkaDiscovery
     )
   )
   .settings(lagomForkedTestSettings)
