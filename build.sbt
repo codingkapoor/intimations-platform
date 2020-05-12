@@ -1,5 +1,4 @@
 organization in ThisBuild := "com.codingkapoor"
-version in ThisBuild := "1.0-SNAPSHOT"
 
 scalaVersion in ThisBuild := "2.12.8"
 
@@ -16,7 +15,18 @@ val pac4jHttp = "org.pac4j" % "pac4j-http" % pac4jVersion
 val pac4jJwt = "org.pac4j" % "pac4j-jwt" % pac4jVersion
 val expoServerSdk = "com.kinoroy.expo.push" % "expo-push-sdk" % "0.1.3"
 
-val akkaDiscovery = "com.lightbend.lagom" %% "lagom-scaladsl-akka-discovery-service-locator" % "1.0.0"
+val akkaDiscoveryServiceLocator = "com.lightbend.lagom" %% "lagom-scaladsl-akka-discovery-service-locator" % "1.0.0"
+val akkaDiscoveryKubernetesApi = "com.lightbend.akka.discovery" %% "akka-discovery-kubernetes-api" % "1.0.0"
+
+def dockerSettings = Seq(
+  dockerUpdateLatest := true,
+  dockerBaseImage := "adoptopenjdk/openjdk8",
+  dockerUsername := sys.props.get("docker.username"),
+  dockerRepository := sys.props.get("docker.registry")
+)
+
+version in ThisBuild ~= (_.replace('+', '-'))
+dynver in ThisBuild ~= (_.replace('+', '-'))
 
 lazy val `intimations` = (project in file("."))
   .aggregate(`employee-api`, `employee-impl`, `holiday-api`, `holiday-impl`, `audit`, `passwordless-api`, `passwordless-impl`)
@@ -43,10 +53,12 @@ lazy val `employee-impl` = (project in file("employee-impl"))
       pac4jHttp,
       pac4jJwt,
       lagomPac4j,
-      akkaDiscovery
+      akkaDiscoveryServiceLocator,
+      akkaDiscoveryKubernetesApi
     )
   )
   .settings(lagomForkedTestSettings)
+  .settings(dockerSettings)
   .dependsOn(`employee-api`)
 
 lazy val `holiday-api` = (project in file("holiday-api"))
