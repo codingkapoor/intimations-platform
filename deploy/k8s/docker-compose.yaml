@@ -1,0 +1,12 @@
+employee:
+  image: codingkapoor/employee-impl:latest
+  container_name: employee-impl
+  environment:
+    - "JAVA_OPTS=-Xms256m -Xmx256m -Dconfig.resource=prod-application.conf"
+    - "APPLICATION_SECRET=qwerty1234"
+    - "MYSQL_URL=jdbc:mysql://localhost/intimations_employee_schema"
+    - "MYSQL_USERNAME=codingkapoor"
+    - "MYSQL_PASSWORD=codingkapoor"
+    - "REQUIRED_CONTACT_POINT_NR=1"
+  ports:
+    - "53823:53823"
