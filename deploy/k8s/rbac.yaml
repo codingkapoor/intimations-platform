@@ -16,7 +16,6 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: default
-    namespace: intimations
 roleRef:
   kind: Role
   name: pod-reader
