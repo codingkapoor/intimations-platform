@@ -29,7 +29,17 @@ version in ThisBuild ~= (_.replace('+', '-'))
 dynver in ThisBuild ~= (_.replace('+', '-'))
 
 lazy val `intimations` = (project in file("."))
-  .aggregate(`employee-api`, `employee-impl`, `holiday-api`, `holiday-impl`, `audit`, `passwordless-api`, `passwordless-impl`)
+  .aggregate(`employee-api`, `employee-impl`, `holiday-api`, `holiday-impl`, `audit`, `passwordless-api`, `passwordless-impl`, `notifier-api`, `notifier-impl`)
+
+lazy val `common` = (project in file("common"))
+  .enablePlugins(LagomScala)
+  .settings(
+    libraryDependencies ++= Seq(
+      macwire,
+      courier,
+    )
+  )
+  .settings(lagomForkedTestSettings)
 
 lazy val `employee-api` = (project in file("employee-api"))
   .settings(
@@ -80,24 +90,14 @@ lazy val `holiday-impl` = (project in file("holiday-impl"))
       scalaTest,
       pac4jHttp,
       pac4jJwt,
-      lagomPac4j
+      lagomPac4j,
+      akkaDiscoveryServiceLocator,
+      akkaDiscoveryKubernetesApi
     )
   )
   .settings(lagomForkedTestSettings)
+  .settings(dockerSettings)
   .dependsOn(`holiday-api`, `employee-api`)
-
-lazy val `audit` = (project in file("audit"))
-  .enablePlugins(LagomScala)
-  .settings(
-    libraryDependencies ++= Seq(
-      lagomScaladslTestKit,
-      lagomScaladslKafkaClient,
-      macwire,
-      scalaTest
-    )
-  )
-  .settings(lagomForkedTestSettings)
-  .dependsOn(`employee-api`)
 
 lazy val `passwordless-api` = (project in file("passwordless-api"))
   .settings(
@@ -116,10 +116,13 @@ lazy val `passwordless-impl` = (project in file("passwordless-impl"))
       lagomScaladslKafkaClient,
       macwire,
       scalaTest,
-      mysql
+      mysql,
+      akkaDiscoveryServiceLocator,
+      akkaDiscoveryKubernetesApi
     )
   )
   .settings(lagomForkedTestSettings)
+  .settings(dockerSettings)
   .dependsOn(`passwordless-api`, `employee-api`, `common`)
 
 lazy val `notifier-api` = (project in file("notifier-api"))
@@ -143,21 +146,27 @@ lazy val `notifier-impl` = (project in file("notifier-impl"))
       expoServerSdk,
       pac4jHttp,
       pac4jJwt,
-      lagomPac4j
+      lagomPac4j,
+      akkaDiscoveryServiceLocator,
+      akkaDiscoveryKubernetesApi
     )
   )
   .settings(lagomForkedTestSettings)
+  .settings(dockerSettings)
   .dependsOn(`notifier-api`, `employee-api`, `common`)
 
-lazy val `common` = (project in file("common"))
+lazy val `audit` = (project in file("audit"))
   .enablePlugins(LagomScala)
   .settings(
     libraryDependencies ++= Seq(
+      lagomScaladslTestKit,
+      lagomScaladslKafkaClient,
       macwire,
-      courier,
+      scalaTest
     )
   )
   .settings(lagomForkedTestSettings)
+  .dependsOn(`employee-api`)
 
 lagomServiceGatewayAddress in ThisBuild := "0.0.0.0"
 
