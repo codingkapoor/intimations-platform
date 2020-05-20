@@ -9,7 +9,15 @@ spec:
   rules:
     - http:
         paths:
-          - path: /
+          - path: /api/employees
             backend:
-              serviceName: hello-cluster-ip-service
+              serviceName: employee-cluster-ip-service
               servicePort: 80
+          - path: /api/passwordless
+              backend:
+                serviceName: passwordless-cluster-ip-service
+                servicePort: 80
+          - path: /api/holidays
+              backend:
+                serviceName: holiday-cluster-ip-service
+                servicePort: 80
