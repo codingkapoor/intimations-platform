@@ -37,8 +37,8 @@ spec:
                 secretKeyRef:
                   name: intimations-mysql-secret
                   key: password
-             - name: CASSANDRA_CONTACT_POINT
-               value: cassandra-cluster-ip-service
+            - name: CASSANDRA_CONTACT_POINT
+              value: cassandra-cluster-ip-service
             - name: KAFKA_SERVICE_NAME
               value: "_broker._tcp.kafka.intimations.svc.cluster.local"
             - name: REQUIRED_CONTACT_POINT_NR
