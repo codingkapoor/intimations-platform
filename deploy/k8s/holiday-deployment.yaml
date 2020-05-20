@@ -1,20 +1,21 @@
 apiVersion: "apps/v1"
 kind: Deployment
 metadata:
-  name: employee
+  name: holiday-deployment
+  namespace: intimations
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: employee
+      component: holiday
   template:
     metadata:
       labels:
-        app: employee
+        component: holiday
     spec:
       containers:
-        - name: employee
-          image: "codingkapoor/employee-impl:latest"
+        - name: holiday
+          image: "codingkapoor/holiday-impl:latest"
           imagePullPolicy: Never
           env:
             - name: JAVA_OPTS
@@ -22,22 +23,22 @@ spec:
             - name: APPLICATION_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: employee-application-secret
+                  name: intimations-application-secret
                   key: secret
             - name: MYSQL_URL
-              value: "jdbc:mysql://10.0.2.2/intimations_employee_schema"
+              value: "jdbc:mysql://mysql-cluster-ip-service/intimations_holiday_schema"
             - name: MYSQL_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: mysql-employee-secret
+                  name: intimations-mysql-secret
                   key: username
             - name: MYSQL_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mysql-employee-secret
+                  name: intimations-mysql-secret
                   key: password
             - name: KAFKA_SERVICE_NAME
-              value: "_clients._tcp.strimzi-kafka-brokers"
+              value: "_broker._tcp.kafka.intimations.svc.cluster.local"
             - name: REQUIRED_CONTACT_POINT_NR
               value: "1"
           ports:
@@ -57,16 +58,3 @@ spec:
             periodSeconds: 10
             failureThreshold: 10
             initialDelaySeconds: 20
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: employee
-spec:
-  ports:
-    - name: http
-      port: 80
-      targetPort: 9000
-  selector:
-    app: employee
-  type: LoadBalancer

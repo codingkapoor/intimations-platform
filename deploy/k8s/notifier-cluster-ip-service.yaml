@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: notifier-cluster-ip-service
+  namespace: intimations
+spec:
+  type: ClusterIP
+  selector:
+    component: notifier
+  ports:
+    - name: http
+      port: 80
+      targetPort: 49785

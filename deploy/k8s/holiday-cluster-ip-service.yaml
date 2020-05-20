@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: holiday-cluster-ip-service
+  namespace: intimations
+spec:
+  type: ClusterIP
+  selector:
+    component: holiday
+  ports:
+    - name: http
+      port: 80
+      targetPort: 53358
