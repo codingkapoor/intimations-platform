@@ -1,254 +1,87 @@
-2020-05-17 13:07:27,051 [INFO] from akka.event.slf4j.Slf4jLogger in employee-impl-application-akka.actor.default-dispatcher-2 - Slf4jLogger started
-2020-05-17 13:07:27,109 [INFO] from akka.remote.Remoting in employee-impl-application-akka.actor.default-dispatcher-2 - Starting remoting
-2020-05-17 13:07:27,446 [INFO] from akka.remote.Remoting in employee-impl-application-akka.actor.default-dispatcher-2 - Remoting started; listening on addresses :[akka.tcp://employee-impl-application@127.0.0.1:46201]
-2020-05-17 13:07:27,453 [INFO] from akka.remote.Remoting in employee-impl-application-akka.actor.default-dispatcher-2 - Remoting now listens on addresses: [akka.tcp://employee-impl-application@127.0.0.1:46201]
-2020-05-17 13:07:27,518 [INFO] from akka.cluster.Cluster(akka://employee-impl-application) in employee-impl-application-akka.actor.default-dispatcher-2 - Cluster Node [akka.tcp://employee-impl-application@127.0.0.1:46201] - Starting up, Akka version [2.5.22] ...
-2020-05-17 13:07:27,624 [INFO] from akka.cluster.Cluster(akka://employee-impl-application) in employee-impl-application-akka.actor.default-dispatcher-4 - Cluster Node [akka.tcp://employee-impl-application@127.0.0.1:46201] - Registered cluster JMX MBean [akka:type=Cluster,port=46201]
-2020-05-17 13:07:27,624 [INFO] from akka.cluster.Cluster(akka://employee-impl-application) in employee-impl-application-akka.actor.default-dispatcher-4 - Cluster Node [akka.tcp://employee-impl-application@127.0.0.1:46201] - Started up successfully
-2020-05-17 13:07:27,734 [INFO] from akka.cluster.Cluster(akka://employee-impl-application) in employee-impl-application-akka.actor.default-dispatcher-2 - Cluster Node [akka.tcp://employee-impl-application@127.0.0.1:46201] - No seed-nodes configured, manual cluster join required, see https://doc.akka.io/docs/akka/current/cluster-usage.html#joining-to-seed-nodes
-2020-05-17 13:07:29,505 [INFO] from play.api.db.DefaultDBApi in pool-35-thread-3 - Database [default] initialized at jdbc:mysql://localhost/intimations_employee_schema
-2020-05-17 13:07:29,544 [INFO] from application in pool-35-thread-3 - Creating Pool for datasource 'default'
-2020-05-17 13:07:29,574 [INFO] from com.zaxxer.hikari.HikariDataSource in pool-35-thread-3 - HikariPool-5 - Starting...
-2020-05-17 13:07:29,676 [INFO] from com.zaxxer.hikari.HikariDataSource in pool-35-thread-3 - HikariPool-5 - Start completed.
-2020-05-17 13:07:29,699 [INFO] from play.api.db.HikariCPConnectionPool in pool-35-thread-3 - datasource [default] bound to JNDI as DefaultDS
-2020-05-17 13:07:31,259 [INFO] from akka.cluster.Cluster(akka://employee-impl-application) in employee-impl-application-akka.actor.default-dispatcher-18 - Cluster Node [akka.tcp://employee-impl-application@127.0.0.1:46201] - Node [akka.tcp://employee-impl-application@127.0.0.1:46201] is JOINING itself (with roles [dc-default]) and forming new cluster
-2020-05-17 13:07:31,285 [INFO] from akka.cluster.Cluster(akka://employee-impl-application) in employee-impl-application-akka.actor.default-dispatcher-3 - Cluster Node [akka.tcp://employee-impl-application@127.0.0.1:46201] - is the new leader among reachable nodes (more leaders may exist)
-2020-05-17 13:07:31,304 [INFO] from akka.cluster.Cluster(akka://employee-impl-application) in employee-impl-application-akka.actor.default-dispatcher-2 - Cluster Node [akka.tcp://employee-impl-application@127.0.0.1:46201] - Leader is moving node [akka.tcp://employee-impl-application@127.0.0.1:46201] to [Up]
-2020-05-17 13:07:31,394 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-2 - Singleton manager starting singleton actor [akka://employee-impl-application/user/jdbcCreateTables-singleton/singleton]
-2020-05-17 13:07:31,406 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-2 - Singleton manager starting singleton actor [akka://employee-impl-application/system/sharding/kafkaProducer-employeeCoordinator/singleton]
-2020-05-17 13:07:31,407 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-2 - Singleton manager starting singleton actor [akka://employee-impl-application/user/slickOffsetStorePrepare-singleton/singleton]
-2020-05-17 13:07:31,407 [INFO] from com.lightbend.lagom.internal.persistence.cluster.ClusterStartupTaskActor in employee-impl-application-akka.actor.default-dispatcher-2 - Executing cluster start task jdbcCreateTables.
-2020-05-17 13:07:31,407 [INFO] from com.lightbend.lagom.internal.persistence.cluster.ClusterStartupTaskActor in employee-impl-application-akka.actor.default-dispatcher-2 - Executing cluster start task slickOffsetStorePrepare.
-2020-05-17 13:07:31,411 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-5 - ClusterSingletonManager state change [Start -> Oldest]
-2020-05-17 13:07:31,411 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-5 - ClusterSingletonManager state change [Start -> Oldest]
-2020-05-17 13:07:31,412 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-3 - ClusterSingletonManager state change [Start -> Oldest]
-2020-05-17 13:07:31,474 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-2 - Singleton manager starting singleton actor [akka://employee-impl-application/system/sharding/EmployeePersistenceEntityCoordinator/singleton]
-2020-05-17 13:07:31,475 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-2 - ClusterSingletonManager state change [Start -> Oldest]
-2020-05-17 13:07:31,513 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-2 - Singleton manager starting singleton actor [akka://employee-impl-application/user/readSideGlobalPrepare-EmployeeEventProcessor-singleton/singleton]
-2020-05-17 13:07:31,513 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-2 - ClusterSingletonManager state change [Start -> Oldest]
-2020-05-17 13:07:31,514 [INFO] from com.lightbend.lagom.internal.persistence.cluster.ClusterStartupTaskActor in employee-impl-application-akka.actor.default-dispatcher-2 - Executing cluster start task readSideGlobalPrepare-EmployeeEventProcessor.
-2020-05-17 13:07:31,535 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-15 - Singleton manager starting singleton actor [akka://employee-impl-application/system/sharding/EmployeeEventProcessorCoordinator/singleton]
-2020-05-17 13:07:31,535 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-15 - ClusterSingletonManager state change [Start -> Oldest]
-2020-05-17 13:07:32,125 [INFO] from com.lightbend.lagom.internal.persistence.cluster.ClusterStartupTaskActor in employee-impl-application-akka.actor.default-dispatcher-2 - Cluster start task slickOffsetStorePrepare done.
-2020-05-17 13:07:32,323 [INFO] from com.lightbend.lagom.internal.persistence.cluster.ClusterStartupTaskActor in employee-impl-application-akka.actor.default-dispatcher-15 - Cluster start task jdbcCreateTables done.
-2020-05-17 13:07:32,338 [INFO] from akka.cluster.singleton.ClusterSingletonProxy in employee-impl-application-akka.actor.default-dispatcher-15 - Singleton identified at [akka://employee-impl-application/user/slickOffsetStorePrepare-singleton/singleton]
-2020-05-17 13:07:32,348 [INFO] from akka.cluster.singleton.ClusterSingletonProxy in employee-impl-application-akka.actor.default-dispatcher-2 - Singleton identified at [akka://employee-impl-application/user/jdbcCreateTables-singleton/singleton]
-2020-05-17 13:07:32,460 [INFO] from com.lightbend.lagom.internal.persistence.cluster.ClusterStartupTaskActor in employee-impl-application-akka.actor.default-dispatcher-5 - Cluster start task readSideGlobalPrepare-EmployeeEventProcessor done.
-2020-05-17 13:07:32,576 [INFO] from akka.cluster.singleton.ClusterSingletonProxy in employee-impl-application-akka.actor.default-dispatcher-16 - Singleton identified at [akka://employee-impl-application/user/readSideGlobalPrepare-EmployeeEventProcessor-singleton/singleton]
-2020-05-17 13:07:33,552 [INFO] from play.api.Play in pool-35-thread-3 - Application started (Dev) (no global state)
-2020-05-17 13:15:59,750 [INFO] from org.pac4j.core.profile.ProfileHelper in employee-impl-application-akka.actor.default-dispatcher-15 - Building user profile based on typedId: 129
-2020-05-17 13:15:59,829 [INFO] from com.codingkapoor.employee.impl.persistence.write.EmployeePersistenceEntity in employee-impl-application-akka.actor.default-dispatcher-15 - EmployeePersistenceEntity at state = None received AddEmployee command.
-2020-05-17 13:16:12,597 [INFO] from com.codingkapoor.employee.impl.persistence.read.EmployeeEventProcessor in employee-impl-application-akka.actor.default-dispatcher-16 - EmployeeEventProcessor received EmployeeAdded event.
-2020-05-17 13:25:12,575 [INFO] from org.pac4j.core.profile.ProfileHelper in employee-impl-application-akka.actor.default-dispatcher-2 - Building user profile based on typedId: 128
-2020-05-17 13:25:13,424 [INFO] from org.pac4j.core.profile.ProfileHelper in employee-impl-application-akka.actor.default-dispatcher-17 - Building user profile based on typedId: 128
-2020-05-17 13:26:25,324 [INFO] from org.pac4j.core.profile.ProfileHelper in employee-impl-application-akka.actor.default-dispatcher-15 - Building user profile based on typedId: 129
-2020-05-17 13:26:25,362 [INFO] from com.codingkapoor.employee.impl.persistence.write.EmployeePersistenceEntity in employee-impl-application-akka.actor.default-dispatcher-4 - EmployeePersistenceEntity at state = None received AddEmployee command.
-2020-05-17 13:26:36,592 [INFO] from com.codingkapoor.employee.impl.persistence.read.EmployeeEventProcessor in employee-impl-application-akka.actor.default-dispatcher-3 - EmployeeEventProcessor received EmployeeAdded event.
-2020-05-17 13:28:43,376 [INFO] from org.pac4j.core.profile.ProfileHelper in employee-impl-application-akka.actor.default-dispatcher-5 - Building user profile based on typedId: 128
-2020-05-17 13:28:47,524 [INFO] from org.pac4j.core.profile.ProfileHelper in employee-impl-application-akka.actor.default-dispatcher-2 - Building user profile based on typedId: 128
-2020-05-17 13:28:51,485 [INFO] from org.pac4j.core.profile.ProfileHelper in employee-impl-internal-dev-mode-akka.actor.default-dispatcher-6 - Building user profile based on typedId: 128
-2020-05-17 13:33:27,758 [INFO] from org.pac4j.core.profile.ProfileHelper in employee-impl-application-akka.actor.default-dispatcher-3 - Building user profile based on typedId: 12
-2020-05-17 13:33:27,918 [INFO] from org.pac4j.core.profile.ProfileHelper in employee-impl-application-akka.actor.default-dispatcher-3 - Building user profile based on typedId: 12
-2020-05-17 13:34:26,143 [INFO] from org.pac4j.core.profile.ProfileHelper in employee-impl-application-akka.actor.default-dispatcher-16 - Building user profile based on typedId: 12
-2020-05-17 13:34:36,111 [INFO] from org.pac4j.core.profile.ProfileHelper in employee-impl-application-akka.actor.default-dispatcher-2 - Building user profile based on typedId: 128
-2020-05-17 13:34:39,248 [INFO] from org.pac4j.core.profile.ProfileHelper in employee-impl-application-akka.actor.default-dispatcher-18 - Building user profile based on typedId: 12
-2020-05-17 13:35:18,440 [INFO] from org.pac4j.core.profile.ProfileHelper in employee-impl-application-akka.actor.default-dispatcher-18 - Building user profile based on typedId: 128
-2020-05-17 13:35:18,510 [INFO] from com.codingkapoor.employee.impl.persistence.write.EmployeePersistenceEntity in employee-impl-application-akka.actor.default-dispatcher-18 - EmployeePersistenceEntity at state = Some(EmployeeState(128,Shivam Kapoor,M,2017-11-16,None,Sr. Big Data Developer,PYKRP00452140000000087,ContactInfo(+91-9663006554,mail@shivamkapoor.com),Location(Bangalore,Karnataka,India),Leaves(11.0,0.0,6.0,0.0),List(Employee, Admin),None,None,Leaves(0.0,0.0,0.0,0.0))) received CreateIntimation command.
-2020-05-17 13:35:22,649 [INFO] from org.pac4j.core.profile.ProfileHelper in employee-impl-application-akka.actor.default-dispatcher-2 - Building user profile based on typedId: 12
-2020-05-17 13:35:22,673 [INFO] from com.codingkapoor.employee.impl.persistence.write.EmployeePersistenceEntity in employee-impl-application-akka.actor.default-dispatcher-18 - EmployeePersistenceEntity at state = Some(EmployeeState(12,Rishi Saxena,M,2015-08-03,None,Product Manager,PYKRP00452140000000087,ContactInfo(+91-9663006554,rishisaxen@gmail.com),Location(Bangalore,Karnataka,India),Leaves(8.0,0.0,3.0,0.0),List(Employee, Admin),None,None,Leaves(0.0,0.0,0.0,0.0))) received CreateIntimation command.
-2020-05-17 13:35:28,568 [INFO] from org.pac4j.core.profile.ProfileHelper in employee-impl-application-akka.actor.default-dispatcher-15 - Building user profile based on typedId: 128
-2020-05-17 13:35:30,592 [INFO] from com.codingkapoor.employee.impl.persistence.read.EmployeeEventProcessor in employee-impl-application-akka.actor.default-dispatcher-15 - EmployeeEventProcessor received IntimationCreated event.
-2020-05-17 13:35:30,639 [INFO] from com.codingkapoor.employee.impl.persistence.read.EmployeeEventProcessor in employee-impl-application-akka.actor.default-dispatcher-15 - EmployeeEventProcessor received EmployeeUpdated event.
-2020-05-17 13:35:32,508 [INFO] from org.pac4j.core.profile.ProfileHelper in employee-impl-application-akka.actor.default-dispatcher-4 - Building user profile based on typedId: 128
-2020-05-17 13:35:33,594 [INFO] from com.codingkapoor.employee.impl.persistence.read.EmployeeEventProcessor in employee-impl-application-akka.actor.default-dispatcher-17 - EmployeeEventProcessor received IntimationCreated event.
-2020-05-17 13:35:33,625 [INFO] from com.codingkapoor.employee.impl.persistence.read.EmployeeEventProcessor in employee-impl-application-akka.actor.default-dispatcher-17 - EmployeeEventProcessor received EmployeeUpdated event.
-2020-05-17 13:35:36,195 [INFO] from org.pac4j.core.profile.ProfileHelper in employee-impl-application-akka.actor.default-dispatcher-17 - Building user profile based on typedId: 128
-2020-05-17 13:38:08,689 [INFO] from org.pac4j.core.profile.ProfileHelper in employee-impl-application-akka.actor.default-dispatcher-5 - Building user profile based on typedId: 128
-2020-05-17 13:38:48,776 [INFO] from org.pac4j.core.profile.ProfileHelper in employee-impl-application-akka.actor.default-dispatcher-4 - Building user profile based on typedId: 128
-2020-05-17 13:41:36,021 [INFO] from org.pac4j.core.profile.ProfileHelper in employee-impl-application-akka.actor.default-dispatcher-4 - Building user profile based on typedId: 12
-2020-05-17 13:41:51,173 [INFO] from org.pac4j.core.profile.ProfileHelper in employee-impl-application-akka.actor.default-dispatcher-3 - Building user profile based on typedId: 128
-2020-05-17 13:43:09,579 [INFO] from play.core.server.AkkaHttpServer in employee-impl-internal-dev-mode-shutdown-hook-1 - Stopping server...
-2020-05-17 13:43:09,584 [ERROR] from com.datastax.driver.core.ControlConnection in cluster3-reconnection-0 - [Control connection] Cannot connect to any host, scheduling retry in 1000 milliseconds
-2020-05-17 13:43:09,585 [ERROR] from com.datastax.driver.core.ControlConnection in cluster2-reconnection-0 - [Control connection] Cannot connect to any host, scheduling retry in 1000 milliseconds
-2020-05-17 13:43:09,623 [ERROR] from com.datastax.driver.core.ControlConnection in cluster1-reconnection-0 - [Control connection] Cannot connect to any host, scheduling retry in 1000 milliseconds
-2020-05-17 13:43:09,669 [WARN] from org.apache.kafka.clients.NetworkClient in kafka-producer-network-thread | /system/sharding/kafkaProducer-employee/singleton/singleton/producer - [Producer clientId=/system/sharding/kafkaProducer-employee/singleton/singleton/producer] Connection to node 0 (omkara/127.0.1.1:9092) could not be established. Broker may not be available.
-2020-05-17 13:43:09,770 [WARN] from org.apache.kafka.clients.NetworkClient in kafka-producer-network-thread | /system/sharding/kafkaProducer-employee/singleton/singleton/producer - [Producer clientId=/system/sharding/kafkaProducer-employee/singleton/singleton/producer] Connection to node 0 (omkara/127.0.1.1:9092) could not be established. Broker may not be available.
-2020-05-17 13:43:09,900 [INFO] from com.zaxxer.hikari.HikariDataSource in shutdownExecutor - HikariPool-5 - Shutdown initiated...
-2020-05-17 13:43:09,978 [INFO] from com.zaxxer.hikari.HikariDataSource in shutdownExecutor - HikariPool-5 - Shutdown completed.
-2020-05-17 13:43:09,982 [WARN] from akka.stream.scaladsl.RestartWithBackoffSource in employee-impl-application-akka.actor.default-dispatcher-4 - Restarting graph due to failure. stack_trace: 
-java.util.concurrent.ExecutionException: com.datastax.driver.core.exceptions.NoHostAvailableException: All host(s) tried for query failed (tried: /127.0.0.1:4000 (com.datastax.driver.core.exceptions.ConnectionException: [/127.0.0.1:4000] Write attempt on defunct connection))
-	at com.google.common.util.concurrent.AbstractFuture.getDoneValue(AbstractFuture.java:552)
-	at com.google.common.util.concurrent.AbstractFuture.get(AbstractFuture.java:513)
-	at akka.persistence.cassandra.package$$anon$1.$anonfun$run$1(package.scala:18)
-	at scala.util.Try$.apply(Try.scala:213)
-	at akka.persistence.cassandra.package$$anon$1.run(package.scala:18)
-	at akka.dispatch.TaskInvocation.run(AbstractDispatcher.scala:40)
-	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
-	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
-	at java.lang.Thread.run(Thread.java:748)
-Caused by: com.datastax.driver.core.exceptions.NoHostAvailableException: All host(s) tried for query failed (tried: /127.0.0.1:4000 (com.datastax.driver.core.exceptions.ConnectionException: [/127.0.0.1:4000] Write attempt on defunct connection))
-	at com.datastax.driver.core.RequestHandler.reportNoMoreHosts(RequestHandler.java:265)
-	at com.datastax.driver.core.RequestHandler.access$1200(RequestHandler.java:62)
-	at com.datastax.driver.core.RequestHandler$SpeculativeExecution.findNextHostAndQuery(RequestHandler.java:357)
-	at com.datastax.driver.core.RequestHandler$SpeculativeExecution$1.onSuccess(RequestHandler.java:403)
-	at com.datastax.driver.core.RequestHandler$SpeculativeExecution$1.onSuccess(RequestHandler.java:384)
-	at com.google.common.util.concurrent.Futures$CallbackListener.run(Futures.java:1076)
-	at com.google.common.util.concurrent.DirectExecutor.execute(DirectExecutor.java:30)
-	at com.google.common.util.concurrent.ImmediateFuture.addListener(ImmediateFuture.java:39)
-	at com.google.common.util.concurrent.Futures.addCallback(Futures.java:1051)
-	at com.datastax.driver.core.GuavaCompatibility.addCallback(GuavaCompatibility.java:112)
-	at com.datastax.driver.core.GuavaCompatibility.addCallback(GuavaCompatibility.java:100)
-	at com.datastax.driver.core.RequestHandler$SpeculativeExecution.query(RequestHandler.java:382)
-	at com.datastax.driver.core.RequestHandler$SpeculativeExecution.findNextHostAndQuery(RequestHandler.java:341)
-	at com.datastax.driver.core.RequestHandler.startNewExecution(RequestHandler.java:138)
-	at com.datastax.driver.core.RequestHandler.sendRequest(RequestHandler.java:120)
-	at com.datastax.driver.core.SessionManager.execute(SessionManager.java:700)
-	at com.datastax.driver.core.SessionManager.executeAsync(SessionManager.java:144)
-	at akka.persistence.cassandra.query.EventsByTagFetcher.preStart(EventsByTagFetcher.scala:86)
-	at akka.actor.Actor.aroundPreStart(Actor.scala:550)
-	at akka.actor.Actor.aroundPreStart$(Actor.scala:550)
-	at akka.persistence.cassandra.query.EventsByTagFetcher.aroundPreStart(EventsByTagFetcher.scala:50)
-	at akka.actor.ActorCell.create(ActorCell.scala:674)
-	at akka.actor.ActorCell.invokeAll$1(ActorCell.scala:545)
-	at akka.actor.ActorCell.systemInvoke(ActorCell.scala:567)
-	at akka.dispatch.Mailbox.processAllSystemMessages(Mailbox.scala:293)
-	at akka.dispatch.Mailbox.run(Mailbox.scala:228)
-	... 3 more
-
-2020-05-17 13:43:09,984 [INFO] from application in shutdownExecutor - Shutting down connection pool.
-2020-05-17 13:43:10,026 [WARN] from org.apache.kafka.clients.NetworkClient in kafka-producer-network-thread | /system/sharding/kafkaProducer-employee/singleton/singleton/producer - [Producer clientId=/system/sharding/kafkaProducer-employee/singleton/singleton/producer] Connection to node 0 (omkara/127.0.1.1:9092) could not be established. Broker may not be available.
-2020-05-17 13:43:10,301 [ERROR] from akka.cluster.sharding.PersistentShardCoordinator in employee-impl-application-akka.actor.default-dispatcher-4 - Failed to persist event type [akka.cluster.sharding.ShardCoordinator$Internal$ShardHomeDeallocated] with sequence number [4] for persistenceId [/sharding/EmployeePersistenceEntityCoordinator].
-java.util.concurrent.ExecutionException: com.datastax.driver.core.exceptions.NoHostAvailableException: All host(s) tried for query failed (no host was tried)
-	at com.google.common.util.concurrent.AbstractFuture.getDoneValue(AbstractFuture.java:552)
-	at com.google.common.util.concurrent.AbstractFuture.get(AbstractFuture.java:513)
-	at akka.persistence.cassandra.package$ListenableFutureConverter$$anon$2.$anonfun$run$2(package.scala:25)
-	at scala.util.Try$.apply(Try.scala:213)
-	at akka.persistence.cassandra.package$ListenableFutureConverter$$anon$2.run(package.scala:25)
-	at akka.dispatch.TaskInvocation.run(AbstractDispatcher.scala:40)
-	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
-	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
-	at java.lang.Thread.run(Thread.java:748)
-Caused by: com.datastax.driver.core.exceptions.NoHostAvailableException: All host(s) tried for query failed (no host was tried)
-	at com.datastax.driver.core.RequestHandler.reportNoMoreHosts(RequestHandler.java:265)
-	at com.datastax.driver.core.RequestHandler.access$1200(RequestHandler.java:62)
-	at com.datastax.driver.core.RequestHandler$SpeculativeExecution.findNextHostAndQuery(RequestHandler.java:357)
-	at com.datastax.driver.core.RequestHandler.startNewExecution(RequestHandler.java:138)
-	at com.datastax.driver.core.RequestHandler.sendRequest(RequestHandler.java:120)
-	at com.datastax.driver.core.SessionManager.execute(SessionManager.java:700)
-	at com.datastax.driver.core.SessionManager.executeAsync(SessionManager.java:144)
-	at akka.persistence.cassandra.session.scaladsl.CassandraSession.$anonfun$executeWrite$1(CassandraSession.scala:264)
-	at scala.concurrent.Future.$anonfun$flatMap$1(Future.scala:307)
-	at scala.concurrent.impl.Promise.$anonfun$transformWith$1(Promise.scala:41)
-	at scala.concurrent.impl.CallbackRunnable.run(Promise.scala:64)
-	at akka.dispatch.BatchingExecutor$AbstractBatch.processBatch(BatchingExecutor.scala:55)
-	at akka.dispatch.BatchingExecutor$BlockableBatch.$anonfun$run$1(BatchingExecutor.scala:92)
-	at scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23)
-	at scala.concurrent.BlockContext$.withBlockContext(BlockContext.scala:85)
-	at akka.dispatch.BatchingExecutor$BlockableBatch.run(BatchingExecutor.scala:92)
-	... 4 common frames omitted
-2020-05-17 13:43:10,306 [ERROR] from akka.cluster.sharding.PersistentShardCoordinator in employee-impl-application-akka.actor.default-dispatcher-4 - Failed to persist event type [akka.cluster.sharding.ShardCoordinator$Internal$ShardHomeDeallocated] with sequence number [3] for persistenceId [/sharding/EmployeeEventProcessorCoordinator].
-java.util.concurrent.ExecutionException: com.datastax.driver.core.exceptions.NoHostAvailableException: All host(s) tried for query failed (no host was tried)
-	at com.google.common.util.concurrent.AbstractFuture.getDoneValue(AbstractFuture.java:552)
-	at com.google.common.util.concurrent.AbstractFuture.get(AbstractFuture.java:513)
-	at akka.persistence.cassandra.package$ListenableFutureConverter$$anon$2.$anonfun$run$2(package.scala:25)
-	at scala.util.Try$.apply(Try.scala:213)
-	at akka.persistence.cassandra.package$ListenableFutureConverter$$anon$2.run(package.scala:25)
-	at akka.dispatch.TaskInvocation.run(AbstractDispatcher.scala:40)
-	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
-	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
-	at java.lang.Thread.run(Thread.java:748)
-Caused by: com.datastax.driver.core.exceptions.NoHostAvailableException: All host(s) tried for query failed (no host was tried)
-	at com.datastax.driver.core.RequestHandler.reportNoMoreHosts(RequestHandler.java:265)
-	at com.datastax.driver.core.RequestHandler.access$1200(RequestHandler.java:62)
-	at com.datastax.driver.core.RequestHandler$SpeculativeExecution.findNextHostAndQuery(RequestHandler.java:357)
-	at com.datastax.driver.core.RequestHandler.startNewExecution(RequestHandler.java:138)
-	at com.datastax.driver.core.RequestHandler.sendRequest(RequestHandler.java:120)
-	at com.datastax.driver.core.SessionManager.execute(SessionManager.java:700)
-	at com.datastax.driver.core.SessionManager.executeAsync(SessionManager.java:144)
-	at akka.persistence.cassandra.session.scaladsl.CassandraSession.$anonfun$executeWrite$1(CassandraSession.scala:264)
-	at scala.concurrent.Future.$anonfun$flatMap$1(Future.scala:307)
-	at scala.concurrent.impl.Promise.$anonfun$transformWith$1(Promise.scala:41)
-	at scala.concurrent.impl.CallbackRunnable.run(Promise.scala:64)
-	at akka.dispatch.BatchingExecutor$AbstractBatch.processBatch(BatchingExecutor.scala:55)
-	at akka.dispatch.BatchingExecutor$BlockableBatch.$anonfun$run$1(BatchingExecutor.scala:92)
-	at scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23)
-	at scala.concurrent.BlockContext$.withBlockContext(BlockContext.scala:85)
-	at akka.dispatch.BatchingExecutor$BlockableBatch.run(BatchingExecutor.scala:92)
-	... 4 common frames omitted
-2020-05-17 13:43:10,310 [ERROR] from akka.cluster.sharding.PersistentShardCoordinator in employee-impl-application-akka.actor.default-dispatcher-4 - Failed to persist event type [akka.cluster.sharding.ShardCoordinator$Internal$ShardHomeDeallocated] with sequence number [3] for persistenceId [/sharding/kafkaProducer-employeeCoordinator].
-java.util.concurrent.ExecutionException: com.datastax.driver.core.exceptions.NoHostAvailableException: All host(s) tried for query failed (no host was tried)
-	at com.google.common.util.concurrent.AbstractFuture.getDoneValue(AbstractFuture.java:552)
-	at com.google.common.util.concurrent.AbstractFuture.get(AbstractFuture.java:513)
-	at akka.persistence.cassandra.package$ListenableFutureConverter$$anon$2.$anonfun$run$2(package.scala:25)
-	at scala.util.Try$.apply(Try.scala:213)
-	at akka.persistence.cassandra.package$ListenableFutureConverter$$anon$2.run(package.scala:25)
-	at akka.dispatch.TaskInvocation.run(AbstractDispatcher.scala:40)
-	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
-	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
-	at java.lang.Thread.run(Thread.java:748)
-Caused by: com.datastax.driver.core.exceptions.NoHostAvailableException: All host(s) tried for query failed (no host was tried)
-	at com.datastax.driver.core.RequestHandler.reportNoMoreHosts(RequestHandler.java:265)
-	at com.datastax.driver.core.RequestHandler.access$1200(RequestHandler.java:62)
-	at com.datastax.driver.core.RequestHandler$SpeculativeExecution.findNextHostAndQuery(RequestHandler.java:357)
-	at com.datastax.driver.core.RequestHandler.startNewExecution(RequestHandler.java:138)
-	at com.datastax.driver.core.RequestHandler.sendRequest(RequestHandler.java:120)
-	at com.datastax.driver.core.SessionManager.execute(SessionManager.java:700)
-	at com.datastax.driver.core.SessionManager.executeAsync(SessionManager.java:144)
-	at akka.persistence.cassandra.session.scaladsl.CassandraSession.$anonfun$executeWrite$1(CassandraSession.scala:264)
-	at scala.concurrent.Future.$anonfun$flatMap$1(Future.scala:307)
-	at scala.concurrent.impl.Promise.$anonfun$transformWith$1(Promise.scala:41)
-	at scala.concurrent.impl.CallbackRunnable.run(Promise.scala:64)
-	at akka.dispatch.BatchingExecutor$AbstractBatch.processBatch(BatchingExecutor.scala:55)
-	at akka.dispatch.BatchingExecutor$BlockableBatch.$anonfun$run$1(BatchingExecutor.scala:92)
-	at scala.runtime.java8.JFunction0$mcV$sp.apply(JFunction0$mcV$sp.java:23)
-	at scala.concurrent.BlockContext$.withBlockContext(BlockContext.scala:85)
-	at akka.dispatch.BatchingExecutor$BlockableBatch.run(BatchingExecutor.scala:92)
-	... 4 common frames omitted
-2020-05-17 13:43:10,310 [INFO] from akka.cluster.Cluster(akka://employee-impl-application) in employee-impl-application-akka.actor.default-dispatcher-4 - Cluster Node [akka.tcp://employee-impl-application@127.0.0.1:46201] - Marked address [akka.tcp://employee-impl-application@127.0.0.1:46201] as [Leaving]
-2020-05-17 13:43:10,310 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-4 - Exited [akka.tcp://employee-impl-application@127.0.0.1:46201]
-2020-05-17 13:43:10,311 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-4 - Exited [akka.tcp://employee-impl-application@127.0.0.1:46201]
-2020-05-17 13:43:10,311 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-4 - Exited [akka.tcp://employee-impl-application@127.0.0.1:46201]
-2020-05-17 13:43:10,311 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-4 - Exited [akka.tcp://employee-impl-application@127.0.0.1:46201]
-2020-05-17 13:43:10,311 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-4 - Exited [akka.tcp://employee-impl-application@127.0.0.1:46201]
-2020-05-17 13:43:10,311 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-4 - Exited [akka.tcp://employee-impl-application@127.0.0.1:46201]
-2020-05-17 13:43:10,312 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-4 - Oldest observed OldestChanged: [akka.tcp://employee-impl-application@127.0.0.1:46201 -> None]
-2020-05-17 13:43:10,312 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-4 - Oldest observed OldestChanged: [akka.tcp://employee-impl-application@127.0.0.1:46201 -> None]
-2020-05-17 13:43:10,312 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-4 - Oldest observed OldestChanged: [akka.tcp://employee-impl-application@127.0.0.1:46201 -> None]
-2020-05-17 13:43:10,312 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-4 - Oldest observed OldestChanged: [akka.tcp://employee-impl-application@127.0.0.1:46201 -> None]
-2020-05-17 13:43:10,312 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-4 - Oldest observed OldestChanged: [akka.tcp://employee-impl-application@127.0.0.1:46201 -> None]
-2020-05-17 13:43:10,312 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-4 - Oldest observed OldestChanged: [akka.tcp://employee-impl-application@127.0.0.1:46201 -> None]
-2020-05-17 13:43:10,312 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-4 - ClusterSingletonManager state change [Oldest -> WasOldest]
-2020-05-17 13:43:10,312 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-4 - ClusterSingletonManager state change [Oldest -> WasOldest]
-2020-05-17 13:43:10,312 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-4 - ClusterSingletonManager state change [Oldest -> WasOldest]
-2020-05-17 13:43:10,312 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-4 - ClusterSingletonManager state change [Oldest -> WasOldest]
-2020-05-17 13:43:10,313 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-4 - ClusterSingletonManager state change [Oldest -> WasOldest]
-2020-05-17 13:43:10,313 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-4 - ClusterSingletonManager state change [Oldest -> WasOldest]
-2020-05-17 13:43:10,585 [ERROR] from com.datastax.driver.core.ControlConnection in cluster2-reconnection-0 - [Control connection] Cannot connect to any host, scheduling retry in 2000 milliseconds
-2020-05-17 13:43:10,585 [ERROR] from com.datastax.driver.core.ControlConnection in cluster3-reconnection-0 - [Control connection] Cannot connect to any host, scheduling retry in 2000 milliseconds
-2020-05-17 13:43:10,624 [ERROR] from com.datastax.driver.core.ControlConnection in cluster1-reconnection-0 - [Control connection] Cannot connect to any host, scheduling retry in 2000 milliseconds
-2020-05-17 13:43:10,698 [INFO] from akka.cluster.Cluster(akka://employee-impl-application) in employee-impl-application-akka.actor.default-dispatcher-2 - Cluster Node [akka.tcp://employee-impl-application@127.0.0.1:46201] - Leader is moving node [akka.tcp://employee-impl-application@127.0.0.1:46201] to [Exiting]
-2020-05-17 13:43:11,289 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-3 - Singleton manager stopping singleton actor [akka://employee-impl-application/system/sharding/EmployeeEventProcessorCoordinator/singleton]
-2020-05-17 13:43:11,290 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-17 - Singleton manager stopping singleton actor [akka://employee-impl-application/user/jdbcCreateTables-singleton/singleton]
-2020-05-17 13:43:11,290 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-17 - Singleton manager stopping singleton actor [akka://employee-impl-application/user/slickOffsetStorePrepare-singleton/singleton]
-2020-05-17 13:43:11,291 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-16 - ClusterSingletonManager state change [WasOldest -> Stopping]
-2020-05-17 13:43:11,291 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-16 - ClusterSingletonManager state change [WasOldest -> Stopping]
-2020-05-17 13:43:11,291 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-16 - Singleton actor [akka://employee-impl-application/user/jdbcCreateTables-singleton/singleton] was terminated
-2020-05-17 13:43:11,292 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-3 - Singleton manager stopping singleton actor [akka://employee-impl-application/user/readSideGlobalPrepare-EmployeeEventProcessor-singleton/singleton]
-2020-05-17 13:43:11,292 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-3 - ClusterSingletonManager state change [WasOldest -> Stopping]
-2020-05-17 13:43:11,293 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-4 - ClusterSingletonManager state change [WasOldest -> Stopping]
-2020-05-17 13:43:11,297 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-16 - Singleton manager stopping singleton actor [akka://employee-impl-application/system/sharding/EmployeePersistenceEntityCoordinator/singleton]
-2020-05-17 13:43:11,297 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-16 - ClusterSingletonManager state change [WasOldest -> Stopping]
-2020-05-17 13:43:11,297 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-16 - Singleton manager stopping singleton actor [akka://employee-impl-application/system/sharding/kafkaProducer-employeeCoordinator/singleton]
-2020-05-17 13:43:11,297 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-16 - ClusterSingletonManager state change [WasOldest -> Stopping]
-2020-05-17 13:43:11,299 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-4 - Singleton actor [akka://employee-impl-application/system/sharding/kafkaProducer-employeeCoordinator/singleton] was terminated
-2020-05-17 13:43:11,301 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-4 - Singleton actor [akka://employee-impl-application/system/sharding/EmployeePersistenceEntityCoordinator/singleton] was terminated
-2020-05-17 13:43:11,302 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-3 - Singleton actor [akka://employee-impl-application/system/sharding/EmployeeEventProcessorCoordinator/singleton] was terminated
-2020-05-17 13:43:11,303 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-3 - Singleton actor [akka://employee-impl-application/user/slickOffsetStorePrepare-singleton/singleton] was terminated
-2020-05-17 13:43:11,303 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-17 - Singleton actor [akka://employee-impl-application/user/readSideGlobalPrepare-EmployeeEventProcessor-singleton/singleton] was terminated
-2020-05-17 13:43:11,325 [INFO] from akka.cluster.Cluster(akka://employee-impl-application) in employee-impl-application-akka.actor.default-dispatcher-16 - Cluster Node [akka.tcp://employee-impl-application@127.0.0.1:46201] - Exiting completed
-2020-05-17 13:43:11,334 [INFO] from akka.cluster.Cluster(akka://employee-impl-application) in employee-impl-application-akka.actor.default-dispatcher-16 - Cluster Node [akka.tcp://employee-impl-application@127.0.0.1:46201] - Shutting down...
-2020-05-17 13:43:11,336 [INFO] from akka.cluster.Cluster(akka://employee-impl-application) in employee-impl-application-akka.actor.default-dispatcher-3 - Cluster Node [akka.tcp://employee-impl-application@127.0.0.1:46201] - Successfully shut down
-2020-05-17 13:43:11,369 [INFO] from akka.remote.RemoteActorRefProvider$RemotingTerminator in employee-impl-application-akka.actor.default-dispatcher-15 - Shutting down remote daemon.
-2020-05-17 13:43:11,373 [INFO] from akka.remote.RemoteActorRefProvider$RemotingTerminator in employee-impl-application-akka.actor.default-dispatcher-15 - Remote daemon shut down; proceeding with flushing remote transports.
-2020-05-17 13:43:11,431 [INFO] from akka.remote.Remoting in employee-impl-application-akka.actor.default-dispatcher-5 - Remoting shut down
-2020-05-17 13:43:11,431 [INFO] from akka.remote.RemoteActorRefProvider$RemotingTerminator in employee-impl-application-akka.actor.default-dispatcher-5 - Remoting shut down.
+2020-05-26 01:21:15,738 [INFO] from akka.event.slf4j.Slf4jLogger in employee-impl-application-akka.actor.default-dispatcher-5 - Slf4jLogger started
+2020-05-26 01:21:15,769 [INFO] from akka.remote.Remoting in employee-impl-application-akka.actor.default-dispatcher-5 - Starting remoting
+2020-05-26 01:21:16,136 [INFO] from akka.remote.Remoting in employee-impl-application-akka.actor.default-dispatcher-5 - Remoting started; listening on addresses :[akka.tcp://employee-impl-application@127.0.0.1:33117]
+2020-05-26 01:21:16,138 [INFO] from akka.remote.Remoting in employee-impl-application-akka.actor.default-dispatcher-5 - Remoting now listens on addresses: [akka.tcp://employee-impl-application@127.0.0.1:33117]
+2020-05-26 01:21:16,174 [INFO] from akka.cluster.Cluster(akka://employee-impl-application) in employee-impl-application-akka.actor.default-dispatcher-5 - Cluster Node [akka.tcp://employee-impl-application@127.0.0.1:33117] - Starting up, Akka version [2.5.22] ...
+2020-05-26 01:21:16,258 [INFO] from akka.cluster.Cluster(akka://employee-impl-application) in employee-impl-application-akka.actor.default-dispatcher-3 - Cluster Node [akka.tcp://employee-impl-application@127.0.0.1:33117] - Registered cluster JMX MBean [akka:type=Cluster,port=33117]
+2020-05-26 01:21:16,261 [INFO] from akka.cluster.Cluster(akka://employee-impl-application) in employee-impl-application-akka.actor.default-dispatcher-3 - Cluster Node [akka.tcp://employee-impl-application@127.0.0.1:33117] - Started up successfully
+2020-05-26 01:21:16,340 [INFO] from akka.cluster.Cluster(akka://employee-impl-application) in employee-impl-application-akka.actor.default-dispatcher-3 - Cluster Node [akka.tcp://employee-impl-application@127.0.0.1:33117] - No seed-nodes configured, manual cluster join required, see https://doc.akka.io/docs/akka/current/cluster-usage.html#joining-to-seed-nodes
+2020-05-26 01:21:17,047 [INFO] from play.api.db.DefaultDBApi in pool-8-thread-1 - Database [default] initialized at jdbc:mysql://localhost/intimations_employee_schema
+2020-05-26 01:21:17,060 [INFO] from application in pool-8-thread-1 - Creating Pool for datasource 'default'
+2020-05-26 01:21:17,078 [INFO] from com.zaxxer.hikari.HikariDataSource in pool-8-thread-1 - HikariPool-1 - Starting...
+2020-05-26 01:21:17,108 [INFO] from com.zaxxer.hikari.HikariDataSource in pool-8-thread-1 - HikariPool-1 - Start completed.
+2020-05-26 01:21:17,124 [INFO] from play.api.db.HikariCPConnectionPool in pool-8-thread-1 - datasource [default] bound to JNDI as DefaultDS
+2020-05-26 01:21:18,152 [INFO] from akka.cluster.Cluster(akka://employee-impl-application) in employee-impl-application-akka.actor.default-dispatcher-17 - Cluster Node [akka.tcp://employee-impl-application@127.0.0.1:33117] - Node [akka.tcp://employee-impl-application@127.0.0.1:33117] is JOINING itself (with roles [dc-default]) and forming new cluster
+2020-05-26 01:21:18,158 [INFO] from akka.cluster.Cluster(akka://employee-impl-application) in employee-impl-application-akka.actor.default-dispatcher-7 - Cluster Node [akka.tcp://employee-impl-application@127.0.0.1:33117] - is the new leader among reachable nodes (more leaders may exist)
+2020-05-26 01:21:18,187 [INFO] from akka.cluster.Cluster(akka://employee-impl-application) in employee-impl-application-akka.actor.default-dispatcher-4 - Cluster Node [akka.tcp://employee-impl-application@127.0.0.1:33117] - Leader is moving node [akka.tcp://employee-impl-application@127.0.0.1:33117] to [Up]
+2020-05-26 01:21:18,252 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-3 - Singleton manager starting singleton actor [akka://employee-impl-application/system/sharding/kafkaProducer-employeeCoordinator/singleton]
+2020-05-26 01:21:18,254 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-3 - Singleton manager starting singleton actor [akka://employee-impl-application/user/slickOffsetStorePrepare-singleton/singleton]
+2020-05-26 01:21:18,254 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-3 - ClusterSingletonManager state change [Start -> Oldest]
+2020-05-26 01:21:18,255 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-17 - ClusterSingletonManager state change [Start -> Oldest]
+2020-05-26 01:21:18,255 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-17 - Singleton manager starting singleton actor [akka://employee-impl-application/user/jdbcCreateTables-singleton/singleton]
+2020-05-26 01:21:18,256 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-17 - ClusterSingletonManager state change [Start -> Oldest]
+2020-05-26 01:21:18,289 [INFO] from com.lightbend.lagom.internal.persistence.cluster.ClusterStartupTaskActor in employee-impl-application-akka.actor.default-dispatcher-7 - Executing cluster start task jdbcCreateTables.
+2020-05-26 01:21:18,289 [INFO] from com.lightbend.lagom.internal.persistence.cluster.ClusterStartupTaskActor in employee-impl-application-akka.actor.default-dispatcher-7 - Executing cluster start task slickOffsetStorePrepare.
+2020-05-26 01:21:18,334 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-2 - Singleton manager starting singleton actor [akka://employee-impl-application/system/sharding/EmployeePersistenceEntityCoordinator/singleton]
+2020-05-26 01:21:18,335 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-2 - ClusterSingletonManager state change [Start -> Oldest]
+2020-05-26 01:21:18,387 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-6 - Singleton manager starting singleton actor [akka://employee-impl-application/user/readSideGlobalPrepare-EmployeeEventProcessor-singleton/singleton]
+2020-05-26 01:21:18,393 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-6 - ClusterSingletonManager state change [Start -> Oldest]
+2020-05-26 01:21:18,394 [INFO] from com.lightbend.lagom.internal.persistence.cluster.ClusterStartupTaskActor in employee-impl-application-akka.actor.default-dispatcher-6 - Executing cluster start task readSideGlobalPrepare-EmployeeEventProcessor.
+2020-05-26 01:21:18,423 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-7 - Singleton manager starting singleton actor [akka://employee-impl-application/system/sharding/EmployeeEventProcessorCoordinator/singleton]
+2020-05-26 01:21:18,423 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-7 - ClusterSingletonManager state change [Start -> Oldest]
+2020-05-26 01:21:18,801 [INFO] from com.lightbend.lagom.internal.persistence.cluster.ClusterStartupTaskActor in employee-impl-application-akka.actor.default-dispatcher-2 - Cluster start task slickOffsetStorePrepare done.
+2020-05-26 01:21:18,840 [INFO] from com.lightbend.lagom.internal.persistence.cluster.ClusterStartupTaskActor in employee-impl-application-akka.actor.default-dispatcher-17 - Cluster start task jdbcCreateTables done.
+2020-05-26 01:21:19,221 [INFO] from akka.cluster.singleton.ClusterSingletonProxy in employee-impl-application-akka.actor.default-dispatcher-5 - Singleton identified at [akka://employee-impl-application/user/slickOffsetStorePrepare-singleton/singleton]
+2020-05-26 01:21:19,231 [INFO] from akka.cluster.singleton.ClusterSingletonProxy in employee-impl-application-akka.actor.default-dispatcher-18 - Singleton identified at [akka://employee-impl-application/user/jdbcCreateTables-singleton/singleton]
+2020-05-26 01:21:19,309 [INFO] from com.lightbend.lagom.internal.persistence.cluster.ClusterStartupTaskActor in employee-impl-application-akka.actor.default-dispatcher-17 - Cluster start task readSideGlobalPrepare-EmployeeEventProcessor done.
+2020-05-26 01:21:19,391 [INFO] from akka.cluster.singleton.ClusterSingletonProxy in employee-impl-application-akka.actor.default-dispatcher-2 - Singleton identified at [akka://employee-impl-application/user/readSideGlobalPrepare-EmployeeEventProcessor-singleton/singleton]
+2020-05-26 01:21:19,564 [INFO] from play.api.Play in pool-8-thread-1 - Application started (Dev) (no global state)
+2020-05-26 01:21:59,904 [INFO] from play.core.server.AkkaHttpServer in pool-34-thread-2 - Stopping server...
+2020-05-26 01:21:59,997 [INFO] from com.zaxxer.hikari.HikariDataSource in shutdownExecutor - HikariPool-1 - Shutdown initiated...
+2020-05-26 01:22:00,164 [INFO] from com.zaxxer.hikari.HikariDataSource in shutdownExecutor - HikariPool-1 - Shutdown completed.
+2020-05-26 01:22:00,166 [INFO] from application in shutdownExecutor - Shutting down connection pool.
+2020-05-26 01:22:00,345 [INFO] from akka.cluster.Cluster(akka://employee-impl-application) in employee-impl-application-akka.actor.default-dispatcher-2 - Cluster Node [akka.tcp://employee-impl-application@127.0.0.1:33117] - Marked address [akka.tcp://employee-impl-application@127.0.0.1:33117] as [Leaving]
+2020-05-26 01:22:00,346 [INFO] from akka.cluster.Cluster(akka://employee-impl-application) in employee-impl-application-akka.actor.default-dispatcher-2 - Cluster Node [akka.tcp://employee-impl-application@127.0.0.1:33117] - Leader is moving node [akka.tcp://employee-impl-application@127.0.0.1:33117] to [Exiting]
+2020-05-26 01:22:00,374 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-3 - Exited [akka.tcp://employee-impl-application@127.0.0.1:33117]
+2020-05-26 01:22:00,374 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-3 - Exited [akka.tcp://employee-impl-application@127.0.0.1:33117]
+2020-05-26 01:22:00,374 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-3 - Exited [akka.tcp://employee-impl-application@127.0.0.1:33117]
+2020-05-26 01:22:00,376 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-4 - Exited [akka.tcp://employee-impl-application@127.0.0.1:33117]
+2020-05-26 01:22:00,378 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-7 - Exited [akka.tcp://employee-impl-application@127.0.0.1:33117]
+2020-05-26 01:22:00,385 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-7 - Exited [akka.tcp://employee-impl-application@127.0.0.1:33117]
+2020-05-26 01:22:00,386 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-5 - Oldest observed OldestChanged: [akka.tcp://employee-impl-application@127.0.0.1:33117 -> None]
+2020-05-26 01:22:00,386 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-5 - Oldest observed OldestChanged: [akka.tcp://employee-impl-application@127.0.0.1:33117 -> None]
+2020-05-26 01:22:00,398 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-7 - Oldest observed OldestChanged: [akka.tcp://employee-impl-application@127.0.0.1:33117 -> None]
+2020-05-26 01:22:00,398 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-7 - Oldest observed OldestChanged: [akka.tcp://employee-impl-application@127.0.0.1:33117 -> None]
+2020-05-26 01:22:00,398 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-7 - ClusterSingletonManager state change [Oldest -> WasOldest]
+2020-05-26 01:22:00,400 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-3 - ClusterSingletonManager state change [Oldest -> WasOldest]
+2020-05-26 01:22:00,406 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-3 - Oldest observed OldestChanged: [akka.tcp://employee-impl-application@127.0.0.1:33117 -> None]
+2020-05-26 01:22:00,406 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-3 - Oldest observed OldestChanged: [akka.tcp://employee-impl-application@127.0.0.1:33117 -> None]
+2020-05-26 01:22:00,406 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-3 - ClusterSingletonManager state change [Oldest -> WasOldest]
+2020-05-26 01:22:00,406 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-3 - ClusterSingletonManager state change [Oldest -> WasOldest]
+2020-05-26 01:22:00,406 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-3 - ClusterSingletonManager state change [Oldest -> WasOldest]
+2020-05-26 01:22:00,406 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-3 - ClusterSingletonManager state change [Oldest -> WasOldest]
+2020-05-26 01:22:01,411 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-5 - Singleton manager stopping singleton actor [akka://employee-impl-application/system/sharding/EmployeePersistenceEntityCoordinator/singleton]
+2020-05-26 01:22:01,415 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-18 - Singleton manager stopping singleton actor [akka://employee-impl-application/user/readSideGlobalPrepare-EmployeeEventProcessor-singleton/singleton]
+2020-05-26 01:22:01,417 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-7 - Singleton manager stopping singleton actor [akka://employee-impl-application/user/slickOffsetStorePrepare-singleton/singleton]
+2020-05-26 01:22:01,421 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-7 - Singleton manager stopping singleton actor [akka://employee-impl-application/user/jdbcCreateTables-singleton/singleton]
+2020-05-26 01:22:01,422 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-7 - Singleton manager stopping singleton actor [akka://employee-impl-application/system/sharding/EmployeeEventProcessorCoordinator/singleton]
+2020-05-26 01:22:01,423 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-5 - Singleton manager stopping singleton actor [akka://employee-impl-application/system/sharding/kafkaProducer-employeeCoordinator/singleton]
+2020-05-26 01:22:01,423 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-5 - ClusterSingletonManager state change [WasOldest -> Stopping]
+2020-05-26 01:22:01,425 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-5 - Singleton actor [akka://employee-impl-application/system/sharding/EmployeePersistenceEntityCoordinator/singleton] was terminated
+2020-05-26 01:22:01,426 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-5 - ClusterSingletonManager state change [WasOldest -> Stopping]
+2020-05-26 01:22:01,426 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-5 - Singleton actor [akka://employee-impl-application/system/sharding/kafkaProducer-employeeCoordinator/singleton] was terminated
+2020-05-26 01:22:01,426 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-5 - ClusterSingletonManager state change [WasOldest -> Stopping]
+2020-05-26 01:22:01,427 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-5 - Singleton actor [akka://employee-impl-application/system/sharding/EmployeeEventProcessorCoordinator/singleton] was terminated
+2020-05-26 01:22:01,427 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-5 - ClusterSingletonManager state change [WasOldest -> Stopping]
+2020-05-26 01:22:01,427 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-5 - ClusterSingletonManager state change [WasOldest -> Stopping]
+2020-05-26 01:22:01,427 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-5 - Singleton actor [akka://employee-impl-application/user/jdbcCreateTables-singleton/singleton] was terminated
+2020-05-26 01:22:01,428 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-5 - Singleton actor [akka://employee-impl-application/user/readSideGlobalPrepare-EmployeeEventProcessor-singleton/singleton] was terminated
+2020-05-26 01:22:01,428 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-5 - ClusterSingletonManager state change [WasOldest -> Stopping]
+2020-05-26 01:22:01,428 [INFO] from akka.cluster.singleton.ClusterSingletonManager in employee-impl-application-akka.actor.default-dispatcher-5 - Singleton actor [akka://employee-impl-application/user/slickOffsetStorePrepare-singleton/singleton] was terminated
+2020-05-26 01:22:01,471 [INFO] from akka.cluster.Cluster(akka://employee-impl-application) in employee-impl-application-akka.actor.default-dispatcher-5 - Cluster Node [akka.tcp://employee-impl-application@127.0.0.1:33117] - Exiting completed
+2020-05-26 01:22:01,473 [INFO] from akka.cluster.Cluster(akka://employee-impl-application) in employee-impl-application-akka.actor.default-dispatcher-3 - Cluster Node [akka.tcp://employee-impl-application@127.0.0.1:33117] - Shutting down...
+2020-05-26 01:22:01,481 [INFO] from akka.cluster.Cluster(akka://employee-impl-application) in employee-impl-application-akka.actor.default-dispatcher-7 - Cluster Node [akka.tcp://employee-impl-application@127.0.0.1:33117] - Successfully shut down
+2020-05-26 01:22:01,507 [INFO] from akka.remote.RemoteActorRefProvider$RemotingTerminator in employee-impl-application-akka.actor.default-dispatcher-18 - Shutting down remote daemon.
+2020-05-26 01:22:01,510 [INFO] from akka.remote.RemoteActorRefProvider$RemotingTerminator in employee-impl-application-akka.actor.default-dispatcher-17 - Remote daemon shut down; proceeding with flushing remote transports.
+2020-05-26 01:22:01,589 [INFO] from akka.remote.Remoting in employee-impl-application-akka.actor.default-dispatcher-17 - Remoting shut down
+2020-05-26 01:22:01,589 [INFO] from akka.remote.RemoteActorRefProvider$RemotingTerminator in employee-impl-application-akka.actor.default-dispatcher-17 - Remoting shut down.
