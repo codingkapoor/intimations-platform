@@ -4,8 +4,8 @@ metadata:
   name: mysql
 spec:
   ports:
-    - name: "cql"
+    - name: "mysql"
       protocol: "TCP"
-      port: 9042
-      targetPort: 9042
+      port: 3306
+      targetPort: 3306
       nodePort: 0
