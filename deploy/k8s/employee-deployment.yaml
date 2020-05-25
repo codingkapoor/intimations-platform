@@ -39,7 +39,7 @@ spec:
             - name: CASSANDRA_CONTACT_POINT
               value: cassandra
             - name: KAFKA_SERVICE_NAME
-              value: "_broker._tcp.kafka.intimations.svc.cluster.local"
+              value: "_broker._tcp.kafka.default.svc.cluster.local"
             - name: REQUIRED_CONTACT_POINT_NR
               value: "1"
           ports:

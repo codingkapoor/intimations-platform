@@ -170,4 +170,4 @@ lazy val `audit` = (project in file("audit"))
 
 lagomServiceGatewayAddress in ThisBuild := "0.0.0.0"
 
-//lagomCassandraCleanOnStart in ThisBuild := true
+lagomCassandraCleanOnStart in ThisBuild := true

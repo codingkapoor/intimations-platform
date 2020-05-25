@@ -45,6 +45,34 @@ CREATE TABLE `requests` (
   CONSTRAINT `INTIMATION_FK` FOREIGN KEY (`INTIMATION_ID`) REFERENCES `intimations` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
+CREATE TABLE `journal` (
+  `ordering` bigint NOT NULL AUTO_INCREMENT,
+  `deleted` tinyint(1) NOT NULL DEFAULT '0',
+  `persistence_id` varchar(255) NOT NULL,
+  `sequence_number` bigint NOT NULL,
+  `message` blob NOT NULL,
+  `tags` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`persistence_id`,`sequence_number`),
+  UNIQUE KEY `ordering` (`ordering`),
+  UNIQUE KEY `journal_ordering_idx` (`ordering`)
+);
+
+CREATE TABLE `read_side_offsets` (
+  `read_side_id` varchar(255) NOT NULL,
+  `tag` varchar(255) NOT NULL,
+  `sequence_offset` bigint DEFAULT NULL,
+  `time_uuid_offset` char(36) DEFAULT NULL,
+  PRIMARY KEY (`read_side_id`,`tag`)
+);
+
+CREATE TABLE `snapshot` (
+  `persistence_id` varchar(255) NOT NULL,
+  `sequence_number` bigint NOT NULL,
+  `created` bigint NOT NULL,
+  `snapshot` blob NOT NULL,
+  PRIMARY KEY (`persistence_id`,`sequence_number`)
+);
+
 CREATE DATABASE intimations_holiday_schema;
 
 USE intimations_holiday_schema;
@@ -53,6 +81,26 @@ CREATE TABLE `holiday` (
   `DATE` date NOT NULL,
   `OCCASION` text NOT NULL,
   PRIMARY KEY (`DATE`)
+);
+
+CREATE TABLE `journal` (
+  `ordering` bigint NOT NULL AUTO_INCREMENT,
+  `deleted` tinyint(1) NOT NULL DEFAULT '0',
+  `persistence_id` varchar(255) NOT NULL,
+  `sequence_number` bigint NOT NULL,
+  `message` blob NOT NULL,
+  `tags` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`persistence_id`,`sequence_number`),
+  UNIQUE KEY `ordering` (`ordering`),
+  UNIQUE KEY `journal_ordering_idx` (`ordering`)
+);
+
+CREATE TABLE `snapshot` (
+  `persistence_id` varchar(255) NOT NULL,
+  `sequence_number` bigint NOT NULL,
+  `created` bigint NOT NULL,
+  `snapshot` blob NOT NULL,
+  PRIMARY KEY (`persistence_id`,`sequence_number`)
 );
 
 CREATE DATABASE intimations_notifier_schema;
@@ -64,6 +112,26 @@ CREATE TABLE `employees` (
   `EMP_NAME` text NOT NULL,
   `EXPO_TOKEN` text,
   PRIMARY KEY (`EMP_ID`)
+);
+
+CREATE TABLE `journal` (
+  `ordering` bigint NOT NULL AUTO_INCREMENT,
+  `deleted` tinyint(1) NOT NULL DEFAULT '0',
+  `persistence_id` varchar(255) NOT NULL,
+  `sequence_number` bigint NOT NULL,
+  `message` blob NOT NULL,
+  `tags` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`persistence_id`,`sequence_number`),
+  UNIQUE KEY `ordering` (`ordering`),
+  UNIQUE KEY `journal_ordering_idx` (`ordering`)
+);
+
+CREATE TABLE `snapshot` (
+  `persistence_id` varchar(255) NOT NULL,
+  `sequence_number` bigint NOT NULL,
+  `created` bigint NOT NULL,
+  `snapshot` blob NOT NULL,
+  PRIMARY KEY (`persistence_id`,`sequence_number`)
 );
 
 CREATE DATABASE intimations_passwordless_schema;
@@ -93,4 +161,24 @@ CREATE TABLE `refresh_tokens` (
   `EMAIL` varchar(254) NOT NULL,
   `CREATED_AT` text NOT NULL,
   PRIMARY KEY (`EMAIL`)
+);
+
+CREATE TABLE `journal` (
+  `ordering` bigint NOT NULL AUTO_INCREMENT,
+  `deleted` tinyint(1) NOT NULL DEFAULT '0',
+  `persistence_id` varchar(255) NOT NULL,
+  `sequence_number` bigint NOT NULL,
+  `message` blob NOT NULL,
+  `tags` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`persistence_id`,`sequence_number`),
+  UNIQUE KEY `ordering` (`ordering`),
+  UNIQUE KEY `journal_ordering_idx` (`ordering`)
+);
+
+CREATE TABLE `snapshot` (
+  `persistence_id` varchar(255) NOT NULL,
+  `sequence_number` bigint NOT NULL,
+  `created` bigint NOT NULL,
+  `snapshot` blob NOT NULL,
+  PRIMARY KEY (`persistence_id`,`sequence_number`)
 );
