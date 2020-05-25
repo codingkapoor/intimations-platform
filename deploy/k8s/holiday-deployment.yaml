@@ -7,11 +7,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      component: holiday
+      app: holiday
   template:
     metadata:
       labels:
-        component: holiday
+        app: holiday
     spec:
       containers:
         - name: holiday
