@@ -25,7 +25,7 @@ spec:
                   name: intimations-application-secret
                   key: secret
             - name: MYSQL_URL
-              value: "jdbc:mysql://mysql/intimations_holiday_schema"
+              value: "jdbc:mysql://mysql/intimations_notifier_schema"
             - name: MYSQL_USERNAME
               valueFrom:
                 secretKeyRef:
