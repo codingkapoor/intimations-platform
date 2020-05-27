@@ -20,3 +20,7 @@ spec:
             backend:
               serviceName: holiday-cluster-ip-service
               servicePort: 80
+          - path: /api/notifier
+            backend:
+              serviceName: notifier-cluster-ip-service
+              servicePort: 80
