@@ -77,7 +77,7 @@ CREATE DATABASE intimations_holiday_schema;
 
 USE intimations_holiday_schema;
 
-CREATE TABLE `holiday` (
+CREATE TABLE `holidays` (
   `DATE` date NOT NULL,
   `OCCASION` text NOT NULL,
   PRIMARY KEY (`DATE`)
