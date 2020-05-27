@@ -36,3 +36,22 @@ spec:
                 secretKeyRef:
                   name: intimations-mysql-secret
                   key: password
+            - name: REQUIRED_CONTACT_POINT_NR
+              value: "1"
+          ports:
+            - name: management
+              containerPort: 8558
+          readinessProbe:
+            httpGet:
+              path: "/ready"
+              port: management
+            periodSeconds: 10
+            failureThreshold: 10
+            initialDelaySeconds: 20
+          livenessProbe:
+            httpGet:
+              path: "/alive"
+              port: management
+            periodSeconds: 10
+            failureThreshold: 10
+            initialDelaySeconds: 20
