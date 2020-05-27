@@ -91,8 +91,7 @@ lazy val `holiday-impl` = (project in file("holiday-impl"))
       pac4jHttp,
       pac4jJwt,
       lagomPac4j,
-      akkaDiscoveryServiceLocator,
-      akkaDiscoveryKubernetesApi
+      akkaDiscoveryServiceLocator
     )
   )
   .settings(lagomForkedTestSettings)
