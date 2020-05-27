@@ -36,24 +36,3 @@ spec:
                 secretKeyRef:
                   name: intimations-mysql-secret
                   key: password
-            - name: KAFKA_SERVICE_NAME
-              value: "_broker._tcp.kafka.default.svc.cluster.local"
-            - name: REQUIRED_CONTACT_POINT_NR
-              value: "1"
-          ports:
-            - name: management
-              containerPort: 8558
-          readinessProbe:
-            httpGet:
-              path: "/ready"
-              port: management
-            periodSeconds: 10
-            failureThreshold: 10
-            initialDelaySeconds: 20
-          livenessProbe:
-            httpGet:
-              path: "/alive"
-              port: management
-            periodSeconds: 10
-            failureThreshold: 10
-            initialDelaySeconds: 20
