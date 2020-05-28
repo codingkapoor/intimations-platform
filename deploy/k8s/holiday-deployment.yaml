@@ -36,6 +36,16 @@ spec:
                 secretKeyRef:
                   name: intimations-mysql-secret
                   key: password
+            - name: ACCESS_SIGNATURE_PUBLIC_JWK
+              valueFrom:
+                secretKeyRef:
+                  name: intimations-signature-public-secret
+                  key: access-signature-public-jwk
+            - name: REFRESH_SIGNATURE_PUBLIC_JWK
+              valueFrom:
+                secretKeyRef:
+                  name: intimations-signature-public-secret
+                  key: refresh-signature-public-jwk
             - name: REQUIRED_CONTACT_POINT_NR
               value: "1"
           ports:
