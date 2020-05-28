@@ -15,7 +15,7 @@ spec:
       containers:
         - name: notifier
           image: "codingkapoor/notifier-impl:latest"
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           env:
             - name: JAVA_OPTS
               value: "-Xms256m -Xmx256m -Dconfig.resource=prod-application.conf"
