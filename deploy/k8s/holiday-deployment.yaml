@@ -1,0 +1,57 @@
+apiVersion: "apps/v1"
+kind: Deployment
+metadata:
+  name: holiday-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: holiday
+  template:
+    metadata:
+      labels:
+        app: holiday
+    spec:
+      containers:
+        - name: holiday
+          image: "codingkapoor/holiday-impl:latest"
+          imagePullPolicy: Never
+          env:
+            - name: JAVA_OPTS
+              value: "-Xms256m -Xmx256m -Dconfig.resource=prod-application.conf"
+            - name: APPLICATION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: intimations-application-secret
+                  key: secret
+            - name: MYSQL_URL
+              value: "jdbc:mysql://mysql/intimations_holiday_schema"
+            - name: MYSQL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: intimations-mysql-secret
+                  key: username
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: intimations-mysql-secret
+                  key: password
+            - name: REQUIRED_CONTACT_POINT_NR
+              value: "1"
+          ports:
+            - name: management
+              containerPort: 8558
+          readinessProbe:
+            httpGet:
+              path: "/ready"
+              port: management
+            periodSeconds: 10
+            failureThreshold: 10
+            initialDelaySeconds: 20
+          livenessProbe:
+            httpGet:
+              path: "/alive"
+              port: management
+            periodSeconds: 10
+            failureThreshold: 10
+            initialDelaySeconds: 20

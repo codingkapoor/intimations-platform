@@ -1,0 +1,26 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-service
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /api/employees
+            backend:
+              serviceName: employee-cluster-ip-service
+              servicePort: 80
+          - path: /api/passwordless
+            backend:
+              serviceName: passwordless-cluster-ip-service
+              servicePort: 80
+          - path: /api/holidays
+            backend:
+              serviceName: holiday-cluster-ip-service
+              servicePort: 80
+          - path: /api/notifier
+            backend:
+              serviceName: notifier-cluster-ip-service
+              servicePort: 80
