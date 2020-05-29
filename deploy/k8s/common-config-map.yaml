@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: common-config-map
+data:
+  java_opts: "-Xms256m -Xmx256m -Dconfig.resource=prod-application.conf"
+  mailer_smtp_interface: "mymail.myoutlookonline.com"
+  mailer_smtp_port: "587"
+  mailer_receivers: "shivam.kapoor@glassbeam.com,mailtoshivamk@gmail.com"
+  access_token_expiry_in_minutes: "46000"
+  refresh_token_expiry_in_months: "12"
+  otp_expiry_in_mintues: "1"
