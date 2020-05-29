@@ -18,24 +18,17 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: JAVA_OPTS
-              value: "-Xms256m -Xmx256m -Dconfig.resource=prod-application.conf"
+              valueFrom:
+                configMapKeyRef:
+                  name: common-config-map
+                  key: java_opts
             - name: APPLICATION_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: intimations-application-secret
+                  name: application-secret
                   key: secret
             - name: MYSQL_URL
               value: "jdbc:mysql://mysql/intimations_employee_schema"
-            - name: MYSQL_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: intimations-mysql-secret
-                  key: username
-            - name: MYSQL_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: intimations-mysql-secret
-                  key: password
             - name: CASSANDRA_CONTACT_POINT
               value: cassandra
             - name: KAFKA_SERVICE_NAME
@@ -60,10 +53,18 @@ spec:
             failureThreshold: 10
             initialDelaySeconds: 20
           volumeMounts:
-            - name: intimations-signature-public
-              mountPath: "/opt/conf"
+            - name: signature-public-secret-conf
+              mountPath: /opt/conf/signature-public-jwks.conf
+              subPath: signature-public-jwks.conf
+              readOnly: true
+            - name: mysql-secret-conf
+              mountPath: /opt/conf/mysql.conf
+              subPath: mysql.conf
               readOnly: true
       volumes:
-        - name: intimations-signature-public
+        - name: signature-public-secret-conf
           secret:
-            secretName: intimations-signature-public-secret
+            secretName: signature-public-secret
+        - name: mysql-secret-conf
+          secret:
+            secretName: mysql-secret

@@ -18,40 +18,32 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: JAVA_OPTS
-              value: "-Xms256m -Xmx256m -Dconfig.resource=prod-application.conf"
+              valueFrom:
+                configMapKeyRef:
+                  name: common-config-map
+                  key: java_opts
             - name: APPLICATION_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: intimations-application-secret
+                  name: application-secret
                   key: secret
             - name: MYSQL_URL
               value: "jdbc:mysql://mysql/intimations_notifier_schema"
-            - name: MYSQL_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: intimations-mysql-secret
-                  key: username
-            - name: MYSQL_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: intimations-mysql-secret
-                  key: password
             - name: MAILER_SMTP_INTERFACE
-              value: "mymail.myoutlookonline.com"
+              valueFrom:
+                configMapKeyRef:
+                  name: common-config-map
+                  key: mailer_smtp_interface
             - name: MAILER_SMTP_PORT
-              value: "587"
-            - name: MAILER_EMAIL
               valueFrom:
-                secretKeyRef:
-                  name: intimations-mailer-secret
-                  key: email
-            - name: MAILER_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: intimations-mailer-secret
-                  key: password
+                configMapKeyRef:
+                  name: common-config-map
+                  key: mailer_smtp_port
             - name: MAILER_RECEIVERS
-              value: "shivam.kapoor@glassbeam.com,mailtoshivamk@gmail.com"
+              valueFrom:
+                configMapKeyRef:
+                  name: common-config-map
+                  key: mailer_receivers
             - name: KAFKA_SERVICE_NAME
               value: "_broker._tcp.kafka.default.svc.cluster.local"
             - name: REQUIRED_CONTACT_POINT_NR
@@ -74,10 +66,25 @@ spec:
             failureThreshold: 10
             initialDelaySeconds: 20
           volumeMounts:
-            - name: intimations-signature-public
-              mountPath: "/opt/conf"
+            - name: signature-public-secret-conf
+              mountPath: /opt/conf/signature-public-jwks.conf
+              subPath: signature-public-jwks.conf
+              readOnly: true
+            - name: mysql-secret-conf
+              mountPath: /opt/conf/mysql.conf
+              subPath: mysql.conf
+              readOnly: true
+            - name: mailer-secret-conf
+              mountPath: /opt/conf/mailer.conf
+              subPath: mailer.conf
               readOnly: true
       volumes:
-        - name: intimations-signature-public
+        - name: signature-public-secret-conf
           secret:
-            secretName: intimations-signature-public-secret
+            secretName: signature-public-secret
+        - name: mysql-secret-conf
+          secret:
+            secretName: mysql-secret
+        - name: mailer-secret-conf
+          secret:
+            secretName: mailer-secret
