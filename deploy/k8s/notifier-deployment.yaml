@@ -73,3 +73,11 @@ spec:
             periodSeconds: 10
             failureThreshold: 10
             initialDelaySeconds: 20
+          volumeMounts:
+            - name: intimations-signature-public
+              mountPath: "/opt/conf"
+              readOnly: true
+      volumes:
+        - name: intimations-signature-public
+          secret:
+            secretName: intimations-signature-public-secret
