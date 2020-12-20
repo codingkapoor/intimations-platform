@@ -10,6 +10,7 @@ val playJsonDerivedCodecs = "org.julienrf" %% "play-json-derived-codecs" % "4.0.
 val scalaTest = "org.scalatest" %% "scalatest" % "3.0.4" % Test
 val nimbusJoseJwt = "com.nimbusds" % "nimbus-jose-jwt" % "6.0"
 val courier = "com.github.daddykotex" %% "courier" % "2.0.0"
+val play = "com.typesafe.play" %% "play" % "2.7.9"
 val lagomPac4j = "org.pac4j" %% "lagom-pac4j" % "2.0.0"
 val pac4jHttp = "org.pac4j" % "pac4j-http" % pac4jVersion
 val pac4jJwt = "org.pac4j" % "pac4j-jwt" % pac4jVersion
@@ -32,14 +33,13 @@ lazy val `intimations` = (project in file("."))
   .aggregate(`employee-api`, `employee-impl`, `holiday-api`, `holiday-impl`, `audit`, `passwordless-api`, `passwordless-impl`, `notifier-api`, `notifier-impl`)
 
 lazy val `common` = (project in file("common"))
-  .enablePlugins(LagomScala)
   .settings(
     libraryDependencies ++= Seq(
       macwire,
       courier,
+      play
     )
   )
-  .settings(lagomForkedTestSettings)
 
 lazy val `employee-api` = (project in file("employee-api"))
   .settings(
