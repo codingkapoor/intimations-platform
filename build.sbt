@@ -1,4 +1,4 @@
-organization in ThisBuild := "com.codingkapoor"
+organization in ThisBuild := "com.iamsmkr"
 
 scalaVersion in ThisBuild := "2.12.8"
 
